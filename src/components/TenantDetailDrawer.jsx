@@ -1,42 +1,21 @@
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-import { X, User, FileText, FileSpreadsheet, Edit, Trash2, Save } from 'lucide-react';
+import { X, Users, FileText, FileSpreadsheet, Trash2, Plus } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useAppData } from '../context/AppDataContext';
 import toast from 'react-hot-toast';
-import { useState, useEffect } from 'react';
 
-export default function TenantDetailDrawer({ isOpen, onClose, tenantId }) {
-  const { tenants, contracts, invoices, deleteTenant, updateTenant } = useAppData();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ phone: '', idCard: '', note: '' });
+export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
+  const { tenants, contracts, invoices, deleteTenant } = useAppData();
+  
+  if (!isOpen || !roomName) return null;
 
-  const tenant = tenants.find(t => t.id === tenantId);
+  const roomTenants = tenants.filter(t => t.room === roomName);
+  const contract = contracts.find(c => c.room.includes(roomName));
+  const roomInvoices = invoices.filter(i => i.room === roomName);
 
-  useEffect(() => {
-    if (tenant) {
-      setEditForm({ phone: tenant.phone || '', idCard: tenant.idCard || '', note: tenant.note || '' });
-    }
-  }, [tenant?.id]);
-
-  if (!isOpen || !tenant) return null;
-
-  const contract = contracts.find(c => c.tenantName === tenant.name);
-  const tenantInvoices = invoices.filter(i => i.tenant === tenant.name);
-
-  const handleEdit = () => {
-    if (isEditing) {
-      updateTenant(tenant.id, editForm);
-      toast.success('Đã lưu thông tin khách thuê!');
-      setIsEditing(false);
-    } else {
-      setIsEditing(true);
-    }
-  };
-
-  const handleDelete = () => {
-    if (confirm(`Bạn có chắc chắn muốn xóa khách hàng ${tenant.name}?`)) {
-      deleteTenant(tenant.id);
-      onClose();
+  const handleDeleteTenant = (id, name) => {
+    if (confirm(`Bạn có chắc chắn muốn xóa khách hàng ${name} khỏi phòng này?`)) {
+      deleteTenant(id);
       toast.success('Đã xóa khách thuê thành công!');
     }
   };
@@ -44,15 +23,14 @@ export default function TenantDetailDrawer({ isOpen, onClose, tenantId }) {
   return (
     <>
       <div className={`drawer-overlay ${isOpen ? 'open' : ''}`} onClick={onClose}></div>
-      <div className={`drawer-content ${isOpen ? 'open' : ''}`}>
+      <div className={`drawer-content ${isOpen ? 'open' : ''}`} style={{ width: '500px', maxWidth: '100vw' }}>
         
         {/* Header */}
         <div className="drawer-header">
           <div>
-            <h2 style={{ margin: '0 0 8px' }}>{tenant.name}</h2>
+            <h2 style={{ margin: '0 0 8px' }}>Phòng {roomName}</h2>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <StatusBadge status="occupied" text={`Phòng: ${tenant.room}`} />
-              <StatusBadge status="active" text={tenant.id} />
+              <StatusBadge status="occupied" text={`${roomTenants.length} Khách thuê`} />
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
@@ -63,54 +41,6 @@ export default function TenantDetailDrawer({ isOpen, onClose, tenantId }) {
         {/* Body */}
         <div className="drawer-body">
           
-          {/* Thông tin cá nhân */}
-          <div style={{ marginBottom: '32px' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
-              <User size={18} /> Thông tin Cá nhân
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Số điện thoại</div>
-                {isEditing ? (
-                  <input 
-                    type="text" 
-                    value={editForm.phone} 
-                    onChange={e => setEditForm({...editForm, phone: e.target.value})}
-                    style={{ width: '100%', padding: '8px', background: 'var(--bg-primary)', border: '1px solid var(--accent-primary)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{tenant.phone}</div>
-                )}
-              </div>
-              <div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>CCCD</div>
-                {isEditing ? (
-                  <input 
-                    type="text" 
-                    value={editForm.idCard} 
-                    onChange={e => setEditForm({...editForm, idCard: e.target.value})}
-                    style={{ width: '100%', padding: '8px', background: 'var(--bg-primary)', border: '1px solid var(--accent-primary)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{tenant.idCard}</div>
-                )}
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Ghi chú</div>
-                {isEditing ? (
-                  <input 
-                    type="text" 
-                    value={editForm.note} 
-                    onChange={e => setEditForm({...editForm, note: e.target.value})}
-                    style={{ width: '100%', padding: '8px', background: 'var(--bg-primary)', border: '1px solid var(--accent-primary)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
-                  />
-                ) : (
-                  <div style={{ fontWeight: '600' }}>{tenant.note || 'Không có ghi chú'}</div>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Hợp đồng */}
           <div style={{ marginBottom: '32px' }}>
             <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
@@ -136,14 +66,47 @@ export default function TenantDetailDrawer({ isOpen, onClose, tenantId }) {
             )}
           </div>
 
+          {/* Danh sách Khách Thuê */}
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <Users size={18} /> Khách đang cư trú
+              </h3>
+              <button onClick={() => toast.success('Đã mở form thêm khách mới!')} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}>
+                <Plus size={16} /> Thêm khách
+              </button>
+            </div>
+            
+            {roomTenants.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {roomTenants.map((t, idx) => (
+                  <div key={t.id} style={{ padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div style={{ fontWeight: '600', fontSize: '1.05rem' }}>{t.name} {idx === 0 && <span style={{ fontSize: '0.75rem', background: 'var(--status-occupied)', color: '#fff', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', fontWeight: 'normal' }}>Đại diện</span>}</div>
+                      <button onClick={() => handleDeleteTenant(t.id, t.name)} style={{ background: 'transparent', border: 'none', color: 'var(--status-overdue)', cursor: 'pointer' }} title="Xóa khách">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.85rem' }}>
+                      <div><span style={{ color: 'var(--text-secondary)' }}>SĐT:</span> {t.phone}</div>
+                      <div><span style={{ color: 'var(--text-secondary)' }}>CCCD:</span> {t.idCard}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>Phòng trống, không có khách.</div>
+            )}
+          </div>
+
           {/* Lịch sử Hóa đơn */}
           <div>
             <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
               <FileSpreadsheet size={18} /> Lịch sử Hóa đơn
             </h3>
-            {tenantInvoices.length > 0 ? (
+            {roomInvoices.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {tenantInvoices.map((inv, idx) => (
+                {roomInvoices.map((inv, idx) => (
                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px' }}>
                     <div>
                       <div style={{ fontWeight: '600', marginBottom: '4px' }}>{inv.id}</div>
@@ -161,22 +124,6 @@ export default function TenantDetailDrawer({ isOpen, onClose, tenantId }) {
             )}
           </div>
 
-        </div>
-
-        {/* Footer Actions */}
-        <div className="drawer-footer" style={{ display: 'flex', gap: '12px' }}>
-          {!isEditing && (
-            <button onClick={handleDelete} style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-overdue)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <Trash2 size={18} /> Xóa Khách
-            </button>
-          )}
-          <button onClick={handleEdit} style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            {isEditing ? (
-              <><Save size={18} /> Lưu Thay Đổi</>
-            ) : (
-              <><Edit size={18} /> Cập nhật Thông tin</>
-            )}
-          </button>
         </div>
       </div>
     </>

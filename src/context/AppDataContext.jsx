@@ -105,9 +105,9 @@ export const AppDataProvider = ({ children }) => {
     buildings: ['A', 'B', 'C'],
     floors: [1, 2, 3, 4],
     prices: {
-      A: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000 },
-      B: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000 },
-      C: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000 }
+      A: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000 },
+      B: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000 },
+      C: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000 }
     }
   };
   
@@ -119,7 +119,20 @@ export const AppDataProvider = ({ children }) => {
         stored.prices[b] = {
           electricityPrice: stored.electricityPrice || 3500,
           waterPrice: stored.waterPrice || 100000,
-          serviceFee: stored.serviceFee || 150000
+          serviceFee: stored.serviceFee || 150000,
+          baseRent: 30000000,
+          baseElectricityPrice: 2500,
+          baseWaterPrice: 50000
+        };
+      });
+    } else if (stored && stored.prices) {
+      // Ensure existing properties have base costs
+      Object.keys(stored.prices).forEach(b => {
+        stored.prices[b] = {
+          ...stored.prices[b],
+          baseRent: stored.prices[b].baseRent || 30000000,
+          baseElectricityPrice: stored.prices[b].baseElectricityPrice || 2500,
+          baseWaterPrice: stored.prices[b].baseWaterPrice || 50000
         };
       });
     }

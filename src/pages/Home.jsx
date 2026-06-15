@@ -8,15 +8,41 @@ import StatusBadge from '../components/StatusBadge';
 
 export default function Home() {
   const appData = useAppData();
-  const { rooms, invoices, tickets } = appData;
+  const { rooms, invoices, tickets, settings } = appData;
 
   const occupiedRooms = rooms.filter(r => r.status !== 'vacant').length;
   const occupancyRate = rooms.length > 0 ? Math.round((occupiedRooms / rooms.length) * 100) : 0;
   
   const totalRevenue = invoices.reduce((acc, inv) => acc + (parseInt(inv.amount.replace(/\./g, '')) || 0), 0);
-  const totalExpenses = ['reported', 'inProgress', 'resolved'].reduce((sum, col) => {
+  
+  const maintenanceCost = ['reported', 'inProgress', 'resolved'].reduce((sum, col) => {
     return sum + tickets[col].reduce((colSum, t) => colSum + (t.cost || 0), 0);
   }, 0);
+
+  const uniqueInvoiceMonths = new Set(invoices.map(inv => {
+    const m = inv.id.match(/INV-(\d{2})-(\d{4})/);
+    return m ? `${m[1]}-${m[2]}` : null;
+  }).filter(Boolean));
+
+  let totalBaseRent = 0;
+  uniqueInvoiceMonths.forEach(() => {
+    settings.buildings.forEach(b => {
+      totalBaseRent += (settings.prices?.[b]?.baseRent || 0);
+    });
+  });
+
+  let totalBaseUtilCost = 0;
+  invoices.forEach(inv => {
+    const room = rooms.find(r => r.name === inv.room);
+    const b = room?.building || 'A';
+    const p = settings.prices?.[b] || {};
+    inv.items?.forEach(item => {
+      if (item.name === 'Tiền điện') totalBaseUtilCost += (item.qty * (p.baseElectricityPrice || 0));
+      else if (item.name === 'Tiền nước') totalBaseUtilCost += (item.qty * (p.baseWaterPrice || 0));
+    });
+  });
+
+  const totalExpenses = maintenanceCost + totalBaseRent + totalBaseUtilCost;
 
   const revenueStr = (totalRevenue / 1000000).toFixed(1) + ' Tr';
   const expensesStr = (totalExpenses / 1000000).toFixed(1) + ' Tr';
@@ -45,7 +71,7 @@ export default function Home() {
     }, 0);
     
     // Sum expenses for this month/year
-    const exp = ['reported', 'inProgress', 'resolved'].reduce((s, col) => {
+    const mCost = ['reported', 'inProgress', 'resolved'].reduce((s, col) => {
       return s + tickets[col].reduce((cs, t) => {
         if (t.cost && t.date) {
           const parts = t.date.split('/');
@@ -54,6 +80,26 @@ export default function Home() {
         return cs;
       }, 0);
     }, 0);
+
+    const bRent = settings.buildings.reduce((sum, b) => sum + (settings.prices?.[b]?.baseRent || 0), 0);
+    
+    const monthInvoices = invoices.filter(inv => {
+      const m = inv.id.match(/INV-(\d{2})-(\d{4})/);
+      return m && parseInt(m[1]) === month && parseInt(m[2]) === year;
+    });
+
+    let bUtil = 0;
+    monthInvoices.forEach(inv => {
+      const room = rooms.find(r => r.name === inv.room);
+      const b = room?.building || 'A';
+      const p = settings.prices?.[b] || {};
+      inv.items?.forEach(item => {
+        if (item.name === 'Tiền điện') bUtil += (item.qty * (p.baseElectricityPrice || 0));
+        else if (item.name === 'Tiền nước') bUtil += (item.qty * (p.baseWaterPrice || 0));
+      });
+    });
+
+    const exp = mCost + (monthInvoices.length > 0 ? bRent : 0) + bUtil;
 
     return { name: label, revenue: Math.round(rev / 1000000 * 10) / 10, expenses: Math.round(exp / 1000000 * 10) / 10 };
   });
@@ -130,7 +176,7 @@ export default function Home() {
                   formatter={(val, name) => [`${val} Tr VNĐ`, name === 'revenue' ? 'Doanh thu' : 'Chi phí']}
                 />
                 <Legend formatter={(v) => v === 'revenue' ? 'Doanh thu' : 'Chi phí'} wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="revenue" name="revenue" fill="var(--accent-primary)" radius={[4,4,0,0]} maxBarSize={32} />
+                <Bar dataKey="revenue" name="revenue" fill="var(--status-occupied)" radius={[4,4,0,0]} maxBarSize={32} />
                 <Bar dataKey="expenses" name="expenses" fill="var(--status-overdue)" radius={[4,4,0,0]} maxBarSize={32} />
               </BarChart>
             </ResponsiveContainer>

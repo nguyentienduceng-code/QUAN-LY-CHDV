@@ -24,7 +24,7 @@ export default function Rooms() {
   // Filter rooms based on role and status
   let displayedRooms = user?.role === 'tenant' 
     ? rooms.filter(r => r.status === 'vacant') 
-    : rooms.filter(r => r.building === activeBuilding && r.floor === activeFloor);
+    : rooms.filter(r => r.building === activeBuilding);
   
   if (statusFilter !== 'all') {
     displayedRooms = displayedRooms.filter(r => r.status === statusFilter);
@@ -51,8 +51,10 @@ export default function Rooms() {
     if (!name) return;
     const price = prompt('Nhập Giá Thuê Cơ Bản (VNĐ):') || '4000000';
     const area = prompt('Nhập Diện Tích (m2):') || '25';
-    addRoom({ name, price: parseInt(price, 10), area: parseInt(area, 10), floor: activeFloor, building: activeBuilding });
-    toast.success(`Đã thêm phòng ${name} vào Nhà ${activeBuilding} - Tầng ${activeFloor}!`);
+    const floorMatch = name.match(/\d+/);
+    const floor = floorMatch ? Math.floor(parseInt(floorMatch[0], 10) / 100) : 1;
+    addRoom({ name, price: parseInt(price, 10), area: parseInt(area, 10), floor, building: activeBuilding });
+    toast.success(`Đã thêm phòng ${name} vào Nhà ${activeBuilding}!`);
   };
 
   const handleEditBuildings = (e) => {
@@ -124,34 +126,7 @@ export default function Rooms() {
                 </button>
               ))}
 
-              <div 
-                onClick={() => setIsFloorExpanded(!isFloorExpanded)}
-                style={{ fontWeight: '600', marginTop: '16px', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  Tầng {user?.role === 'manager' && <button onClick={handleEditFloors} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Tầng"><Edit3 size={14} /></button>}
-                </div>
-                {isFloorExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-              </div>
-              {isFloorExpanded && settings.floors.map(f => (
-                <button 
-                  key={f}
-                  onClick={() => setActiveFloor(f)}
-                  style={{
-                    padding: '10px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid',
-                    borderColor: activeFloor === f ? 'var(--accent-primary)' : 'var(--border-glass)',
-                    background: activeFloor === f ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                    color: activeFloor === f ? 'var(--accent-primary)' : 'var(--text-primary)',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'var(--transition)'
-                  }}
-                >
-                  Tầng {f}
-                </button>
-              ))}
+              {/* Removed Floor Filter */}
 
               <div 
                 onClick={() => setIsStatusExpanded(!isStatusExpanded)}
@@ -191,7 +166,7 @@ export default function Rooms() {
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 className="page-title" style={{ margin: 0 }}>
-            {user?.role === 'manager' ? `Sơ Đồ Tầng ${activeFloor} - Nhà ${activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
+            {user?.role === 'manager' ? `Sơ Đồ Tòa Nhà ${activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
           </h1>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {user?.role === 'manager' && (

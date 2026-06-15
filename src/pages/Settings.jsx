@@ -38,6 +38,9 @@ export default function Settings() {
           electricityPrice: Number(updated.prices[b].electricityPrice || 0),
           waterPrice: Number(updated.prices[b].waterPrice || 0),
           serviceFee: Number(updated.prices[b].serviceFee || 0),
+          baseRent: Number(updated.prices[b].baseRent || 0),
+          baseElectricityPrice: Number(updated.prices[b].baseElectricityPrice || 0),
+          baseWaterPrice: Number(updated.prices[b].baseWaterPrice || 0),
         };
       });
     }
@@ -83,43 +86,98 @@ export default function Settings() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <Zap size={16} /> Giá Điện (VNĐ/kWh)
-              </label>
-              <input 
-                type="number" 
-                name="electricityPrice" 
-                value={formData.prices?.[selectedBuilding]?.electricityPrice || ''} 
-                onChange={handlePriceChange} 
-                style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
-              />
+            {/* Giá Bán cho khách */}
+            <div style={{ padding: '16px', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Zap size={18} /> Đơn Giá Thu (Khách Thuê)
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    <Zap size={16} /> Giá Điện (VNĐ/kWh)
+                  </label>
+                  <input 
+                    type="number" 
+                    name="electricityPrice" 
+                    value={formData.prices?.[selectedBuilding]?.electricityPrice || ''} 
+                    onChange={handlePriceChange} 
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    <Droplets size={16} /> Giá Nước (VNĐ/người/tháng)
+                  </label>
+                  <input 
+                    type="number" 
+                    name="waterPrice" 
+                    value={formData.prices?.[selectedBuilding]?.waterPrice || ''} 
+                    onChange={handlePriceChange} 
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
+                  />
+                </div>
+                
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    <Shield size={16} /> Phí Dịch vụ (Rác, Wifi, Quản lý)
+                  </label>
+                  <input 
+                    type="number" 
+                    name="serviceFee" 
+                    value={formData.prices?.[selectedBuilding]?.serviceFee || ''} 
+                    onChange={handlePriceChange} 
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
+                  />
+                </div>
+              </div>
             </div>
-            
-            <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <Droplets size={16} /> Giá Nước (VNĐ/người/tháng)
-              </label>
-              <input 
-                type="number" 
-                name="waterPrice" 
-                value={formData.prices?.[selectedBuilding]?.waterPrice || ''} 
-                onChange={handlePriceChange} 
-                style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
-              />
-            </div>
-            
-            <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                <Shield size={16} /> Phí Dịch vụ (Rác, Wifi, Quản lý)
-              </label>
-              <input 
-                type="number" 
-                name="serviceFee" 
-                value={formData.prices?.[selectedBuilding]?.serviceFee || ''} 
-                onChange={handlePriceChange} 
-                style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
-              />
+
+            {/* Giá Nhập (Gốc) */}
+            <div style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--status-overdue)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Shield size={18} /> Đơn Giá Gốc (Chi phí trả chủ)
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    Giá thuê khoán trả chủ (VNĐ/Tháng)
+                  </label>
+                  <input 
+                    type="number" 
+                    name="baseRent" 
+                    value={formData.prices?.[selectedBuilding]?.baseRent || ''} 
+                    onChange={handlePriceChange} 
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    <Zap size={16} /> Giá Điện Gốc (VNĐ/kWh)
+                  </label>
+                  <input 
+                    type="number" 
+                    name="baseElectricityPrice" 
+                    value={formData.prices?.[selectedBuilding]?.baseElectricityPrice || ''} 
+                    onChange={handlePriceChange} 
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    <Droplets size={16} /> Giá Nước Gốc (VNĐ/người/tháng)
+                  </label>
+                  <input 
+                    type="number" 
+                    name="baseWaterPrice" 
+                    value={formData.prices?.[selectedBuilding]?.baseWaterPrice || ''} 
+                    onChange={handlePriceChange} 
+                    style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
