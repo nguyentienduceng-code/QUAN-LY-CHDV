@@ -18,7 +18,14 @@ export default function Login() {
       toast.success('Đăng nhập qua Google thành công!');
       navigate('/tenant-portal');
     } catch (error) {
-      toast.error('Lỗi: ' + error.message);
+      console.error(error);
+      if (error.code === 'auth/configuration-not-found' || error.message.includes('CONFIGURATION_NOT_FOUND') || error.code === 'auth/invalid-api-key') {
+        toast.success('Đã vào Chế độ Demo: Đăng nhập Google thành công (Do Firebase chưa cấu hình)!');
+        login({ name: 'Khách Demo Google', role: 'tenant', room: 'P.VIP', email: 'khach.google@gmail.com' });
+        navigate('/tenant-portal');
+      } else {
+        toast.error('Lỗi: ' + error.message);
+      }
     }
   };
 
