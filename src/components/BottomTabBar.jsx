@@ -1,21 +1,22 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Grid, Users, PenTool, FileSpreadsheet, UserCheck } from 'lucide-react';
+import { Home, Grid, Users, Wrench, FileText, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function BottomTabBar() {
   const { user } = useAuth();
 
   const managerNavItems = [
-    { path: '/', label: 'Trang chủ', icon: <Home size={22} /> },
-    { path: '/rooms', label: 'Phòng', icon: <Grid size={22} /> },
-    { path: '/finance', label: 'Quản lý', icon: <Users size={22} /> },
-    { path: '/maintenance', label: 'Bảo trì', icon: <PenTool size={22} /> },
+    { path: '/', label: 'Tổng quan', icon: <Home size={20} /> },
+    { path: '/rooms', label: 'Phòng', icon: <Grid size={20} /> },
+    { path: '/finance', label: 'Khách thuê', icon: <Users size={20} /> },
+    { path: '/invoices', label: 'Hóa đơn', icon: <FileText size={20} /> },
+    { path: '/maintenance', label: 'Bảo trì', icon: <Wrench size={20} /> },
   ];
 
   const tenantNavItems = [
-    { path: '/', label: 'Trang chủ', icon: <Home size={22} /> },
-    { path: '/invoices', label: 'Hóa đơn', icon: <FileSpreadsheet size={22} /> },
-    { path: '/rooms', label: 'Tìm phòng', icon: <UserCheck size={22} /> },
+    { path: '/', label: 'Trang chủ', icon: <Home size={20} /> },
+    { path: '/invoices', label: 'Hóa đơn', icon: <FileText size={20} /> },
+    { path: '/maintenance', label: 'Báo hỏng', icon: <Wrench size={20} /> },
   ];
 
   const navItems = user?.role === 'manager' ? managerNavItems : tenantNavItems;
@@ -28,6 +29,7 @@ export default function BottomTabBar() {
         <NavLink
           key={item.path}
           to={item.path}
+          end={item.path === '/'}
           className={({ isActive }) => `bottom-tab-item ${isActive ? 'active' : ''}`}
         >
           {item.icon}
