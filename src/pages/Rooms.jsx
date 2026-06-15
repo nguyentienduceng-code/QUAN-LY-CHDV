@@ -10,7 +10,7 @@ import { useAppData } from '../context/AppDataContext';
 
 export default function Rooms() {
   const { user } = useAuth();
-  const { rooms, addRoom, settings, setSettings } = useAppData();
+  const { rooms, addRoom, settings, setSettings, renameBuilding, addNewBuilding } = useAppData();
   const [activeBuilding, setActiveBuilding] = useState(settings.buildings[0] || 'A');
   const [activeFloor, setActiveFloor] = useState(settings.floors[0] || 1);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -116,31 +116,74 @@ export default function Rooms() {
                 style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  Nhà {user?.role === 'manager' && <button onClick={handleEditBuildings} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Nhà"><Edit3 size={14} /></button>}
+                  Danh Sách Tòa Nhà
                 </div>
                 {isBuildingExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </div>
-              {isBuildingExpanded && settings.buildings.map(b => (
-                <button 
-                  key={b}
-                  onClick={() => setActiveBuilding(b)}
-                  style={{
-                    padding: '10px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid',
-                    borderColor: activeBuilding === b ? 'var(--accent-primary)' : 'var(--border-glass)',
-                    background: activeBuilding === b ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                    color: activeBuilding === b ? 'var(--accent-primary)' : 'var(--text-primary)',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'var(--transition)'
-                  }}
-                >
-                  Nhà {b}
-                </button>
-              ))}
-
-              {/* Removed Floor Filter */}
+              
+              {isBuildingExpanded && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {settings.buildings.map(b => (
+                    <div key={b} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button 
+                        onClick={() => setActiveBuilding(b)}
+                        style={{
+                          flex: 1,
+                          padding: '10px 16px',
+                          borderRadius: '8px',
+                          border: '1px solid',
+                          borderColor: activeBuilding === b ? 'var(--accent-primary)' : 'var(--border-glass)',
+                          background: activeBuilding === b ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                          color: activeBuilding === b ? 'var(--accent-primary)' : 'var(--text-primary)',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'var(--transition)'
+                        }}
+                      >
+                        Nhà {b}
+                      </button>
+                      {user?.role === 'manager' && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newName = prompt(`Nhập tên mới cho Nhà ${b}:`, b);
+                            if (newName && newName.trim() && newName.trim() !== b) {
+                              if (renameBuilding(b, newName.trim())) {
+                                toast.success('Đổi tên thành công!');
+                                if (activeBuilding === b) setActiveBuilding(newName.trim());
+                              } else {
+                                toast.error('Tên nhà không hợp lệ hoặc đã tồn tại.');
+                              }
+                            }
+                          }} 
+                          style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px' }} 
+                          title="Đổi tên"
+                        >
+                          <Edit3 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {user?.role === 'manager' && (
+                    <button 
+                      onClick={() => {
+                        const newName = prompt('Nhập tên tòa nhà mới:');
+                        if (newName && newName.trim()) {
+                          if (addNewBuilding(newName.trim())) {
+                            toast.success('Thêm nhà thành công!');
+                            setActiveBuilding(newName.trim());
+                          } else {
+                            toast.error('Tên nhà đã tồn tại.');
+                          }
+                        }
+                      }}
+                      style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', background: 'transparent', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', cursor: 'pointer' }}
+                    >
+                      <Plus size={16} /> Thêm Nhà Mới
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div 
                 onClick={() => setIsStatusExpanded(!isStatusExpanded)}

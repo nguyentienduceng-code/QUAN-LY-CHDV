@@ -161,6 +161,36 @@ export const AppDataProvider = ({ children }) => {
     setRooms(prev => prev.map(r => r.id === id ? { ...r, ...updatedData } : r));
   };
 
+  // Building Management
+  const renameBuilding = (oldName, newName) => {
+    if (!newName || newName === oldName || settings.buildings.includes(newName)) return false;
+    
+    setSettings(prev => {
+      const newBuildings = prev.buildings.map(b => b === oldName ? newName : b);
+      const newPrices = { ...prev.prices };
+      if (newPrices[oldName]) {
+        newPrices[newName] = newPrices[oldName];
+        delete newPrices[oldName];
+      }
+      return { ...prev, buildings: newBuildings, prices: newPrices };
+    });
+
+    setRooms(prev => prev.map(r => r.building === oldName ? { ...r, building: newName } : r));
+    setTenants(prev => prev.map(t => t.building === oldName ? { ...t, building: newName } : t));
+    return true;
+  };
+
+  const addNewBuilding = (name) => {
+    if (!name || settings.buildings.includes(name)) return false;
+    setSettings(prev => {
+      const newBuildings = [...prev.buildings, name];
+      const templatePrices = prev.prices[prev.buildings[0]] || defaultSettings.prices['A'];
+      const newPrices = { ...prev.prices, [name]: { ...templatePrices } };
+      return { ...prev, buildings: newBuildings, prices: newPrices };
+    });
+    return true;
+  };
+
   return (
     <AppDataContext.Provider value={{ 
       rooms, setRooms, addRoom, removeRoom, updateRoom,
@@ -169,7 +199,7 @@ export const AppDataProvider = ({ children }) => {
       invoices, setInvoices, addInvoice, updateInvoice,
       tickets, addTicket, updateTicket, moveTicket,
       notifications, markNotificationAsRead,
-      settings, setSettings
+      settings, setSettings, renameBuilding, addNewBuilding
     }}>
       {children}
     </AppDataContext.Provider>
