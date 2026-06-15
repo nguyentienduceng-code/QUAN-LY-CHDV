@@ -97,13 +97,30 @@ export default function Rooms() {
     }
   };
 
+  // ─── DETECT FLOOR: dùng room.floor nếu có, không thì trích từ tên phòng
+  //   VD: '101' → floor 1 | '202' → floor 2 | 'A301' → floor 3
+  const getFloor = (room) => {
+    if (room.floor !== undefined && room.floor !== null && !isNaN(Number(room.floor))) {
+      return Number(room.floor);
+    }
+    // Trích số tầng từ tên phòng: lấy các chữ số đầu, bỏ 2 chữ số cuối
+    const digits = room.name.replace(/\D/g, ''); // '101' | '302' | 'A201' → '201'
+    if (digits.length >= 3) {
+      return parseInt(digits.slice(0, digits.length - 2), 10) || 1;
+    }
+    return 1;
+  };
+
   const roomsByFloor = displayedRooms.reduce((acc, room) => {
-    const floorKey = room.floor !== undefined && room.floor !== null ? room.floor : 1;
+    const floorKey = getFloor(room);
     if (!acc[floorKey]) acc[floorKey] = [];
     acc[floorKey].push(room);
     return acc;
   }, {});
+
+  // Sắp xếp: tầng CAO nhất ở trên (giống mô hình tòa nhà nhìn từ mặt đứng)
   const sortedFloors = Object.keys(roomsByFloor).map(Number).filter(n => !isNaN(n)).sort((a, b) => b - a);
+  const maxFloor = sortedFloors[0] || 1;
 
   return (
     <div className="rooms-layout" style={{ display: 'flex', gap: '24px', height: '100%' }}>
@@ -239,62 +256,143 @@ export default function Rooms() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {sortedFloors.map(floor => (
-            <div key={floor}>
-              <h3 style={{ marginBottom: '16px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
-                <div style={{ width: '4px', height: '18px', background: 'var(--accent-primary)', borderRadius: '2px' }}></div>
-                Tầng {floor}
-              </h3>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
-                gap: '16px' 
-              }}
-              className="rooms-grid-mobile">
-                {(roomsByFloor[floor] || []).map(room => {
-                  const style = getStatusStyle(room.status);
-                  return (
-                    <div 
-                      key={room.id}
-                      onClick={() => handleRoomClick(room)}
-                      style={{
-                        aspectRatio: '1',
-                        borderRadius: 'var(--radius-sm)',
-                        background: style.bg,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        color: style.text,
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        boxShadow: 'var(--card-shadow)',
-                        transition: 'transform 0.2s',
-                        border: `1px solid ${style.border}`
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      <div style={{ fontSize: '1.2rem' }}>{room.name}</div>
-                      {user?.role === 'tenant' && (
-                        <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Nhà {room.building}</div>
-                      )}
-                      {user?.role === 'manager' && room.tenant && (
-                        <div style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '4px' }}>1 Khách</div>
-                      )}
-                    </div>
-                  );
-                })}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+          {/* Building visual model: tầng cao ở trên, tầng thấp ở dưới */}
+          {sortedFloors.map((floor, floorIdx) => {
+            const isTop = floorIdx === 0;
+            const isBottom = floorIdx === sortedFloors.length - 1;
+            const floorRooms = roomsByFloor[floor] || [];
+            const occupiedCount = floorRooms.filter(r => r.status !== 'vacant').length;
+            const vacantCount = floorRooms.filter(r => r.status === 'vacant').length;
+
+            return (
+              <div
+                key={floor}
+                style={{
+                  display: 'flex',
+                  alignItems: 'stretch',
+                  borderLeft: '3px solid var(--accent-primary)',
+                  marginBottom: isBottom ? 0 : '0',
+                  position: 'relative',
+                }}
+              >
+                {/* Floor label cột bên trái */}
+                <div style={{
+                  width: '80px',
+                  flexShrink: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px 8px',
+                  borderRight: '1px dashed var(--border-glass)',
+                  background: isTop
+                    ? 'rgba(209,176,122,0.08)'
+                    : isBottom
+                    ? 'rgba(255,255,255,0.02)'
+                    : 'transparent',
+                  gap: '4px',
+                }}>
+                  {isTop && (
+                    <div style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '2px' }}>▲ TOP</div>
+                  )}
+                  <div style={{
+                    fontSize: '1.5rem',
+                    fontWeight: '900',
+                    color: isTop ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    lineHeight: 1,
+                  }}>
+                    {floor}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.03em', textTransform: 'uppercase' }}>Tầng</div>
+                  <div style={{ marginTop: '6px', fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center', lineHeight: 1.4 }}>
+                    <span style={{ color: 'var(--status-occupied-text)', fontWeight: '600' }}>{occupiedCount}</span> thuê
+                    {vacantCount > 0 && <> · <span style={{ color: 'var(--status-vacant-text)', fontWeight: '600' }}>{vacantCount}</span> trống</>}
+                  </div>
+                  {isBottom && (
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'center' }}>▼ TRỆT</div>
+                  )}
+                </div>
+
+                {/* Room grid */}
+                <div style={{ flex: 1, padding: '16px 16px 16px 20px', borderBottom: isBottom ? 'none' : '1px solid var(--border-glass)' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
+                      gap: '12px',
+                    }}
+                    className="rooms-grid-mobile"
+                  >
+                    {floorRooms.map(room => {
+                      const style = getStatusStyle(room.status);
+                      const priceDisplay = room.price
+                        ? `${(room.price / 1000000).toFixed(1)}tr/th`
+                        : '';
+                      return (
+                        <div
+                          key={room.id}
+                          onClick={() => handleRoomClick(room)}
+                          title={`Phòng ${room.name} | ${room.area || '?'}m² | ${priceDisplay}`}
+                          style={{
+                            aspectRatio: '1',
+                            borderRadius: 'var(--radius-sm)',
+                            background: style.bg,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            color: style.text,
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            boxShadow: 'var(--card-shadow)',
+                            transition: 'transform 0.15s, box-shadow 0.15s',
+                            border: `1px solid ${style.border}`,
+                            gap: '4px',
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.transform = 'scale(1.07)';
+                            e.currentTarget.style.boxShadow = `0 8px 20px rgba(0,0,0,0.3)`;
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'var(--card-shadow)';
+                          }}
+                        >
+                          <div style={{ fontSize: '1.15rem', letterSpacing: '0.03em' }}>{room.name}</div>
+                          {priceDisplay && (
+                            <div style={{ fontSize: '0.62rem', opacity: 0.75, fontWeight: '500' }}>{priceDisplay}</div>
+                          )}
+                          {user?.role === 'tenant' && (
+                            <div style={{ fontSize: '0.7rem', opacity: 0.75 }}>Nhà {room.building}</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+
+          {/* Ground indicator */}
+          {sortedFloors.length > 0 && (
+            <div style={{
+              height: '8px',
+              background: 'linear-gradient(to right, var(--accent-primary), transparent)',
+              borderRadius: '0 0 4px 4px',
+              marginLeft: '3px',
+              opacity: 0.4,
+            }} />
+          )}
+
           {sortedFloors.length === 0 && (
             <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', padding: '24px 0' }}>
               Không có phòng nào phù hợp với bộ lọc.
             </div>
           )}
         </div>
+
       </div>
 
       <RoomDetailDrawer 
