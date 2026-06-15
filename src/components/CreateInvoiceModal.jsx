@@ -1,74 +1,93 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
 
 export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
   const { tenants, rooms, settings } = useAppData();
   
-  const [tenant, setTenant] = useState(tenants[0]?.name || '');
-  const [room, setRoom] = useState(tenants[0]?.room || '');
-  
   const currentMonthInput = new Date().toISOString().slice(0, 7); // yyyy-MM
   const [selectedMonth, setSelectedMonth] = useState(currentMonthInput);
 
-  const initialBuilding = rooms.find(r => r.name === tenants[0]?.room)?.building || settings.buildings[0];
-  const initialPrices = settings.prices?.[initialBuilding] || settings;
+  const [selectedBuilding, setSelectedBuilding] = useState(settings.buildings[0] || 'A');
+  const [selectedFloor, setSelectedFloor] = useState(1);
+  const [selectedRoom, setSelectedRoom] = useState('');
 
-  const [items, setItems] = useState([
-    { id: 1, name: 'Tiền phòng', qty: 1, price: 4000000 },
-    { id: 2, name: 'Tiền điện', oldIndex: 0, newIndex: 0, qty: 0, price: initialPrices.electricityPrice || 3500 },
-    { id: 3, name: 'Tiền nước', oldIndex: 0, newIndex: 0, qty: 0, price: initialPrices.waterPrice || 100000 },
-    { id: 4, name: 'Phí dịch vụ', qty: 1, price: initialPrices.serviceFee || 150000 }
-  ]);
-
+  const [items, setItems] = useState([]);
   const [elecOld, setElecOld] = useState(0);
   const [elecNew, setElecNew] = useState(0);
   const [waterOld, setWaterOld] = useState(0);
   const [waterNew, setWaterNew] = useState(0);
 
-  if (!isOpen) return null;
+  // Filter logic
+  const availableRoomsInBuilding = useMemo(() => {
+    return rooms.filter(r => r.building === selectedBuilding && r.status !== 'vacant');
+  }, [rooms, selectedBuilding]);
 
-  const handleTenantChange = (tenantName) => {
-    setTenant(tenantName);
-    const t = tenants.find(x => x.name === tenantName);
-    if (t) {
-      setRoom(t.room);
-      // Find room price and building
-      const roomInfo = rooms.find(r => r.name === t.room);
-      const bName = roomInfo?.building || settings.buildings[0];
-      const prices = settings.prices?.[bName] || settings;
+  const availableFloors = useMemo(() => {
+    const floors = availableRoomsInBuilding.map(r => {
+      const match = r.name.match(/\.?(\d+)\d{2}/);
+      return match ? parseInt(match[1]) : 1;
+    });
+    return [...new Set(floors)].sort((a,b) => a - b);
+  }, [availableRoomsInBuilding]);
 
-      setItems(prev => prev.map(item => {
-        if (item.id === 1) return { ...item, price: roomInfo?.price || 4000000 };
-        if (item.id === 2) return { ...item, price: prices.electricityPrice || 3500 };
-        if (item.id === 3) return { ...item, price: prices.waterPrice || 100000 };
-        if (item.id === 4) return { ...item, price: prices.serviceFee || 150000 };
-        return item;
-      }));
+  const roomsInFloor = useMemo(() => {
+    return availableRoomsInBuilding.filter(r => {
+      const match = r.name.match(/\.?(\d+)\d{2}/);
+      const floor = match ? parseInt(match[1]) : 1;
+      return floor === selectedFloor;
+    });
+  }, [availableRoomsInBuilding, selectedFloor]);
+
+  // Update cascade selections
+  useEffect(() => {
+    if (availableFloors.length > 0 && !availableFloors.includes(selectedFloor)) {
+      setSelectedFloor(availableFloors[0]);
     }
-  };
+  }, [availableFloors, selectedFloor]);
+
+  useEffect(() => {
+    if (roomsInFloor.length > 0 && (!selectedRoom || !roomsInFloor.find(r => r.name === selectedRoom))) {
+      setSelectedRoom(roomsInFloor[0].name);
+    }
+  }, [roomsInFloor, selectedRoom]);
+
+  // Update prices when room changes
+  useEffect(() => {
+    if (!selectedRoom) return;
+    const roomInfo = rooms.find(r => r.name === selectedRoom);
+    const bName = roomInfo?.building || selectedBuilding;
+    const prices = settings.prices?.[bName] || settings;
+
+    setItems([
+      { id: 1, name: 'Tiền phòng', qty: 1, price: roomInfo?.price || 4000000 },
+      { id: 2, name: 'Tiền điện', oldIndex: elecOld, newIndex: elecNew, qty: Math.max(0, elecNew - elecOld), price: prices.electricityPrice || 3500 },
+      { id: 3, name: 'Tiền nước', oldIndex: waterOld, newIndex: waterNew, qty: Math.max(0, waterNew - waterOld), price: prices.waterPrice || 100000 },
+      { id: 4, name: 'Phí dịch vụ', qty: 1, price: prices.serviceFee || 150000 }
+    ]);
+  }, [selectedRoom, settings.prices, selectedBuilding]); // Only run on room/price changes to avoid overwriting typed items too often
+
+  if (!isOpen) return null;
 
   const handleMeterChange = (type, field, val) => {
     const value = parseInt(val) || 0;
+    let newElecOld = elecOld, newElecNew = elecNew;
+    let newWaterOld = waterOld, newWaterNew = waterNew;
+
     if (type === 'elec') {
-      if (field === 'old') setElecOld(value);
-      if (field === 'new') setElecNew(value);
+      if (field === 'old') { setElecOld(value); newElecOld = value; }
+      if (field === 'new') { setElecNew(value); newElecNew = value; }
     } else {
-      if (field === 'old') setWaterOld(value);
-      if (field === 'new') setWaterNew(value);
+      if (field === 'old') { setWaterOld(value); newWaterOld = value; }
+      if (field === 'new') { setWaterNew(value); newWaterNew = value; }
     }
     
-    // Update items array directly to avoid useEffect timing issues
     setItems(prev => prev.map(item => {
       if (item.id === 2 && type === 'elec') {
-        const o = field === 'old' ? value : elecOld;
-        const n = field === 'new' ? value : elecNew;
-        return { ...item, qty: Math.max(0, n - o), oldIndex: o, newIndex: n };
+        return { ...item, qty: Math.max(0, newElecNew - newElecOld), oldIndex: newElecOld, newIndex: newElecNew };
       }
       if (item.id === 3 && type === 'water') {
-        const o = field === 'old' ? value : waterOld;
-        const n = field === 'new' ? value : waterNew;
-        return { ...item, qty: Math.max(0, n - o), oldIndex: o, newIndex: n };
+        return { ...item, qty: Math.max(0, newWaterNew - newWaterOld), oldIndex: newWaterOld, newIndex: newWaterNew };
       }
       return item;
     }));
@@ -104,14 +123,17 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
     const dueDate = `05/${dueMonth.toString().padStart(2, '0')}/${dueYear}`;
     const invoiceId = `INV-${month}-${year}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    onSave({ id: invoiceId, tenant, room, amount, items: finalItems, due: dueDate });
+    const tenantInfo = tenants.find(t => t.room === selectedRoom);
+    const tenantName = tenantInfo?.name || 'Khách Thuê';
+
+    onSave({ id: invoiceId, tenant: tenantName, room: selectedRoom, amount, items: finalItems, due: dueDate });
     onClose();
   };
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose}></div>
-      <div style={{ position: 'relative', width: '100%', maxWidth: '600px', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '700px', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', borderBottom: '1px solid var(--border-glass)' }}>
@@ -121,7 +143,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
 
         {/* Body */}
         <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', marginBottom: '24px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tháng Hóa Đơn</label>
               <input 
@@ -132,18 +154,34 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
               />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Khách Thuê</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tòa Nhà</label>
               <select 
-                value={tenant} 
-                onChange={e => handleTenantChange(e.target.value)} 
+                value={selectedBuilding} 
+                onChange={e => setSelectedBuilding(e.target.value)} 
                 style={{ width: '100%', padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
               >
-                {tenants.map(t => <option key={t.id} value={t.name} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{t.name} ({t.room})</option>)}
+                {settings.buildings.map(b => <option key={b} value={b} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Nhà {b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tầng</label>
+              <select 
+                value={selectedFloor} 
+                onChange={e => setSelectedFloor(parseInt(e.target.value))} 
+                style={{ width: '100%', padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
+              >
+                {availableFloors.map(f => <option key={f} value={f} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Tầng {f}</option>)}
               </select>
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Phòng</label>
-              <input type="text" value={room} readOnly style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-secondary)', outline: 'none' }} />
+              <select 
+                value={selectedRoom} 
+                onChange={e => setSelectedRoom(e.target.value)} 
+                style={{ width: '100%', padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
+              >
+                {roomsInFloor.map(r => <option key={r.id} value={r.name} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>P.{r.name}</option>)}
+              </select>
             </div>
           </div>
 
