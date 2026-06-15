@@ -109,7 +109,7 @@
 }
 
 .page-title {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 900;
   margin-bottom: 24px;
   background: var(--accent-gradient);
@@ -243,7 +243,7 @@
   }
   
   .card {
-    padding: 20px;
+    padding: 16px 12px;
     margin-bottom: 16px;
   }
 
@@ -313,9 +313,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0 !important;
+    padding: 10px 0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     text-align: right;
+    font-size: 0.95rem;
   }
   .mobile-card-table td:last-child {
     border-bottom: none !important;
@@ -362,7 +363,7 @@
     flex: 1;
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     gap: 4px;
     height: 100%;
     transition: color 0.2s;
