@@ -1,0 +1,131 @@
+:root {
+  /* LIGHT MODE (Default) */
+  --bg-primary: #FDFBF7;
+  --bg-sidebar: #1C2D42;
+  --bg-card: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.8);
+  
+  --text-primary: #2D3748;
+  --text-secondary: #718096;
+  --text-muted: #A0AEC0;
+  --border: #E2E8F0;
+  --border-glass: #E2E8F0;
+  
+  --sidebar-text: #FFFFFF;
+  --sidebar-text-muted: #94A3B8;
+  
+  --accent-primary: #D4B895;
+  --accent-secondary: #B89A65;
+  --accent-gradient: linear-gradient(135deg, var(--accent-primary) 0%, #B89A65 100%);
+  
+  /* Status Colors Light Mode */
+  --status-occupied-bg: #E6F0E9;
+  --status-occupied-text: #2F5C3E;
+  --status-vacant-bg: #FFFFFF;
+  --status-vacant-text: #9C7C52;
+  --status-expiring-bg: #FDF6E3;
+  --status-expiring-text: #A37D32;
+  --status-overdue-bg: #F9E8E8;
+  --status-overdue-text: #852932;
+  --status-maintenance-bg: #F0F0F0;
+  --status-maintenance-text: #4B5563;
+
+  --glass-blur: 20px;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --shadow-glow: none;
+  
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-main: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+[data-theme='dark'] {
+  --bg-primary: #131821;
+  --bg-sidebar: #131821;
+  --bg-card: #1E2532;
+  --bg-glass: rgba(30, 37, 50, 0.8);
+  --border-glass: #334155;
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --border: #1E293B;
+  --border-glass: #334155;
+  
+  --sidebar-text: #F8FAFC;
+  --sidebar-text-muted: #94A3B8;
+  
+  --accent-primary: #D1B07A;
+  --accent-secondary: #B89A65;
+  --accent-gradient: linear-gradient(135deg, var(--accent-primary) 0%, #E2C792 100%);
+  
+  /* Status Colors (Exact Hex) */
+  --status-occupied-bg: #064E3B;
+  --status-occupied-text: #34D399;
+  --status-vacant-bg: #2A3241;
+  --status-vacant-text: #D1B07A;
+  --status-expiring-bg: #4A3525;
+  --status-expiring-text: #FBBF24;
+  --status-overdue-bg: #472023;
+  --status-overdue-text: #F87171;
+  --status-maintenance-bg: #232731;
+  --status-maintenance-text: #9CA3AF;
+
+  --card-shadow: none;
+  --shadow-glow: 0 0 10px rgba(209, 176, 122, 0.3);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover {
+  color: #818cf8;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+.gradient-text {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
