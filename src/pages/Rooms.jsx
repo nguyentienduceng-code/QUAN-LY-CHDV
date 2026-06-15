@@ -61,7 +61,7 @@ export default function Rooms() {
     const area = prompt('Nhập Diện Tích (m2):') || '25';
     
     addRoom({ name, price: parseInt(price, 10), area: parseInt(area, 10), floor, building: activeBuilding });
-    toast.success(`Đã thêm phòng ${name} vào Tầng ${floor} Nhà ${activeBuilding}!`);
+    toast.success(`Đã thêm phòng ${name} vào Tầng ${floor} ${activeBuilding.toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}!`);
   };
 
   const handleEditBuildings = (e) => {
@@ -146,7 +146,7 @@ export default function Rooms() {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            const newName = prompt(`Nhập tên mới cho Nhà ${b}:`, b);
+                            const newName = prompt(`Nhập tên mới cho ${b.toLowerCase().startsWith('nhà') ? b : 'Nhà ' + b}:`, b);
                             if (newName && newName.trim() && newName.trim() !== b) {
                               if (renameBuilding(b, newName.trim())) {
                                 toast.success('Đổi tên thành công!');
