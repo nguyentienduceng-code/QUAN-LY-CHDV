@@ -8,9 +8,19 @@ import toast from 'react-hot-toast';
 export default function Login() {
   const [role, setRole] = useState('manager'); // 'manager' | 'tenant'
   const [identifier, setIdentifier] = useState('');
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const { tenants } = useAppData();
   const navigate = useNavigate();
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+      toast.success('Đăng nhập qua Google thành công!');
+      navigate('/tenant-portal');
+    } catch (error) {
+      toast.error('Lỗi: ' + error.message);
+    }
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -160,7 +170,7 @@ export default function Login() {
                 <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="button" style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                <button type="button" onClick={handleGoogleLogin} style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
                   <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: '18px' }} /> Google
                 </button>
                 <button type="button" style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
