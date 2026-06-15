@@ -101,9 +101,15 @@ export const AppDataProvider = ({ children }) => {
     serviceFee: 150000,
     bankName: 'MB',
     bankAccount: '0901234567',
-    bankOwner: 'NGUYEN VAN A'
+    bankOwner: 'NGUYEN VAN A',
+    buildings: ['A', 'B', 'C'],
+    floors: [1, 2, 3, 4]
   };
-  const [settings, setSettings] = useState(() => JSON.parse(localStorage.getItem('chdv_settings')) || defaultSettings);
+  
+  const [settings, setSettings] = useState(() => {
+    const stored = JSON.parse(localStorage.getItem('chdv_settings'));
+    return stored ? { ...defaultSettings, ...stored, buildings: stored.buildings || defaultSettings.buildings, floors: stored.floors || defaultSettings.floors } : defaultSettings;
+  });
 
   useEffect(() => { localStorage.setItem('chdv_rooms', JSON.stringify(rooms)); }, [rooms]);
   useEffect(() => { localStorage.setItem('chdv_tenants', JSON.stringify(tenants)); }, [tenants]);

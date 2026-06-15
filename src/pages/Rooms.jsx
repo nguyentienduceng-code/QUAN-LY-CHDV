@@ -3,23 +3,23 @@ import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import StatusBadge from '../components/StatusBadge';
 import RoomDetailDrawer from '../components/RoomDetailDrawer';
-import { Filter, Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Filter, Plus, ChevronDown, ChevronRight, Edit3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { useAppData } from '../context/AppDataContext';
 
 export default function Rooms() {
   const { user } = useAuth();
-  const { rooms, addRoom } = useAppData();
-  const [activeBuilding, setActiveBuilding] = useState('A');
-  const [activeFloor, setActiveFloor] = useState(1);
+  const { rooms, addRoom, settings, setSettings } = useAppData();
+  const [activeBuilding, setActiveBuilding] = useState(settings.buildings[0] || 'A');
+  const [activeFloor, setActiveFloor] = useState(settings.floors[0] || 1);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const [isBuildingExpanded, setIsBuildingExpanded] = useState(true);
-  const [isFloorExpanded, setIsFloorExpanded] = useState(true);
-  const [isStatusExpanded, setIsStatusExpanded] = useState(true);
+  const [isBuildingExpanded, setIsBuildingExpanded] = useState(false);
+  const [isFloorExpanded, setIsFloorExpanded] = useState(false);
+  const [isStatusExpanded, setIsStatusExpanded] = useState(false);
 
   // Filter rooms based on role and status
   let displayedRooms = user?.role === 'tenant' 
@@ -55,6 +55,28 @@ export default function Rooms() {
     toast.success(`Đã thêm phòng ${name} vào Nhà ${activeBuilding} - Tầng ${activeFloor}!`);
   };
 
+  const handleEditBuildings = (e) => {
+    e.stopPropagation();
+    const newBuildings = prompt('Nhập danh sách Tên Nhà, cách nhau bằng dấu phẩy (VD: A, B, C, D):', settings.buildings.join(', '));
+    if (newBuildings) {
+      const arr = newBuildings.split(',').map(s => s.trim()).filter(Boolean);
+      setSettings(prev => ({ ...prev, buildings: arr }));
+      if (!arr.includes(activeBuilding)) setActiveBuilding(arr[0] || '');
+      toast.success('Đã cập nhật danh sách Nhà!');
+    }
+  };
+
+  const handleEditFloors = (e) => {
+    e.stopPropagation();
+    const newFloors = prompt('Nhập danh sách số Tầng, cách nhau bằng dấu phẩy (VD: 1, 2, 3, 4, 5):', settings.floors.join(', '));
+    if (newFloors) {
+      const arr = newFloors.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+      setSettings(prev => ({ ...prev, floors: arr }));
+      if (!arr.includes(activeFloor)) setActiveFloor(arr[0] || 1);
+      toast.success('Đã cập nhật danh sách Tầng!');
+    }
+  };
+
   const getStatusStyle = (status) => {
     switch (status) {
       case 'occupied': return { bg: 'var(--status-occupied-bg)', text: 'var(--status-occupied-text)', border: 'var(--status-occupied-text)' };
@@ -76,9 +98,12 @@ export default function Rooms() {
               onClick={() => setIsBuildingExpanded(!isBuildingExpanded)}
               style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
             >
-              Nhà {isBuildingExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Nhà {user?.role === 'manager' && <button onClick={handleEditBuildings} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Nhà"><Edit3 size={14} /></button>}
+              </div>
+              {isBuildingExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </div>
-            {isBuildingExpanded && ['A', 'B', 'C'].map(b => (
+            {isBuildingExpanded && settings.buildings.map(b => (
               <button 
                 key={b}
                 onClick={() => setActiveBuilding(b)}
@@ -102,9 +127,12 @@ export default function Rooms() {
               onClick={() => setIsFloorExpanded(!isFloorExpanded)}
               style={{ fontWeight: '600', marginTop: '16px', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
             >
-              Tầng {isFloorExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Tầng {user?.role === 'manager' && <button onClick={handleEditFloors} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Tầng"><Edit3 size={14} /></button>}
+              </div>
+              {isFloorExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </div>
-            {isFloorExpanded && [1, 2, 3, 4].map(f => (
+            {isFloorExpanded && settings.floors.map(f => (
               <button 
                 key={f}
                 onClick={() => setActiveFloor(f)}
