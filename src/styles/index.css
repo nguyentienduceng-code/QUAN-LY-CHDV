@@ -79,9 +79,11 @@
 
 :root {
   --pattern-color: rgba(0, 0, 0, 0.03);
+  --bg-overlay: rgba(255, 255, 255, 0.9);
 }
 [data-theme="dark"] {
   --pattern-color: rgba(255, 255, 255, 0.02);
+  --bg-overlay: rgba(15, 23, 42, 0.88);
 }
 
 body {
@@ -89,8 +91,12 @@ body {
   padding: 0;
   background-color: var(--bg-primary);
   background-image: 
-    radial-gradient(var(--pattern-color) 1px, transparent 1px);
-  background-size: 24px 24px;
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
+    url('/app-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--text-primary);
   font-family: var(--font-main);
   min-height: 100vh;
