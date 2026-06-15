@@ -91,7 +91,7 @@ export default function Settings() {
               <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Zap size={18} /> Đơn Giá Thu (Khách Thuê)
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     <Zap size={16} /> Giá Điện (VNĐ/kWh)
@@ -138,7 +138,7 @@ export default function Settings() {
               <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--status-overdue)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Shield size={18} /> Đơn Giá Gốc (Chi phí trả chủ)
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     Giá thuê khoán trả chủ (VNĐ/Tháng)

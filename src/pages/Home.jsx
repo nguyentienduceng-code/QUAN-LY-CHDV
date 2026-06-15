@@ -121,44 +121,41 @@ export default function Home() {
         </button>
       </div>
       
-      <div className="grid-layout" style={{ marginBottom: '32px' }}>
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>Tỷ lệ lấp đầy</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--status-occupied)' }}>{occupancyRate}%</div>
-            </div>
-            <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '12px', borderRadius: '50%' }}>
-              <Users size={24} color="var(--status-occupied)" />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>Thu / Chi phí</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-                <span style={{ color: 'var(--accent-primary)' }}>+{revenueStr}</span>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', margin: '0 8px' }}>/</span>
-                <span style={{ color: 'var(--status-overdue)' }}>-{expensesStr}</span>
-              </div>
-            </div>
-            <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '12px', borderRadius: '50%' }}>
-              <DollarSign size={24} color="var(--accent-primary)" />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>Cảnh báo / Bảo trì</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--status-overdue)' }}>{overdueInvoices} Nợ / {activeTickets} Sửa</div>
-            </div>
-            <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '50%' }}>
-              <AlertCircle size={24} color="var(--status-overdue)" />
-            </div>
+      <div className="grid-layout" style={{ marginBottom: '32px', gridTemplateColumns: '1fr' }}>
+        <Card title={<div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem', color: 'var(--accent-primary)' }}><DollarSign size={24} /> Bảng Tổng Hợp Doanh Thu & Lợi Nhuận</div>}>
+          <div style={{ overflowX: 'auto', marginTop: '16px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <tbody>
+                <tr>
+                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', fontSize: '1.1rem', fontWeight: '500' }}>Tổng Doanh Thu (Thu từ hóa đơn khách)</td>
+                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', textAlign: 'right', color: 'var(--status-occupied)', fontSize: '1.2rem', fontWeight: 'bold' }}>+{revenueStr}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', color: 'var(--text-secondary)' }}>
+                    <div style={{ marginLeft: '16px' }}>- Chi phí thuê khoán trả chủ</div>
+                  </td>
+                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue)' }}>-{(totalBaseRent / 1000000).toFixed(1)} Tr</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', color: 'var(--text-secondary)' }}>
+                    <div style={{ marginLeft: '16px' }}>- Chi phí Điện/Nước theo đơn giá gốc</div>
+                  </td>
+                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue)' }}>-{(totalBaseUtilCost / 1000000).toFixed(1)} Tr</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', color: 'var(--text-secondary)' }}>
+                    <div style={{ marginLeft: '16px' }}>- Chi phí bảo trì, sửa chữa phát sinh</div>
+                  </td>
+                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue)' }}>-{(maintenanceCost / 1000000).toFixed(1)} Tr</td>
+                </tr>
+                <tr style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                  <td style={{ padding: '20px 16px', fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>LỢI NHUẬN THỰC TẾ</td>
+                  <td style={{ padding: '20px 16px', textAlign: 'right', fontSize: '1.5rem', fontWeight: 'bold', color: (totalRevenue - totalExpenses) >= 0 ? 'var(--status-occupied)' : 'var(--status-overdue)' }}>
+                    {((totalRevenue - totalExpenses) / 1000000).toFixed(1)} Tr
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </Card>
       </div>
