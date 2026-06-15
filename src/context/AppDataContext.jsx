@@ -99,15 +99,12 @@ export const AppDataProvider = ({ children }) => {
     electricityPrice: 3500,
     waterPrice: 100000,
     serviceFee: 150000,
-    bankName: 'MB',
-    bankAccount: '0901234567',
-    bankOwner: 'NGUYEN VAN A',
     buildings: ['A', 'B', 'C'],
     floors: [1, 2, 3, 4],
     prices: {
-      A: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000 },
-      B: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000 },
-      C: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000 }
+      A: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000, bankName: 'MB', bankAccount: '0901234567', bankOwner: 'NGUYEN VAN A' },
+      B: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000, bankName: 'VCB', bankAccount: '0987654321', bankOwner: 'NGUYEN VAN B' },
+      C: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000, bankName: 'ACB', bankAccount: '0123456789', bankOwner: 'NGUYEN VAN C' }
     }
   };
   
@@ -122,18 +119,22 @@ export const AppDataProvider = ({ children }) => {
           serviceFee: stored.serviceFee || 150000,
           baseRent: 30000000,
           baseElectricityPrice: 2500,
-          baseWaterPrice: 50000
+          baseWaterPrice: 50000,
+          bankName: stored.bankName || 'MB',
+          bankAccount: stored.bankAccount || '0901234567',
+          bankOwner: stored.bankOwner || 'NGUYEN VAN A'
         };
       });
     } else if (stored && stored.prices) {
-      // Ensure existing properties have base costs
+      // Ensure existing properties have base costs and payment info
       Object.keys(stored.prices).forEach(b => {
-        stored.prices[b] = {
-          ...stored.prices[b],
-          baseRent: stored.prices[b].baseRent || 30000000,
-          baseElectricityPrice: stored.prices[b].baseElectricityPrice || 2500,
-          baseWaterPrice: stored.prices[b].baseWaterPrice || 50000
-        };
+        const p = stored.prices[b];
+        if (p.baseRent === undefined) p.baseRent = 30000000;
+        if (p.baseElectricityPrice === undefined) p.baseElectricityPrice = 2500;
+        if (p.baseWaterPrice === undefined) p.baseWaterPrice = 50000;
+        if (!p.bankName) p.bankName = stored.bankName || 'MB';
+        if (!p.bankAccount) p.bankAccount = stored.bankAccount || '0901234567';
+        if (!p.bankOwner) p.bankOwner = stored.bankOwner || 'NGUYEN VAN A';
       });
     }
     return stored ? { ...defaultSettings, ...stored, buildings: stored.buildings || defaultSettings.buildings, floors: stored.floors || defaultSettings.floors, prices: stored.prices || defaultSettings.prices } : defaultSettings;

@@ -173,8 +173,8 @@ export default function Home() {
                   formatter={(val, name) => [`${val} Tr VNĐ`, name === 'revenue' ? 'Doanh thu' : 'Chi phí']}
                 />
                 <Legend formatter={(v) => v === 'revenue' ? 'Doanh thu' : 'Chi phí'} wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="revenue" name="revenue" fill="var(--status-occupied)" radius={[4,4,0,0]} maxBarSize={32} />
-                <Bar dataKey="expenses" name="expenses" fill="var(--status-overdue)" radius={[4,4,0,0]} maxBarSize={32} />
+                <Bar dataKey="revenue" name="revenue" fill="var(--status-occupied-text)" radius={[4,4,0,0]} maxBarSize={32} />
+                <Bar dataKey="expenses" name="expenses" fill="var(--status-overdue-text)" radius={[4,4,0,0]} maxBarSize={32} />
               </BarChart>
             </ResponsiveContainer>
           </div>

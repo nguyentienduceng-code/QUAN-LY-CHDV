@@ -129,3 +129,24 @@ a:hover {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .card {
+    padding: 16px !important;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .spec-table th, .spec-table td {
+    padding: 12px 8px !important;
+    font-size: 0.9rem;
+  }
+}

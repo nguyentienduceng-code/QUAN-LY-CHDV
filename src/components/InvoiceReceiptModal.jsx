@@ -4,14 +4,22 @@ import { useAppData } from '../context/AppDataContext';
 
 export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
   const { user } = useAuth();
-  const { settings } = useAppData();
+  const { settings, rooms } = useAppData();
   if (!isOpen || !invoice) return null;
 
   // Extract raw number from amount string (e.g. "4.500.000" -> 4500000)
   const numericAmount = parseInt(invoice.amount.replace(/\./g, ''), 10) || 0;
   
+  // Find building config for this invoice's room
+  const room = rooms?.find(r => r.name === invoice.room);
+  const building = room ? room.building : (settings.buildings[0] || 'A');
+  const bConfig = settings.prices?.[building] || {};
+  const bankName = bConfig.bankName || 'MB';
+  const bankAccount = bConfig.bankAccount || '0901234567';
+  const bankOwner = bConfig.bankOwner || 'NGUYEN VAN A';
+
   // Generate VietQR URL
-  const qrUrl = `https://img.vietqr.io/image/${settings.bankName}-${settings.bankAccount}-compact2.png?amount=${numericAmount}&addInfo=${encodeURIComponent(`Thanh toan ${invoice.id}`)}&accountName=${encodeURIComponent(settings.bankOwner)}`;
+  const qrUrl = `https://img.vietqr.io/image/${bankName}-${bankAccount}-compact2.png?amount=${numericAmount}&addInfo=${encodeURIComponent(`Thanh toan ${invoice.id}`)}&accountName=${encodeURIComponent(bankOwner)}`;
 
   const handlePrint = () => {
     import('react-hot-toast').then(toast => toast.default.success('Đang kết nối máy in...'));
@@ -129,8 +137,8 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
             />
             <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#64748b' }}>
               Chuyển khoản đến:<br/>
-              <strong style={{ color: '#0f172a' }}>{settings.bankName} - {settings.bankAccount}</strong><br/>
-              Chủ TK: <strong style={{ color: '#0f172a' }}>{settings.bankOwner}</strong>
+              <strong style={{ color: '#0f172a' }}>{bankName} - {bankAccount}</strong><br/>
+              Chủ TK: <strong style={{ color: '#0f172a' }}>{bankOwner}</strong>
             </div>
           </div>
         </div>
