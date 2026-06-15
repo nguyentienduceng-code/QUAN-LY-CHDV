@@ -14,9 +14,9 @@ export default function FinanceAndTenants() {
   const { tenants, contracts, invoices, rooms } = useAppData();
 
   return (
-    <div>
+    <div className="fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 className="page-title" style={{ margin: 0 }}>Quản Lý Lưu Trú & Tài Chính</h1>
+        <h1 className="page-title gradient-text">Quản Lý Khách & Hóa Đơn</h1>
       </div>
 
       <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '16px', overflowX: 'auto' }}>

@@ -15,7 +15,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const managerNavItems = [
     { path: '/', label: 'Tổng quan', icon: <HomeIcon size={20} /> },
     { path: '/rooms', label: 'Quản lý Phòng', icon: <HomeIcon size={20} /> },
-    { path: '/finance', label: 'Lưu trú & Tài chính', icon: <Users size={20} /> },
+    { path: '/finance', label: 'Khách & Hóa Đơn', icon: <Users size={20} /> },
     { path: '/maintenance', label: 'Bảo trì (Kanban)', icon: <PenTool size={20} /> },
     { path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> },
   ];
@@ -30,8 +30,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-header gradient-text" style={{ padding: '24px', fontSize: '1.25rem', fontWeight: '700', borderBottom: '1px solid var(--border-glass)' }}>
-        {user?.role === 'manager' ? 'Quản Lý CHDV' : 'Cổng Khách Thuê'}
+      <div className="sidebar-header gradient-text" style={{ padding: '24px', fontSize: '1.25rem', fontWeight: '800', borderBottom: '1px solid var(--border-glass)', letterSpacing: '1px' }}>
+        {user?.role === 'manager' ? 'RentFlow' : 'Tenant Portal'}
       </div>
       <nav className="sidebar-nav">
         {navItems.map((item) => (

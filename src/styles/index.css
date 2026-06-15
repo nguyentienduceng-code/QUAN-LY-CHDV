@@ -77,10 +77,20 @@
   --shadow-glow: 0 0 10px rgba(209, 176, 122, 0.3);
 }
 
+:root {
+  --pattern-color: rgba(0, 0, 0, 0.03);
+}
+[data-theme="dark"] {
+  --pattern-color: rgba(255, 255, 255, 0.02);
+}
+
 body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(var(--pattern-color) 1px, transparent 1px);
+  background-size: 24px 24px;
   color: var(--text-primary);
   font-family: var(--font-main);
   min-height: 100vh;
