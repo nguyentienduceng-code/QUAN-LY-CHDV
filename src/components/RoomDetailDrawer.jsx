@@ -238,35 +238,22 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
         </div>
 
         {/* Footer Actions */}
-        {user?.role === 'manager' && (
+        {user?.role === 'manager' && room.status === 'vacant' && (
           <div className="drawer-footer">
-            {room.status === 'vacant' ? (
-              <>
-                <button 
-                  onClick={() => {
-                    if (confirm(`Bạn có chắc chắn muốn xóa phòng ${room.name}?`)) {
-                      removeRoom(room.id);
-                      onClose();
-                    }
-                  }} 
-                  style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-overdue)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-                >
-                  Xóa Phòng
-                </button>
-                <button style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
-                  Tạo Hợp Đồng Mới
-                </button>
-              </>
-            ) : (
-              <>
-                <button style={{ flex: 1, padding: '12px', background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-glass)', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
-                  Sửa HĐ
-                </button>
-                <button style={{ flex: 1, padding: '12px', background: room.status === 'overdue' ? 'var(--status-overdue)' : 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
-                  {room.status === 'overdue' ? 'Gửi Nhắc Nợ' : 'Tạo Hóa Đơn'}
-                </button>
-              </>
-            )}
+            <button 
+              onClick={() => {
+                if (confirm(`Bạn có chắc chắn muốn xóa phòng ${room.name}?`)) {
+                  removeRoom(room.id);
+                  onClose();
+                }
+              }} 
+              style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-overdue)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+            >
+              Xóa Phòng
+            </button>
+            <button style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
+              Tạo Hợp Đồng Mới
+            </button>
           </div>
         )}
       </div>
