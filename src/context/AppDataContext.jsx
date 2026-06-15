@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useContext, useEffect } from 'react';
+import { generateMockData } from '../utils/mockData';
 
 const AppDataContext = createContext(null);
 
@@ -192,8 +193,7 @@ export const AppDataProvider = ({ children }) => {
   };
 
   // Mock Data
-  const loadMockData = async () => {
-    const { generateMockData } = await import('../utils/mockData.js');
+  const loadMockData = () => {
     const data = generateMockData();
     setRooms(data.rooms);
     setTenants(data.tenants);

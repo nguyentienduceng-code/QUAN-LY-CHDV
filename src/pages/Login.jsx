@@ -195,8 +195,8 @@ export default function Login() {
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <button 
               type="button" 
-              onClick={async () => {
-                await appData.loadMockData();
+              onClick={() => {
+                appData.loadMockData();
                 toast.success('Đã nạp bộ dữ liệu nhà 3 tầng thành công! Hãy đăng nhập Khách bằng email khach101@gmail.com');
                 setIdentifier('khach101@gmail.com');
               }}
