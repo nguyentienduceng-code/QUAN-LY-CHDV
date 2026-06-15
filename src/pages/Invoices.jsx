@@ -8,6 +8,7 @@ import GeneratePeriodicInvoicesModal from '../components/GeneratePeriodicInvoice
 import { useAppData } from '../context/AppDataContext';
 import CreateInvoiceModal from '../components/CreateInvoiceModal';
 import InvoiceReceiptModal from '../components/InvoiceReceiptModal';
+import UpdateIndexModal from '../components/UpdateIndexModal';
 
 export default function Invoices() {
   const { user } = useAuth();
@@ -17,6 +18,9 @@ export default function Invoices() {
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [selectedInvoiceToUpdate, setSelectedInvoiceToUpdate] = useState(null);
   
   // Accordion & Filter State for Manager
   const [activeBuilding, setActiveBuilding] = useState('All');
@@ -54,6 +58,11 @@ export default function Invoices() {
   const handleViewInvoice = (inv) => {
     setSelectedInvoice(inv);
     setIsReceiptModalOpen(true);
+  };
+
+  const handleOpenUpdateModal = (inv) => {
+    setSelectedInvoiceToUpdate(inv);
+    setIsUpdateModalOpen(true);
   };
 
   const handleZaloDebt = (inv) => {
@@ -222,6 +231,9 @@ export default function Invoices() {
                                       <button onClick={() => handleViewInvoice(inv)} style={{ padding: '4px 8px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <Eye size={12} /> Xem
                                       </button>
+                                      <button onClick={() => handleOpenUpdateModal(inv)} style={{ padding: '4px 8px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                                        Chốt số
+                                      </button>
                                       {inv.status === 'unpaid' ? (
                                         <button onClick={() => handleZaloDebt(inv)} style={{ padding: '4px 8px', background: 'var(--status-overdue)', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Đòi nợ</button>
                                       ) : (
@@ -254,6 +266,12 @@ export default function Invoices() {
       <GeneratePeriodicInvoicesModal
         isOpen={isGenerateModalOpen}
         onClose={() => setIsGenerateModalOpen(false)}
+      />
+
+      <UpdateIndexModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        invoice={selectedInvoiceToUpdate}
       />
 
       <InvoiceReceiptModal 

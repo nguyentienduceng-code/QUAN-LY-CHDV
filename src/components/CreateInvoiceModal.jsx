@@ -16,8 +16,8 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
 
   const [items, setItems] = useState([
     { id: 1, name: 'Tiền phòng', qty: 1, price: 4000000 },
-    { id: 2, name: 'Tiền điện (Chỉ số: 0 - 0)', qty: 0, price: initialPrices.electricityPrice || 3500 },
-    { id: 3, name: 'Tiền nước (Chỉ số: 0 - 0)', qty: 0, price: initialPrices.waterPrice || 100000 },
+    { id: 2, name: 'Tiền điện', oldIndex: 0, newIndex: 0, qty: 0, price: initialPrices.electricityPrice || 3500 },
+    { id: 3, name: 'Tiền nước', oldIndex: 0, newIndex: 0, qty: 0, price: initialPrices.waterPrice || 100000 },
     { id: 4, name: 'Phí dịch vụ', qty: 1, price: initialPrices.serviceFee || 150000 }
   ]);
 
@@ -63,12 +63,12 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
       if (item.id === 2 && type === 'elec') {
         const o = field === 'old' ? value : elecOld;
         const n = field === 'new' ? value : elecNew;
-        return { ...item, qty: Math.max(0, n - o), name: `Tiền điện (Chỉ số: ${o} - ${n})` };
+        return { ...item, qty: Math.max(0, n - o), oldIndex: o, newIndex: n };
       }
       if (item.id === 3 && type === 'water') {
         const o = field === 'old' ? value : waterOld;
         const n = field === 'new' ? value : waterNew;
-        return { ...item, qty: Math.max(0, n - o), name: `Tiền nước (Chỉ số: ${o} - ${n})` };
+        return { ...item, qty: Math.max(0, n - o), oldIndex: o, newIndex: n };
       }
       return item;
     }));

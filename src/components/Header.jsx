@@ -45,35 +45,37 @@ export default function Header({ toggleSidebar }) {
 
           {showNotifications && (
             <div style={{
-              position: 'absolute', top: '100%', right: '0', marginTop: '16px',
-              width: '320px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)',
-              borderRadius: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', zIndex: 100,
+              position: 'fixed', top: '60px', right: '8px',
+              width: 'min(320px, calc(100vw - 16px))',
+              background: 'var(--bg-card)', border: '1px solid var(--border-glass)',
+              borderRadius: '12px', boxShadow: '0 16px 40px rgba(0,0,0,0.4)', zIndex: 9999,
               color: 'var(--text-primary)'
             }}>
-              <div style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', fontWeight: 'bold', fontSize: '1rem' }}>
-                Thông báo
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-glass)', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Thông báo</span>
+                {unreadCount > 0 && <span style={{ background: 'var(--status-overdue)', color: '#fff', borderRadius: '12px', padding: '2px 8px', fontSize: '0.75rem' }}>{unreadCount} mới</span>}
               </div>
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
                 {notifications?.length === 0 ? (
-                  <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-secondary)' }}>Không có thông báo mới</div>
+                  <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>Không có thông báo mới</div>
                 ) : (
                   notifications?.map(n => (
                     <div 
                       key={n.id} 
                       onClick={() => markNotificationAsRead(n.id)}
                       style={{ 
-                        padding: '16px', borderBottom: '1px solid var(--border-glass)', 
-                        background: n.isRead ? 'transparent' : 'rgba(59, 130, 246, 0.05)',
+                        padding: '12px 16px', borderBottom: '1px solid var(--border-glass)', 
+                        background: n.isRead ? 'transparent' : 'rgba(59, 130, 246, 0.08)',
                         cursor: 'pointer', transition: 'background 0.2s'
                       }}
                     >
-                      <div style={{ fontSize: '0.9rem', fontWeight: n.isRead ? '500' : 'bold', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: n.isRead ? '500' : '700', color: 'var(--text-primary)', marginBottom: '3px', lineHeight: '1.3' }}>
                         {n.title}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
                         {n.message}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px', opacity: 0.7 }}>
                         {n.date}
                       </div>
                     </div>

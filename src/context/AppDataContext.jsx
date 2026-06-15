@@ -58,10 +58,10 @@ const initialContracts = initialTenants.map((t, i) => ({
 }));
 
 const mockInvoiceItems = [
-  { name: 'Tiền phòng', qty: 1, price: 4000000, total: 4000000 },
-  { name: 'Tiền điện (Chỉ số: 100 - 150)', qty: 50, price: 3500, total: 175000 },
-  { name: 'Tiền nước', qty: 2, price: 100000, total: 200000 },
-  { name: 'Phí dịch vụ', qty: 1, price: 125000, total: 125000 }
+  { id: 1, name: 'Tiền phòng', qty: 1, price: 4000000, total: 4000000 },
+  { id: 2, name: 'Tiền điện', oldIndex: 100, newIndex: 150, qty: 50, price: 3500, total: 175000 },
+  { id: 3, name: 'Tiền nước', oldIndex: 10, newIndex: 12, qty: 2, price: 100000, total: 200000 },
+  { id: 4, name: 'Phí dịch vụ', qty: 1, price: 125000, total: 125000 }
 ];
 
 const initialInvoices = [
@@ -160,6 +160,10 @@ export const AppDataProvider = ({ children }) => {
     setInvoices(prev => [{ ...invoice, id: invoice.id || `INV-2026-06-0${prev.length + 1}`, status: invoice.status || 'unpaid' }, ...prev]);
   };
 
+  const updateInvoice = (id, updatedData) => {
+    setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, ...updatedData } : inv));
+  };
+
   // Add a new ticket from Tenant Portal
   const addTicket = (ticket) => {
     setTickets(prev => ({
@@ -222,7 +226,7 @@ export const AppDataProvider = ({ children }) => {
       rooms, setRooms, addRoom, removeRoom, updateRoom,
       tenants, setTenants, addTenant, updateTenant, deleteTenant,
       contracts, setContracts, addContract,
-      invoices, setInvoices, addInvoice,
+      invoices, setInvoices, addInvoice, updateInvoice,
       tickets, addTicket, updateTicket, moveTicket,
       notifications, markNotificationAsRead,
       settings, setSettings

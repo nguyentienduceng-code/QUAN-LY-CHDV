@@ -1,6 +1,6 @@
 import { TrendingUp, Users, DollarSign, AlertCircle, AlertTriangle, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { useAppData } from '../context/AppDataContext';
 import { exportAllDataToExcel } from '../utils/exportExcel';
 import Card from '../components/Card';
@@ -24,42 +24,39 @@ export default function Home() {
   const overdueInvoices = invoices.filter(i => i.status === 'unpaid').length;
   const activeTickets = tickets.reported.length + tickets.inProgress.length;
 
-  // Generate dynamic chart data based on invoices
-  const monthlyRevenue = {};
-  invoices.forEach(inv => {
-    // inv.id looks like INV-06-2026-1234 or inv.due looks like 05/07/2026
-    const amt = parseInt(inv.amount.replace(/\./g, '')) || 0;
-    const monthMatch = inv.id.match(/INV-(\d{2})-(\d{4})/);
-    if (monthMatch) {
-      const m = parseInt(monthMatch[1], 10);
-      monthlyRevenue[`T${m}`] = (monthlyRevenue[`T${m}`] || 0) + amt;
-    }
-  });
-
-  const monthlyExpenses = {};
-  ['reported', 'inProgress', 'resolved'].forEach(col => {
-    tickets[col].forEach(t => {
-      if (t.cost && t.date) {
-        const parts = t.date.split('/');
-        if (parts.length >= 2) {
-          const m = parseInt(parts[1], 10);
-          monthlyExpenses[`T${m}`] = (monthlyExpenses[`T${m}`] || 0) + t.cost;
-        }
-      }
-    });
-  });
-
-  const chartData = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'].map(m => ({
-    name: m,
-    revenue: (monthlyRevenue[m] || 0) / 1000000,
-    expenses: (monthlyExpenses[m] || 0) / 1000000
-  })).filter(d => d.revenue > 0 || d.expenses > 0);
-
-  // If not enough data, pad with previous months
-  if (chartData.length < 3) {
-    chartData.unshift({ name: 'T4', revenue: 45, expenses: 5 });
-    chartData.unshift({ name: 'T5', revenue: 48, expenses: 8 });
+  // Build per-month bar chart data: always show 6 months around now
+  const now = new Date();
+  const chartMonths = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = `T${d.getMonth() + 1}/${String(d.getFullYear()).slice(-2)}`;
+    const key = `${d.getMonth() + 1}-${d.getFullYear()}`;
+    chartMonths.push({ label, key, month: d.getMonth() + 1, year: d.getFullYear() });
   }
+
+  const chartData = chartMonths.map(({ label, month, year }) => {
+    // Sum revenue for this month/year
+    const rev = invoices.reduce((s, inv) => {
+      const m = inv.id.match(/INV-(\d{2})-(\d{4})/);
+      if (m && parseInt(m[1]) === month && parseInt(m[2]) === year) {
+        return s + (parseInt(inv.amount.replace(/\./g, '')) || 0);
+      }
+      return s;
+    }, 0);
+    
+    // Sum expenses for this month/year
+    const exp = ['reported', 'inProgress', 'resolved'].reduce((s, col) => {
+      return s + tickets[col].reduce((cs, t) => {
+        if (t.cost && t.date) {
+          const parts = t.date.split('/');
+          if (parseInt(parts[1]) === month) return cs + t.cost;
+        }
+        return cs;
+      }, 0);
+    }, 0);
+
+    return { name: label, revenue: Math.round(rev / 1000000 * 10) / 10, expenses: Math.round(exp / 1000000 * 10) / 10 };
+  });
 
   const pieData = [
     { name: 'Đã thuê', value: occupiedRooms, color: '#10b981' }, // status-occupied
@@ -121,20 +118,21 @@ export default function Home() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-        <Card title={<><TrendingUp size={20} /> Biểu đồ Doanh thu</>}>
-          <div style={{ height: '300px', width: '100%', minWidth: '0' }}>
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                <XAxis dataKey="name" stroke="var(--text-secondary)" tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} tickFormatter={(val) => `${val} Tr VNĐ`} width={70} />
-                <RechartsTooltip 
-                  contentStyle={{ background: 'rgba(10, 14, 26, 0.9)', border: '1px solid var(--border-glass)', borderRadius: '8px' }}
-                  itemStyle={{ color: 'var(--accent-primary)' }}
+        <Card title={<><TrendingUp size={20} /> Thu Chi Từng Tháng (Triệu VNĐ)</>}>
+          <div style={{ height: '280px', width: '100%', minWidth: '0' }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={1}>
+              <BarChart data={chartData} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-secondary)" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} tickFormatter={(v) => `${v}Tr`} width={36} tick={{ fontSize: 11 }} />
+                <RechartsTooltip
+                  contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', fontSize: '12px' }}
+                  formatter={(val, name) => [`${val} Tr VNĐ`, name === 'revenue' ? 'Doanh thu' : 'Chi phí']}
                 />
-                <Line type="monotone" name="Doanh thu" dataKey="revenue" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 4, fill: 'var(--bg-primary)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" name="Chi phí" dataKey="expenses" stroke="var(--status-overdue)" strokeWidth={3} dot={{ r: 4, fill: 'var(--bg-primary)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
-              </LineChart>
+                <Legend formatter={(v) => v === 'revenue' ? 'Doanh thu' : 'Chi phí'} wrapperStyle={{ fontSize: '12px' }} />
+                <Bar dataKey="revenue" name="revenue" fill="var(--accent-primary)" radius={[4,4,0,0]} maxBarSize={32} />
+                <Bar dataKey="expenses" name="expenses" fill="var(--status-overdue)" radius={[4,4,0,0]} maxBarSize={32} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>

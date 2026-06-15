@@ -76,10 +76,10 @@ export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
       const noteSuffix = (generateSecondTime && isDup) ? ' - Hóa đơn lần 2' : '';
       
       const items = [
-        { name: `Tiền phòng (Tháng ${monthStr}${noteSuffix})`, qty: 1, price: basePrice, total: basePrice },
-        { name: 'Tiền điện (Chưa chốt số)', qty: 0, price: prices.electricityPrice || 3500, total: 0 },
-        { name: 'Tiền nước (Chưa chốt số)', qty: 1, price: prices.waterPrice || 100000, total: prices.waterPrice || 100000 },
-        { name: 'Phí dịch vụ', qty: 1, price: prices.serviceFee || 150000, total: prices.serviceFee || 150000 }
+        { id: 1, name: `Tiền phòng (Tháng ${monthStr}${noteSuffix})`, qty: 1, price: basePrice, total: basePrice },
+        { id: 2, name: 'Tiền điện', oldIndex: null, newIndex: null, qty: 0, price: prices.electricityPrice || 3500, total: 0 },
+        { id: 3, name: 'Tiền nước', oldIndex: null, newIndex: null, qty: 1, price: prices.waterPrice || 100000, total: prices.waterPrice || 100000 },
+        { id: 4, name: 'Phí dịch vụ', qty: 1, price: prices.serviceFee || 150000, total: prices.serviceFee || 150000 }
       ];
       
       const totalAmount = items.reduce((acc, curr) => acc + curr.total, 0);
