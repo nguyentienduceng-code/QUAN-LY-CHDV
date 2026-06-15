@@ -8,7 +8,7 @@ export default function BottomTabBar() {
   const managerNavItems = [
     { path: '/', label: 'Tổng quan', icon: <Home size={20} /> },
     { path: '/rooms', label: 'Phòng', icon: <Grid size={20} /> },
-    { path: '/finance', label: 'Khách thuê', icon: <Users size={20} /> },
+    { path: '/tenants', label: 'Khách', icon: <Users size={20} /> },
     { path: '/invoices', label: 'Hóa đơn', icon: <FileText size={20} /> },
     { path: '/maintenance', label: 'Bảo trì', icon: <Wrench size={20} /> },
   ];

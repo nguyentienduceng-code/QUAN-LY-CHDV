@@ -1,15 +1,46 @@
-import { X, User, Calendar, DollarSign, Wrench, Image as ImageIcon, Plus, UploadCloud } from 'lucide-react';
+import { X, User, Calendar, DollarSign, Wrench, Image as ImageIcon, Plus, UploadCloud, Edit3, Check, FileText, Trash2 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useAppData } from '../context/AppDataContext';
 import { useAuth } from '../context/AuthContext';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 export default function RoomDetailDrawer({ isOpen, onClose, room }) {
   const { user } = useAuth();
   const { removeRoom, updateRoom } = useAppData();
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Inline editing state
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [editPrice, setEditPrice] = useState('');
+  const [editArea, setEditArea] = useState('');
+  const [editType, setEditType] = useState('');
+
+  const startEditing = () => {
+    setEditPrice(String(room.price || ''));
+    setEditArea(String(room.area || ''));
+    setEditType(room.type || 'Studio');
+    setIsEditingInfo(true);
+  };
+
+  const saveEditing = () => {
+    const priceNum = parseInt(editPrice.replace(/\D/g, ''), 10);
+    const areaNum = parseFloat(editArea);
+    if (!priceNum || priceNum <= 0) {
+      toast.error('Giá thuê không hợp lệ!');
+      return;
+    }
+    updateRoom(room.id, {
+      price: priceNum,
+      area: areaNum || room.area,
+      type: editType || room.type,
+    });
+    toast.success('Đã cập nhật thông tin phòng!');
+    setIsEditingInfo(false);
+  };
 
   const compressImage = (file) => {
     return new Promise((resolve) => {
@@ -61,131 +92,218 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
     e.target.value = '';
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
+  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     handleFiles(e.dataTransfer.files);
   };
 
-  const handleAddImageClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+  const handleDeleteImage = (idx) => {
+    const newImages = [...(room.images || [])];
+    newImages.splice(idx, 1);
+    updateRoom(room.id, { images: newImages });
+    toast.success('Đã xóa ảnh!');
   };
 
   if (!room) return null;
+
+  const priceFormatted = typeof room.price === 'number'
+    ? room.price.toLocaleString('vi-VN')
+    : room.price;
 
   return (
     <>
       <div className={`drawer-overlay ${isOpen ? 'open' : ''}`} onClick={onClose}></div>
       <div className={`drawer-content ${isOpen ? 'open' : ''}`}>
-        
+
         {/* Header */}
         <div className="drawer-header">
           <div>
-            <h2 style={{ margin: '0 0 8px' }}>Phòng {room.name} - Nhà {room.building}</h2>
-            <StatusBadge 
-              status={room.status} 
+            <h2 style={{ margin: '0 0 6px', fontSize: '1.2rem' }}>
+              Phòng {room.name}
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'normal', marginLeft: '8px' }}>
+                Nhà {room.building} • Tầng {room.floor || '?'}
+              </span>
+            </h2>
+            <StatusBadge
+              status={room.status}
               text={
                 room.status === 'occupied' ? 'Đang thuê' :
                 room.status === 'vacant' ? 'Phòng trống' :
                 room.status === 'expiring' ? 'Sắp hết hạn' :
                 room.status === 'overdue' ? 'Quá hạn thu' : 'Đang bảo trì'
-              } 
+              }
             />
           </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px' }}>
             <X size={24} />
           </button>
         </div>
 
         {/* Body */}
         <div className="drawer-body">
-          {/* Thông tin chung */}
-          <div style={{ marginBottom: '32px' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
-              <DollarSign size={18} /> Thông Tin Chung
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Diện tích</div>
-                <div style={{ fontWeight: '600', marginTop: '4px' }}>{room.area || '25'} m²</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Giá thuê/tháng</div>
-                <div style={{ fontWeight: '600', marginTop: '4px', color: 'var(--status-occupied)' }}>{room.price || '4.500.000'} đ</div>
-              </div>
+
+          {/* ── THÔNG TIN PHÒNG ── */}
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <DollarSign size={18} /> Thông Tin Phòng
+              </h3>
+              {user?.role === 'manager' && !isEditingInfo && (
+                <button
+                  onClick={startEditing}
+                  style={{ background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--accent-primary)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Edit3 size={13} /> Sửa
+                </button>
+              )}
+              {isEditingInfo && (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setIsEditingInfo(false)} style={{ background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-secondary)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem' }}>Hủy</button>
+                  <button onClick={saveEditing} style={{ background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                    <Check size={13} /> Lưu
+                  </button>
+                </div>
+              )}
             </div>
+
+            {isEditingInfo ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Giá thuê/tháng (VNĐ)</label>
+                  <input
+                    type="number"
+                    value={editPrice}
+                    onChange={e => setEditPrice(e.target.value)}
+                    placeholder="VD: 4500000"
+                    style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--accent-primary)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Diện tích (m²)</label>
+                    <input
+                      type="number"
+                      value={editArea}
+                      onChange={e => setEditArea(e.target.value)}
+                      style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Loại phòng</label>
+                    <select
+                      value={editType}
+                      onChange={e => setEditType(e.target.value)}
+                      style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.95rem' }}
+                    >
+                      <option value="Studio">Studio</option>
+                      <option value="1PN">1 Phòng ngủ</option>
+                      <option value="2PN">2 Phòng ngủ</option>
+                      <option value="Penthouse">Penthouse</option>
+                      <option value="Duplex">Duplex</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Diện tích</div>
+                  <div style={{ fontWeight: '700', marginTop: '4px', fontSize: '1rem' }}>{room.area || '25'} m²</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Giá thuê/tháng</div>
+                  <div style={{ fontWeight: '700', marginTop: '4px', fontSize: '1rem', color: 'var(--accent-primary)' }}>
+                    {priceFormatted} đ
+                  </div>
+                </div>
+                {room.type && (
+                  <div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Loại phòng</div>
+                    <div style={{ fontWeight: '600', marginTop: '4px' }}>{room.type}</div>
+                  </div>
+                )}
+                {room.amenities && room.amenities.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Tiện ích</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {room.amenities.slice(0, 4).map((a, i) => (
+                        <span key={i} style={{ background: 'var(--bg-secondary)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', color: 'var(--text-secondary)', border: '1px solid var(--border-glass)' }}>{a}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Khách thuê */}
+          {/* ── KHÁCH THUÊ ── */}
           {room.status !== 'vacant' && (
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '28px' }}>
               <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
                 <User size={18} /> Khách Thuê
               </h3>
               <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Họ và tên</div>
-                <div style={{ fontWeight: '600', marginTop: '4px' }}>{room.tenant?.name || 'Nguyễn Văn A'}</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Họ và tên</div>
+                <div style={{ fontWeight: '700', marginTop: '4px', fontSize: '1rem' }}>{room.tenant?.name || 'Nguyễn Văn A'}</div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Số điện thoại</div>
-                  <div style={{ fontWeight: '600', marginTop: '4px' }}>{room.tenant?.phone || '090 123 4567'}</div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Số điện thoại</div>
+                  <div style={{ fontWeight: '600', marginTop: '4px', fontSize: '0.9rem' }}>
+                    <a href={`tel:${room.tenant?.phone}`} style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>
+                      {room.tenant?.phone || '090 123 4567'}
+                    </a>
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>CCCD</div>
-                  <div style={{ fontWeight: '600', marginTop: '4px' }}>{room.tenant?.idCard || '001099001234'}</div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>CCCD</div>
+                  <div style={{ fontWeight: '600', marginTop: '4px', fontSize: '0.9rem' }}>{room.tenant?.idCard || '001099001234'}</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
                 <Calendar size={18} color="var(--accent-primary)" />
                 <div style={{ fontSize: '0.9rem' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Hạn HĐ: </span>
-                  <span style={{ fontWeight: '600', color: room.status === 'expiring' ? 'var(--status-expiring)' : 'inherit' }}>
-                    {room.tenant?.contractEnd || '15/07/2026'}
+                  <span style={{ fontWeight: '600', color: room.status === 'expiring' ? 'var(--status-expiring-text)' : 'inherit' }}>
+                    {room.tenant?.contractEnd || 'N/A'}
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Ảnh Phòng */}
-          <div style={{ marginBottom: '32px' }}>
+          {/* ── ẢNH PHÒNG ── */}
+          <div style={{ marginBottom: '28px' }}>
             <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
               <ImageIcon size={18} /> Ảnh Phòng
               {user?.role === 'manager' && (
                 <>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    multiple 
-                    ref={fileInputRef} 
-                    style={{ display: 'none' }} 
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
                     onChange={handleFileSelect}
                   />
-                  <button onClick={handleAddImageClick} style={{ marginLeft: 'auto', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ marginLeft: 'auto', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '6px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                  >
                     <Plus size={14} /> Thêm ảnh
                   </button>
                 </>
               )}
             </h3>
-            
-            <div 
+
+            <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              style={{ 
+              style={{
                 border: isDragging ? '2px dashed var(--accent-primary)' : '2px dashed transparent',
                 background: isDragging ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
                 borderRadius: '8px',
@@ -204,33 +322,52 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
               {room.images && room.images.length > 0 ? (
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
                   {room.images.map((img, i) => (
-                    <img key={i} src={img} alt="Room" style={{ width: '120px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-glass)' }} />
+                    <div key={i} style={{ position: 'relative', flexShrink: 0 }}>
+                      <img
+                        src={img}
+                        alt={`Phòng ${room.name} - ${i + 1}`}
+                        style={{ width: '110px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-glass)' }}
+                      />
+                      {user?.role === 'manager' && (
+                        <button
+                          onClick={() => handleDeleteImage(i)}
+                          style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239,68,68,0.85)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
+                        >
+                          <Trash2 size={11} color="#fff" />
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center', padding: '24px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px dashed var(--border-glass)' }}>
-                  Chưa có ảnh nào. <br/> {user?.role === 'manager' ? 'Kéo thả ảnh vào đây hoặc bấm "Thêm ảnh"' : ''}
+                <div
+                  onClick={() => user?.role === 'manager' && fileInputRef.current?.click()}
+                  style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center', padding: '28px 16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px dashed var(--border-glass)', cursor: user?.role === 'manager' ? 'pointer' : 'default' }}
+                >
+                  <UploadCloud size={28} style={{ marginBottom: '8px', opacity: 0.4, display: 'block', margin: '0 auto 8px' }} />
+                  Chưa có ảnh nào.{' '}
+                  {user?.role === 'manager' && <span style={{ color: 'var(--accent-primary)' }}>Nhấp để tải ảnh lên</span>}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Lịch sử & Trạng thái phụ */}
+          {/* ── LỊCH SỬ BẢO TRÌ ── */}
           {(room.status === 'overdue' || room.status === 'maintenance') && (
-            <div>
+            <div style={{ marginBottom: '20px' }}>
               <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
                 <Wrench size={18} /> Lịch sử & Lưu ý
               </h3>
               {room.status === 'overdue' && (
-                <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid var(--status-overdue)', borderRadius: '4px' }}>
-                  <div style={{ fontWeight: '600', color: 'var(--status-overdue)', marginBottom: '4px' }}>Nợ hóa đơn tháng trước</div>
-                  <div style={{ fontSize: '0.9rem' }}>4.500.000 đ (Hạn: 05/06)</div>
+                <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid var(--status-overdue-text)', borderRadius: '4px', marginBottom: '10px' }}>
+                  <div style={{ fontWeight: '600', color: 'var(--status-overdue-text)', marginBottom: '4px' }}>Nợ hóa đơn chưa thanh toán</div>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Vui lòng vào trang Hóa Đơn để xem chi tiết.</div>
                 </div>
               )}
               {room.status === 'maintenance' && (
-                <div style={{ padding: '12px', background: 'rgba(139, 92, 246, 0.1)', borderLeft: '4px solid var(--status-maintenance)', borderRadius: '4px' }}>
-                  <div style={{ fontWeight: '600', color: 'var(--status-maintenance)', marginBottom: '4px' }}>Yêu cầu sửa chữa (TKT-099)</div>
-                  <div style={{ fontSize: '0.9rem' }}>Khách báo điều hòa kêu to, chảy nước.</div>
+                <div style={{ padding: '12px', background: 'rgba(139, 92, 246, 0.1)', borderLeft: '4px solid var(--status-maintenance-text)', borderRadius: '4px' }}>
+                  <div style={{ fontWeight: '600', color: 'var(--status-maintenance-text)', marginBottom: '4px' }}>Đang trong quá trình bảo trì</div>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Kiểm tra trang Bảo Trì để theo dõi tiến độ.</div>
                 </div>
               )}
             </div>
@@ -238,22 +375,37 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
         </div>
 
         {/* Footer Actions */}
-        {user?.role === 'manager' && room.status === 'vacant' && (
+        {user?.role === 'manager' && (
           <div className="drawer-footer">
-            <button 
-              onClick={() => {
-                if (confirm(`Bạn có chắc chắn muốn xóa phòng ${room.name}?`)) {
-                  removeRoom(room.id);
-                  onClose();
-                }
-              }} 
-              style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-overdue)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-            >
-              Xóa Phòng
-            </button>
-            <button style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
-              Tạo Hợp Đồng Mới
-            </button>
+            {room.status === 'vacant' ? (
+              <>
+                <button
+                  onClick={() => {
+                    if (confirm(`Bạn có chắc chắn muốn xóa phòng ${room.name}?`)) {
+                      removeRoom(room.id);
+                      onClose();
+                      toast.success(`Đã xóa phòng ${room.name}!`);
+                    }
+                  }}
+                  style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-overdue-text)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Trash2 size={16} /> Xóa
+                </button>
+                <button
+                  onClick={() => { onClose(); navigate('/tenants'); }}
+                  style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} /> Tạo Hợp Đồng Mới
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => { onClose(); navigate('/invoices'); }}
+                style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                <FileText size={16} /> Xem Hóa Đơn Phòng Này
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -337,7 +337,96 @@
     text-align: left;
     margin-right: 16px;
   }
-}
+
+  /* ─── ROOMS PAGE MOBILE ──────── */
+  .rooms-layout {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .rooms-filter-sidebar {
+    width: 100% !important;
+    flex-shrink: unset !important;
+  }
+
+  /* Rooms grid: 3 columns on mobile for compact view */
+  .rooms-grid-mobile {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* ─── KANBAN BOARD MOBILE ──────── */
+  .kanban-board {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px !important;
+  }
+
+  .kanban-column {
+    min-width: 82vw !important;
+    max-width: 82vw !important;
+    scroll-snap-align: center;
+    flex-shrink: 0 !important;
+  }
+
+  /* ─── DRAWERS MOBILE ──────── */
+  .drawer-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    right: -100% !important;
+    border-radius: 20px 20px 0 0;
+    top: auto !important;
+    bottom: 0 !important;
+    max-height: 90vh;
+  }
+
+  .drawer-content.open {
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+
+  /* ─── INVOICE TABLE MOBILE ──────── */
+  .invoice-action-btns {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .invoice-action-btns button {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+  }
+
+  /* ─── HOME PAGE STATS MOBILE ──────── */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* ─── GENERAL MOBILE UTILITIES ──────── */
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
+  }
+
+  /* Minimum touch target size */
+  button, a, [role="button"] {
+    min-height: 36px;
+  }
+
+  /* Modal/popup sizing on mobile */
+  [style*="maxWidth: '460px'"],
+  [style*="max-width: 460px"] {
+    max-width: calc(100vw - 32px) !important;
+  }
+
+} /* end @media 768px */
 
 /* Bottom Tab Bar Container */
 .bottom-tab-bar {
