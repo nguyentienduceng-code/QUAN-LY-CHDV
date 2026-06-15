@@ -203,6 +203,15 @@ export const AppDataProvider = ({ children }) => {
     return true;
   };
 
+  const clearAllData = () => {
+    setRooms([]);
+    setTenants([]);
+    setContracts([]);
+    setInvoices([]);
+    setTickets({ reported: [], inProgress: [], resolved: [] });
+    return true;
+  };
+
   return (
     <AppDataContext.Provider value={{ 
       rooms, setRooms, addRoom, removeRoom, updateRoom,
@@ -212,7 +221,7 @@ export const AppDataProvider = ({ children }) => {
       tickets, addTicket, updateTicket, moveTicket,
       notifications, markNotificationAsRead,
       settings, setSettings, renameBuilding, addNewBuilding,
-      loadMockData
+      loadMockData, clearAllData
     }}>
       {children}
     </AppDataContext.Provider>
