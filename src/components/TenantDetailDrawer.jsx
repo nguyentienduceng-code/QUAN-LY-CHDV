@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { X, User, FileText, FileSpreadsheet, Edit, Trash2, Save } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useAppData } from '../context/AppDataContext';
@@ -15,7 +16,7 @@ export default function TenantDetailDrawer({ isOpen, onClose, tenantId }) {
     if (tenant) {
       setEditForm({ phone: tenant.phone || '', idCard: tenant.idCard || '', note: tenant.note || '' });
     }
-  }, [tenant]);
+  }, [tenant?.id]);
 
   if (!isOpen || !tenant) return null;
 

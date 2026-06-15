@@ -73,12 +73,14 @@ function MainLayout() {
 }
 
 import { AppDataProvider } from './context/AppDataContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
-    <AuthProvider>
-      <AppDataProvider>
-        <Toaster 
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppDataProvider>
+          <Toaster 
           position="top-center"
           toastOptions={{
             style: {
@@ -122,8 +124,9 @@ function App() {
             } />
           </Routes>
         </Router>
-      </AppDataProvider>
-    </AuthProvider>
+        </AppDataProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -51,8 +51,8 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
       }
       updateRoom(room.id, { images: newImages });
       toast.success('Đã tải ảnh lên thành công!', { id: 'upload-toast' });
-    } catch (err) {
-      toast.error('Có lỗi xảy ra khi xử lý ảnh.', { id: 'upload-toast' });
+    } catch {
+      toast.error('Lỗi file hệ thống, vui lòng thử lại!', { id: 'upload-toast' });
     }
   };
 

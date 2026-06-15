@@ -12,7 +12,6 @@ export default function TenantPortal() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const tenantName = user?.name || 'Nguyễn Văn A';
   const tenantRoom = user?.room || 'P.101';
   const myInvoice = invoices.find(inv => inv.room === tenantRoom && inv.status === 'unpaid') || invoices.find(inv => inv.room === tenantRoom);
 

@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 export default function Tenants() {
   const appData = useAppData();
-  const { tenants, addTenant, updateTenant, deleteTenant } = appData;
+  const { tenants, addTenant, deleteTenant } = appData;
   const [selectedTenantId, setSelectedTenantId] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -22,14 +22,7 @@ export default function Tenants() {
     toast.success('Đã thêm khách thuê thành công!');
   };
 
-  const handleEditTenant = (tenant) => {
-    const name = prompt('Sửa Họ và Tên:', tenant.name) || tenant.name;
-    const phone = prompt('Sửa Số Điện Thoại:', tenant.phone) || tenant.phone;
-    const idCard = prompt('Sửa CCCD:', tenant.idCard) || tenant.idCard;
-    const note = prompt('Sửa Ghi chú:', tenant.note || (tenant.status === 'active' ? 'Khách mới' : '')) || tenant.note;
-    updateTenant(tenant.id, { name, phone, idCard, note });
-    toast.success('Cập nhật thông tin thành công!');
-  };
+
 
   const handleDeleteTenant = (id) => {
     if (confirm('Bạn có chắc chắn muốn xóa khách này khỏi hệ thống?')) {

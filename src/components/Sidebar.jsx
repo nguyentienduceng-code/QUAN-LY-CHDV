@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home as HomeIcon, Users, FileText, FileSpreadsheet, PenTool, Smartphone, UserCheck, Moon, Sun, Settings } from 'lucide-react';
+import { Home as HomeIcon, Users, FileSpreadsheet, PenTool, Smartphone, UserCheck, Moon, Sun, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ isOpen, setIsOpen }) {

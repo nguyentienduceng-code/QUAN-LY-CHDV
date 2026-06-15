@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
-import { MoreHorizontal, Plus, Download, Filter, Eye, ChevronDown, ChevronRight, Building, User } from 'lucide-react';
+import { Plus, Eye, Download, Filter, ChevronDown, ChevronRight, Building, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import GeneratePeriodicInvoicesModal from '../components/GeneratePeriodicInvoicesModal';
 
@@ -11,7 +11,7 @@ import InvoiceReceiptModal from '../components/InvoiceReceiptModal';
 
 export default function Invoices() {
   const { user } = useAuth();
-  const { invoices, addInvoice, setInvoices, tenants, rooms } = useAppData();
+  const { invoices, addInvoice, tenants, rooms } = useAppData();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);

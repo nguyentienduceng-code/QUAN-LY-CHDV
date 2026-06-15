@@ -1,5 +1,5 @@
 import { useAppData } from '../context/AppDataContext';
-import { MoreHorizontal, Plus, Search, Download } from 'lucide-react';
+import { Search, Plus, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StatusBadge from '../components/StatusBadge';
 import TenantDetailDrawer from '../components/TenantDetailDrawer';
