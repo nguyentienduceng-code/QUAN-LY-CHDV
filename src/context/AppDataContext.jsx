@@ -95,11 +95,23 @@ export const AppDataProvider = ({ children }) => {
   const [invoices, setInvoices] = useState(() => JSON.parse(localStorage.getItem('chdv_invoices')) || initialInvoices);
   const [tickets, setTickets] = useState(() => JSON.parse(localStorage.getItem('chdv_tickets')) || initialTickets);
 
+  const defaultSettings = {
+    electricityPrice: 3500,
+    waterPrice: 100000,
+    serviceFee: 150000,
+    bankName: 'MB',
+    bankAccount: '0901234567',
+    bankOwner: 'NGUYEN VAN A'
+  };
+  const [settings, setSettings] = useState(() => JSON.parse(localStorage.getItem('chdv_settings')) || defaultSettings);
+
   useEffect(() => { localStorage.setItem('chdv_rooms', JSON.stringify(rooms)); }, [rooms]);
   useEffect(() => { localStorage.setItem('chdv_tenants', JSON.stringify(tenants)); }, [tenants]);
   useEffect(() => { localStorage.setItem('chdv_contracts', JSON.stringify(contracts)); }, [contracts]);
   useEffect(() => { localStorage.setItem('chdv_invoices', JSON.stringify(invoices)); }, [invoices]);
   useEffect(() => { localStorage.setItem('chdv_tickets', JSON.stringify(tickets)); }, [tickets]);
+  useEffect(() => { localStorage.setItem('chdv_settings', JSON.stringify(settings)); }, [settings]);
+  
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'Hệ thống', message: 'Chào mừng bạn đến với hệ thống Quản lý CHDV', isRead: false, date: new Date().toLocaleDateString('vi-VN') }
   ]);
@@ -177,7 +189,8 @@ export const AppDataProvider = ({ children }) => {
       contracts, setContracts, addContract,
       invoices, setInvoices, addInvoice,
       tickets, addTicket, moveTicket,
-      notifications, markNotificationAsRead
+      notifications, markNotificationAsRead,
+      settings, setSettings
     }}>
       {children}
     </AppDataContext.Provider>

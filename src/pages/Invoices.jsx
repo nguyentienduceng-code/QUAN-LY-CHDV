@@ -56,6 +56,17 @@ export default function Invoices() {
     setIsReceiptModalOpen(true);
   };
 
+  const handleZaloDebt = (inv) => {
+    const tenantInfo = tenants.find(t => t.name === inv.tenant);
+    if (!tenantInfo || !tenantInfo.phone) {
+      toast.error('Không tìm thấy số điện thoại khách thuê!');
+      return;
+    }
+    const msg = `Chào bạn, phòng ${inv.room} hiện đang nợ hóa đơn ${inv.id} số tiền ${inv.amount} VNĐ. Vui lòng thanh toán trước hạn chót ${inv.due}. Cảm ơn bạn!`;
+    const url = `https://zalo.me/${tenantInfo.phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -212,7 +223,7 @@ export default function Invoices() {
                                         <Eye size={12} /> Xem
                                       </button>
                                       {inv.status === 'unpaid' ? (
-                                        <button onClick={() => toast.success(`Đã gửi Zalo cho ${inv.tenant}!`)} style={{ padding: '4px 8px', background: 'var(--status-overdue)', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Đòi nợ</button>
+                                        <button onClick={() => handleZaloDebt(inv)} style={{ padding: '4px 8px', background: 'var(--status-overdue)', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Đòi nợ</button>
                                       ) : (
                                         <button onClick={() => toast.success(`Đã hoàn tiền cho ${inv.id}!`)} style={{ padding: '4px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Hoàn tiền</button>
                                       )}

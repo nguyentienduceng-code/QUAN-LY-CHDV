@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home as HomeIcon, Users, FileText, FileSpreadsheet, PenTool, Smartphone, UserCheck, Moon, Sun } from 'lucide-react';
+import { Home as HomeIcon, Users, FileText, FileSpreadsheet, PenTool, Smartphone, UserCheck, Moon, Sun, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -17,6 +17,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { path: '/rooms', label: 'Quản lý Phòng', icon: <HomeIcon size={20} /> },
     { path: '/finance', label: 'Lưu trú & Tài chính', icon: <Users size={20} /> },
     { path: '/maintenance', label: 'Bảo trì (Kanban)', icon: <PenTool size={20} /> },
+    { path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> },
     { path: '/mobile-manager', label: 'App Quản lý', icon: <Smartphone size={20} /> },
   ];
 

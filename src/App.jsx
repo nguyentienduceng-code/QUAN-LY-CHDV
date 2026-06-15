@@ -14,6 +14,7 @@ import Maintenance from './pages/Maintenance';
 import MobileManager from './pages/MobileManager';
 import TenantPortal from './pages/TenantPortal';
 import FinanceAndTenants from './pages/FinanceAndTenants';
+import Settings from './pages/Settings';
 import BottomTabBar from './components/BottomTabBar';
 
 import './styles/index.css';
@@ -57,6 +58,7 @@ function MainLayout() {
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/mobile-manager" element={<MobileManager />} />
               
               {/* Tenant Routes */}

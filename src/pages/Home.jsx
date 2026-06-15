@@ -1,6 +1,6 @@
 import { TrendingUp, Users, DollarSign, AlertCircle, AlertTriangle, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useAppData } from '../context/AppDataContext';
 import { exportAllDataToExcel } from '../utils/exportExcel';
 import Card from '../components/Card';
@@ -19,13 +19,32 @@ export default function Home() {
   const overdueInvoices = invoices.filter(i => i.status === 'unpaid').length;
   const activeTickets = tickets.reported.length + tickets.inProgress.length;
 
-  const chartData = [
-    { name: 'T1', revenue: 40 },
-    { name: 'T2', revenue: 42 },
-    { name: 'T3', revenue: 38 },
-    { name: 'T4', revenue: 45 },
-    { name: 'T5', revenue: 48 },
-    { name: 'T6', revenue: totalRevenue / 1000000 },
+  // Generate dynamic chart data based on invoices
+  const monthlyRevenue = {};
+  invoices.forEach(inv => {
+    // inv.id looks like INV-06-2026-1234 or inv.due looks like 05/07/2026
+    const amt = parseInt(inv.amount.replace(/\./g, '')) || 0;
+    const monthMatch = inv.id.match(/INV-(\d{2})-(\d{4})/);
+    if (monthMatch) {
+      const m = parseInt(monthMatch[1], 10);
+      monthlyRevenue[`T${m}`] = (monthlyRevenue[`T${m}`] || 0) + amt;
+    }
+  });
+
+  const chartData = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'].map(m => ({
+    name: m,
+    revenue: (monthlyRevenue[m] || 0) / 1000000
+  })).filter(d => d.revenue > 0);
+
+  // If not enough data, pad with previous months
+  if (chartData.length < 3) {
+    chartData.unshift({ name: 'T4', revenue: 45 });
+    chartData.unshift({ name: 'T5', revenue: 48 });
+  }
+
+  const pieData = [
+    { name: 'Đã thuê', value: occupiedRooms, color: '#10b981' }, // status-occupied
+    { name: 'Phòng trống', value: rooms.length - occupiedRooms, color: '#3b82f6' } // accent-primary
   ];
 
   return (
@@ -78,7 +97,7 @@ export default function Home() {
         </Card>
       </div>
 
-      <div className="responsive-grid-2-1" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
         <Card title={<><TrendingUp size={20} /> Biểu đồ Doanh thu</>}>
           <div style={{ height: '300px', width: '100%', minWidth: '0' }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -86,12 +105,39 @@ export default function Home() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
                 <XAxis dataKey="name" stroke="var(--text-secondary)" tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--text-secondary)" tickLine={false} axisLine={false} tickFormatter={(val) => `${val} Tr VNĐ`} width={70} />
-                <Tooltip 
+                <RechartsTooltip 
                   contentStyle={{ background: 'rgba(10, 14, 26, 0.9)', border: '1px solid var(--border-glass)', borderRadius: '8px' }}
                   itemStyle={{ color: 'var(--accent-primary)' }}
                 />
                 <Line type="monotone" dataKey="revenue" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 4, fill: 'var(--bg-primary)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
               </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card title={<><Users size={20} /> Tỉ lệ lấp đầy</>}>
+          <div style={{ height: '300px', width: '100%', minWidth: '0' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip 
+                  contentStyle={{ background: 'rgba(10, 14, 26, 0.9)', border: '1px solid var(--border-glass)', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff' }}
+                />
+              </PieChart>
             </ResponsiveContainer>
           </div>
         </Card>

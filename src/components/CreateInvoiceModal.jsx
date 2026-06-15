@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
+import { useAppData } from '../context/AppDataContext';
 
-export default function CreateInvoiceModal({ isOpen, onClose, onSave, tenants }) {
+export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
+  const { tenants, settings } = useAppData();
+  
   const [tenant, setTenant] = useState(tenants[0]?.name || '');
   const [room, setRoom] = useState(tenants[0]?.room || '');
   
@@ -10,9 +13,9 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave, tenants })
 
   const [items, setItems] = useState([
     { id: 1, name: 'Tiền phòng', qty: 1, price: 4000000 },
-    { id: 2, name: 'Tiền điện', qty: 0, price: 3500 },
-    { id: 3, name: 'Tiền nước', qty: 1, price: 100000 },
-    { id: 4, name: 'Phí dịch vụ', qty: 1, price: 150000 }
+    { id: 2, name: 'Tiền điện', qty: 0, price: settings.electricityPrice || 3500 },
+    { id: 3, name: 'Tiền nước', qty: 1, price: settings.waterPrice || 100000 },
+    { id: 4, name: 'Phí dịch vụ', qty: 1, price: settings.serviceFee || 150000 }
   ]);
 
   if (!isOpen) return null;

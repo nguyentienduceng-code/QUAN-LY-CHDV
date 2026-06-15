@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { useAppData } from '../context/AppDataContext';
 
 export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
-  const { tenants, rooms, invoices, setInvoices } = useAppData();
+  const { tenants, rooms, invoices, setInvoices, settings } = useAppData();
   
   const currentMonthInput = new Date().toISOString().slice(0, 7); // yyyy-MM
   const [selectedMonth, setSelectedMonth] = useState(currentMonthInput);
@@ -76,9 +76,9 @@ export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
       
       const items = [
         { name: `Tiền phòng (Tháng ${monthStr}${noteSuffix})`, qty: 1, price: basePrice, total: basePrice },
-        { name: 'Tiền điện (Chỉ số: --)', qty: 0, price: 3500, total: 0 },
-        { name: 'Tiền nước', qty: 1, price: 100000, total: 100000 },
-        { name: 'Phí dịch vụ', qty: 1, price: 125000, total: 125000 }
+        { name: 'Tiền điện (Chỉ số: --)', qty: 0, price: settings.electricityPrice || 3500, total: 0 },
+        { name: 'Tiền nước', qty: 1, price: settings.waterPrice || 100000, total: settings.waterPrice || 100000 },
+        { name: 'Phí dịch vụ', qty: 1, price: settings.serviceFee || 150000, total: settings.serviceFee || 150000 }
       ];
       
       const totalAmount = items.reduce((acc, curr) => acc + curr.total, 0);

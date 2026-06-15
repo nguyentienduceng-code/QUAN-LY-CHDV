@@ -1,9 +1,17 @@
-import { X, Printer, Send } from 'lucide-react';
+import { X, Printer, Send, QrCode } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useAppData } from '../context/AppDataContext';
 
 export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
   const { user } = useAuth();
+  const { settings } = useAppData();
   if (!isOpen || !invoice) return null;
+
+  // Extract raw number from amount string (e.g. "4.500.000" -> 4500000)
+  const numericAmount = parseInt(invoice.amount.replace(/\./g, ''), 10) || 0;
+  
+  // Generate VietQR URL
+  const qrUrl = `https://img.vietqr.io/image/${settings.bankName}-${settings.bankAccount}-compact2.png?amount=${numericAmount}&addInfo=${encodeURIComponent(`Thanh toan ${invoice.id}`)}&accountName=${encodeURIComponent(settings.bankOwner)}`;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -59,6 +67,23 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
           <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
             <span style={{ color: '#64748b' }}>Hạn thanh toán:</span>
             <span style={{ fontWeight: '600', color: '#ef4444' }}>{invoice.due}</span>
+          </div>
+
+          {/* QR Code Section */}
+          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px', color: '#3b82f6', fontWeight: 'bold' }}>
+              <QrCode size={18} /> Quét mã để thanh toán (VietQR)
+            </div>
+            <img 
+              src={qrUrl} 
+              alt="VietQR Payment" 
+              style={{ width: '200px', height: '200px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', background: '#fff' }} 
+            />
+            <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#64748b' }}>
+              Chuyển khoản đến:<br/>
+              <strong style={{ color: '#0f172a' }}>{settings.bankName} - {settings.bankAccount}</strong><br/>
+              Chủ TK: <strong style={{ color: '#0f172a' }}>{settings.bankOwner}</strong>
+            </div>
           </div>
         </div>
 
