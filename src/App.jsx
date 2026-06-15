@@ -56,11 +56,11 @@ function MainLayout() {
               <Route path="/" element={user.role === 'manager' ? <Home /> : <TenantPortal />} />
               
               {/* Manager-only Routes */}
-              <Route path="/rooms" element={<ProtectedRoute requireRole="manager"><Rooms /></ProtectedRoute>} />
+              <Route path="/rooms" element={<Rooms />} />
               <Route path="/finance" element={<ProtectedRoute requireRole="manager"><FinanceAndTenants /></ProtectedRoute>} />
               <Route path="/tenants" element={<ProtectedRoute requireRole="manager"><Tenants /></ProtectedRoute>} />
               <Route path="/contracts" element={<ProtectedRoute requireRole="manager"><Contracts /></ProtectedRoute>} />
-              <Route path="/invoices" element={<ProtectedRoute requireRole="manager"><Invoices /></ProtectedRoute>} />
+              <Route path="/invoices" element={<Invoices />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/settings" element={<ProtectedRoute requireRole="manager"><Settings /></ProtectedRoute>} />
               <Route path="/mobile-manager" element={<ProtectedRoute requireRole="manager"><MobileManager /></ProtectedRoute>} />

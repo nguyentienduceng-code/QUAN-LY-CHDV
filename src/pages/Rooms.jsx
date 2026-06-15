@@ -91,106 +91,112 @@ export default function Rooms() {
   return (
     <div className="rooms-layout" style={{ display: 'flex', gap: '24px', height: '100%' }}>
       {/* Sidebar Filters */}
-      <div className="rooms-filter-sidebar" style={{ width: '250px', flexShrink: 0 }}>
-        <Card title={<><Filter size={18} /> Bộ Lọc</>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div 
-              onClick={() => setIsBuildingExpanded(!isBuildingExpanded)}
-              style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Nhà {user?.role === 'manager' && <button onClick={handleEditBuildings} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Nhà"><Edit3 size={14} /></button>}
-              </div>
-              {isBuildingExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </div>
-            {isBuildingExpanded && settings.buildings.map(b => (
-              <button 
-                key={b}
-                onClick={() => setActiveBuilding(b)}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  border: '1px solid',
-                  borderColor: activeBuilding === b ? 'var(--accent-primary)' : 'var(--border-glass)',
-                  background: activeBuilding === b ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                  color: activeBuilding === b ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)'
-                }}
+      {user?.role === 'manager' && (
+        <div className="rooms-filter-sidebar" style={{ width: '250px', flexShrink: 0 }}>
+          <Card title={<><Filter size={18} /> Bộ Lọc</>}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div 
+                onClick={() => setIsBuildingExpanded(!isBuildingExpanded)}
+                style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
               >
-                Nhà {b}
-              </button>
-            ))}
-
-            <div 
-              onClick={() => setIsFloorExpanded(!isFloorExpanded)}
-              style={{ fontWeight: '600', marginTop: '16px', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Tầng {user?.role === 'manager' && <button onClick={handleEditFloors} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Tầng"><Edit3 size={14} /></button>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Nhà {user?.role === 'manager' && <button onClick={handleEditBuildings} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Nhà"><Edit3 size={14} /></button>}
+                </div>
+                {isBuildingExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </div>
-              {isFloorExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </div>
-            {isFloorExpanded && settings.floors.map(f => (
-              <button 
-                key={f}
-                onClick={() => setActiveFloor(f)}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  border: '1px solid',
-                  borderColor: activeFloor === f ? 'var(--accent-primary)' : 'var(--border-glass)',
-                  background: activeFloor === f ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                  color: activeFloor === f ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)'
-                }}
-              >
-                Tầng {f}
-              </button>
-            ))}
+              {isBuildingExpanded && settings.buildings.map(b => (
+                <button 
+                  key={b}
+                  onClick={() => setActiveBuilding(b)}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid',
+                    borderColor: activeBuilding === b ? 'var(--accent-primary)' : 'var(--border-glass)',
+                    background: activeBuilding === b ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                    color: activeBuilding === b ? 'var(--accent-primary)' : 'var(--text-primary)',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'var(--transition)'
+                  }}
+                >
+                  Nhà {b}
+                </button>
+              ))}
 
-            <div 
-              onClick={() => setIsStatusExpanded(!isStatusExpanded)}
-              style={{ fontWeight: '600', marginTop: '16px', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
-            >
-              Lọc Theo Trạng Thái {isStatusExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              <div 
+                onClick={() => setIsFloorExpanded(!isFloorExpanded)}
+                style={{ fontWeight: '600', marginTop: '16px', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Tầng {user?.role === 'manager' && <button onClick={handleEditFloors} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0 4px' }} title="Chỉnh sửa danh sách Tầng"><Edit3 size={14} /></button>}
+                </div>
+                {isFloorExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </div>
+              {isFloorExpanded && settings.floors.map(f => (
+                <button 
+                  key={f}
+                  onClick={() => setActiveFloor(f)}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid',
+                    borderColor: activeFloor === f ? 'var(--accent-primary)' : 'var(--border-glass)',
+                    background: activeFloor === f ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                    color: activeFloor === f ? 'var(--accent-primary)' : 'var(--text-primary)',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'var(--transition)'
+                  }}
+                >
+                  Tầng {f}
+                </button>
+              ))}
+
+              <div 
+                onClick={() => setIsStatusExpanded(!isStatusExpanded)}
+                style={{ fontWeight: '600', marginTop: '16px', marginBottom: '8px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+              >
+                Lọc Theo Trạng Thái {isStatusExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </div>
+              
+              {isStatusExpanded && (
+                <>
+                  <button onClick={() => setStatusFilter('all')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'all' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid var(--text-secondary)' }}></div> Tất cả
+                  </button>
+                  <button onClick={() => setStatusFilter('occupied')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'occupied' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-occupied-text)' }}></div> Đang Thuê
+                  </button>
+                  <button onClick={() => setStatusFilter('vacant')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'vacant' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-vacant-text)' }}></div> Trống
+                  </button>
+                  <button onClick={() => setStatusFilter('expiring')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'expiring' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-expiring-text)' }}></div> Sắp hết HĐ
+                  </button>
+                  <button onClick={() => setStatusFilter('overdue')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'overdue' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-overdue-text)' }}></div> Quá Hạn Thu
+                  </button>
+                  <button onClick={() => setStatusFilter('maintenance')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'maintenance' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-maintenance-text)' }}></div> Đang Bảo Trì
+                  </button>
+                </>
+              )}
             </div>
-            
-            {isStatusExpanded && (
-              <>
-                <button onClick={() => setStatusFilter('all')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'all' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 4, border: '1px solid var(--text-secondary)' }}></div> Tất cả
-                </button>
-                <button onClick={() => setStatusFilter('occupied')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'occupied' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-occupied-text)' }}></div> Đang Thuê
-                </button>
-                <button onClick={() => setStatusFilter('vacant')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'vacant' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-vacant-text)' }}></div> Trống
-                </button>
-                <button onClick={() => setStatusFilter('expiring')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'expiring' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-expiring-text)' }}></div> Sắp hết HĐ
-                </button>
-                <button onClick={() => setStatusFilter('overdue')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'overdue' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-overdue-text)' }}></div> Quá Hạn Thu
-                </button>
-                <button onClick={() => setStatusFilter('maintenance')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: statusFilter === 'maintenance' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '4px' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--status-maintenance-text)' }}></div> Đang Bảo Trì
-                </button>
-              </>
-            )}
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      )}
 
       {/* Grid View */}
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h1 className="page-title" style={{ margin: 0 }}>Sơ Đồ Tầng {activeFloor} - Nhà {activeBuilding}</h1>
+          <h1 className="page-title" style={{ margin: 0 }}>
+            {user?.role === 'manager' ? `Sơ Đồ Tầng ${activeFloor} - Nhà ${activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
+          </h1>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <StatusBadge status="occupied" text={`Đang thuê: ${displayedRooms.filter(r => r.status === 'occupied' || r.status === 'expiring' || r.status === 'overdue').length}`} />
+            {user?.role === 'manager' && (
+              <StatusBadge status="occupied" text={`Đang thuê: ${displayedRooms.filter(r => r.status === 'occupied' || r.status === 'expiring' || r.status === 'overdue').length}`} />
+            )}
             <StatusBadge status="vacant" text={`Trống: ${displayedRooms.filter(r => r.status === 'vacant').length}`} />
             {user?.role === 'manager' && (
               <button onClick={handleAddRoom} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600', marginLeft: '12px' }}>
