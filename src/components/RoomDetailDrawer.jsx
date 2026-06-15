@@ -93,7 +93,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
         {/* Header */}
         <div className="drawer-header">
           <div>
-            <h2 style={{ margin: '0 0 8px' }}>Phòng {room.name}</h2>
+            <h2 style={{ margin: '0 0 8px' }}>Phòng {room.name} - Nhà {room.building}</h2>
             <StatusBadge 
               status={room.status} 
               text={

@@ -236,7 +236,12 @@ export default function Rooms() {
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
                 <div style={{ fontSize: '1.2rem' }}>{room.name}</div>
-                {room.tenant && <div style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '4px' }}>1 Khách</div>}
+                {user?.role === 'tenant' && (
+                  <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '4px' }}>Nhà {room.building}</div>
+                )}
+                {user?.role === 'manager' && room.tenant && (
+                  <div style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '4px' }}>1 Khách</div>
+                )}
               </div>
             );
           })}
