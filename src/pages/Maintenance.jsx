@@ -6,29 +6,93 @@ import { useAppData } from '../context/AppDataContext';
 import { MessageSquare, Paperclip, User, DollarSign, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const COST_CATEGORIES = [
+  'Vật tư / Linh kiện',
+  'Nhân công',
+  'Thuê thiết bị',
+  'Phí dịch vụ',
+  'Chi phí khác',
+];
+
 const EditTicketModal = ({ ticket, onClose, onSave }) => {
   const [cost, setCost] = useState(ticket.cost || 0);
   const [assignee, setAssignee] = useState(ticket.assignee || '');
+  const [description, setDescription] = useState(ticket.description || '');
+  const [costCategory, setCostCategory] = useState(ticket.costCategory || COST_CATEGORIES[0]);
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose}></div>
-      <div style={{ position: 'relative', width: '100%', maxWidth: '400px', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', padding: '20px' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '460px', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ margin: 0 }}>Cập nhật Yêu cầu {ticket.id}</h3>
+          <div>
+            <h3 style={{ margin: '0 0 4px' }}>Cập nhật Yêu cầu</h3>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{ticket.id} • {ticket.room}</div>
+          </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
         </div>
+
+        {/* Title display */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Sự cố</div>
+          <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{ticket.title}</div>
+        </div>
+
+        {/* Assignee */}
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Người phụ trách</label>
-          <input type="text" value={assignee} onChange={e => setAssignee(e.target.value)} placeholder="Tên thợ / Kỹ thuật viên" style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} />
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.88rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Người phụ trách</label>
+          <input type="text" value={assignee} onChange={e => setAssignee(e.target.value)} placeholder="Tên thợ / Kỹ thuật viên" style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }} />
         </div>
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Chi phí phát sinh (VND)</label>
-          <input type="number" value={cost} onChange={e => setCost(parseFloat(e.target.value) || 0)} placeholder="VD: 500000" style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} />
+
+        {/* Description */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.88rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Mô tả công việc đã thực hiện</label>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="VD: Đã thay bóng đèn LED 12W, kiểm tra điện hành lang tầng 2..."
+            rows={3}
+            style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', resize: 'vertical', fontFamily: 'var(--font-main)', fontSize: '0.9rem', boxSizing: 'border-box' }}
+          />
         </div>
+
+        {/* Cost Section */}
+        <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+          <div style={{ fontWeight: '600', fontSize: '0.88rem', color: 'var(--status-overdue)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <DollarSign size={16} /> Chi phí phát sinh
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Loại chi phí</label>
+              <select
+                value={costCategory}
+                onChange={e => setCostCategory(e.target.value)}
+                style={{ width: '100%', padding: '9px 10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.88rem' }}
+              >
+                {COST_CATEGORIES.map(c => <option key={c} value={c} style={{ background: 'var(--bg-card)' }}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Số tiền (VND)</label>
+              <input
+                type="number"
+                value={cost}
+                onChange={e => setCost(parseFloat(e.target.value) || 0)}
+                placeholder="VD: 500000"
+                style={{ width: '100%', padding: '9px 10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+          {cost > 0 && (
+            <div style={{ marginTop: '10px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              ≈ <strong style={{ color: 'var(--status-overdue)' }}>{cost.toLocaleString('vi-VN')} đ</strong> — {costCategory}
+            </div>
+          )}
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer' }}>Hủy</button>
-          <button onClick={() => { onSave(ticket.id, { cost, assignee }); onClose(); }} style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}>Lưu thông tin</button>
+          <button onClick={onClose} style={{ padding: '10px 18px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Hủy</button>
+          <button onClick={() => { onSave(ticket.id, { cost, assignee, description, costCategory }); onClose(); }} style={{ padding: '10px 18px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Lưu thông tin</button>
         </div>
       </div>
     </div>
@@ -67,8 +131,21 @@ const TicketCard = ({ ticket, index, onEdit }) => (
            <StatusBadge status="occupied" text="Thấp" />}
         </div>
         {ticket.cost > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--status-overdue)', fontWeight: '600', marginBottom: '12px', background: 'rgba(239, 68, 68, 0.1)', padding: '4px 8px', borderRadius: '4px', width: 'fit-content' }}>
-            <DollarSign size={14} /> Chi phí: {ticket.cost.toLocaleString('vi-VN')} đ
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--status-overdue)', fontWeight: '600', background: 'rgba(239, 68, 68, 0.1)', padding: '5px 8px', borderRadius: '4px', width: 'fit-content' }}>
+              <DollarSign size={13} /> {ticket.cost.toLocaleString('vi-VN')} đ
+              {ticket.costCategory && <span style={{ opacity: 0.75 }}>— {ticket.costCategory}</span>}
+            </div>
+            {ticket.description && (
+              <div style={{ marginTop: '6px', fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4', paddingLeft: '4px', borderLeft: '2px solid var(--border-glass)' }}>
+                {ticket.description}
+              </div>
+            )}
+          </div>
+        )}
+        {!ticket.cost && ticket.description && (
+          <div style={{ marginBottom: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.4', paddingLeft: '6px', borderLeft: '2px solid var(--border-glass)' }}>
+            {ticket.description}
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-glass)', paddingTop: '12px', marginTop: '12px' }}>

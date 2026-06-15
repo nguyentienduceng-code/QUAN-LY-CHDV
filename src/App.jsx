@@ -20,10 +20,14 @@ import BottomTabBar from './components/BottomTabBar';
 import './styles/index.css';
 import './styles/layout.css';
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, requireRole }) {
   const { user } = useAuth();
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  if (requireRole && user.role !== requireRole) {
+    // Tenant trying to access manager-only page → redirect to home
+    return <Navigate to="/" replace />;
   }
   return children;
 }
@@ -51,15 +55,15 @@ function MainLayout() {
               {/* Common / Conditional Home */}
               <Route path="/" element={user.role === 'manager' ? <Home /> : <TenantPortal />} />
               
-              {/* Manager Routes */}
-              <Route path="/rooms" element={<Rooms />} />
-              <Route path="/finance" element={<FinanceAndTenants />} />
-              <Route path="/tenants" element={<Tenants />} />
-              <Route path="/contracts" element={<Contracts />} />
-              <Route path="/invoices" element={<Invoices />} />
+              {/* Manager-only Routes */}
+              <Route path="/rooms" element={<ProtectedRoute requireRole="manager"><Rooms /></ProtectedRoute>} />
+              <Route path="/finance" element={<ProtectedRoute requireRole="manager"><FinanceAndTenants /></ProtectedRoute>} />
+              <Route path="/tenants" element={<ProtectedRoute requireRole="manager"><Tenants /></ProtectedRoute>} />
+              <Route path="/contracts" element={<ProtectedRoute requireRole="manager"><Contracts /></ProtectedRoute>} />
+              <Route path="/invoices" element={<ProtectedRoute requireRole="manager"><Invoices /></ProtectedRoute>} />
               <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/mobile-manager" element={<MobileManager />} />
+              <Route path="/settings" element={<ProtectedRoute requireRole="manager"><Settings /></ProtectedRoute>} />
+              <Route path="/mobile-manager" element={<ProtectedRoute requireRole="manager"><MobileManager /></ProtectedRoute>} />
               
               {/* Tenant Routes */}
               <Route path="/tenant-portal" element={<TenantPortal />} />
