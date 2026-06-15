@@ -11,7 +11,7 @@ import Tenants from './pages/Tenants';
 import Contracts from './pages/Contracts';
 import Invoices from './pages/Invoices';
 import Maintenance from './pages/Maintenance';
-import MobileManager from './pages/MobileManager';
+
 import TenantPortal from './pages/TenantPortal';
 import FinanceAndTenants from './pages/FinanceAndTenants';
 import Settings from './pages/Settings';
@@ -63,7 +63,6 @@ function MainLayout() {
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/settings" element={<ProtectedRoute requireRole="manager"><Settings /></ProtectedRoute>} />
-              <Route path="/mobile-manager" element={<ProtectedRoute requireRole="manager"><MobileManager /></ProtectedRoute>} />
               
               {/* Tenant Routes */}
               <Route path="/tenant-portal" element={<TenantPortal />} />

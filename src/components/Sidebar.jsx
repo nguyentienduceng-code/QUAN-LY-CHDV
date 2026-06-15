@@ -18,7 +18,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { path: '/finance', label: 'Lưu trú & Tài chính', icon: <Users size={20} /> },
     { path: '/maintenance', label: 'Bảo trì (Kanban)', icon: <PenTool size={20} /> },
     { path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> },
-    { path: '/mobile-manager', label: 'App Quản lý', icon: <Smartphone size={20} /> },
   ];
 
   const tenantNavItems = [
