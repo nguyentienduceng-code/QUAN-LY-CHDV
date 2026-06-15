@@ -6,20 +6,42 @@ import toast from 'react-hot-toast';
 export default function Settings() {
   const { settings, setSettings } = useAppData();
   const [formData, setFormData] = useState(settings);
+  const [selectedBuilding, setSelectedBuilding] = useState(settings.buildings[0] || 'A');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handlePriceChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      prices: {
+        ...prev.prices,
+        [selectedBuilding]: {
+          ...(prev.prices[selectedBuilding] || {}),
+          [name]: value
+        }
+      }
+    }));
+  };
+
   const handleSave = () => {
     // Convert string inputs to numbers where appropriate
-    const updated = {
-      ...formData,
-      electricityPrice: Number(formData.electricityPrice),
-      waterPrice: Number(formData.waterPrice),
-      serviceFee: Number(formData.serviceFee)
-    };
+    const updated = { ...formData };
+    
+    // Ensure all prices are numbers
+    if (updated.prices) {
+      Object.keys(updated.prices).forEach(b => {
+        updated.prices[b] = {
+          electricityPrice: Number(updated.prices[b].electricityPrice || 0),
+          waterPrice: Number(updated.prices[b].waterPrice || 0),
+          serviceFee: Number(updated.prices[b].serviceFee || 0),
+        };
+      });
+    }
+
     setSettings(updated);
     toast.success('Đã lưu cấu hình chung thành công!');
   };
@@ -34,9 +56,32 @@ export default function Settings() {
       </div>
 
       <div className="grid-layout">
-        {/* Bảng giá dịch vụ mặc định */}
+        {/* Bảng giá dịch vụ theo Nhà */}
         <div className="card">
-          <div className="card-title">Cấu hình Đơn giá mặc định</div>
+          <div className="card-title">Cấu hình Đơn giá mặc định (Theo Nhà)</div>
+          
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '8px' }}>
+            {formData.buildings.map(b => (
+              <button
+                key={b}
+                onClick={() => setSelectedBuilding(b)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  border: '1px solid',
+                  borderColor: selectedBuilding === b ? 'var(--accent-primary)' : 'var(--border-glass)',
+                  background: selectedBuilding === b ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                  color: selectedBuilding === b ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontWeight: selectedBuilding === b ? '600' : 'normal',
+                  minWidth: '80px'
+                }}
+              >
+                Nhà {b}
+              </button>
+            ))}
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -45,8 +90,8 @@ export default function Settings() {
               <input 
                 type="number" 
                 name="electricityPrice" 
-                value={formData.electricityPrice} 
-                onChange={handleChange} 
+                value={formData.prices?.[selectedBuilding]?.electricityPrice || ''} 
+                onChange={handlePriceChange} 
                 style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
               />
             </div>
@@ -58,8 +103,8 @@ export default function Settings() {
               <input 
                 type="number" 
                 name="waterPrice" 
-                value={formData.waterPrice} 
-                onChange={handleChange} 
+                value={formData.prices?.[selectedBuilding]?.waterPrice || ''} 
+                onChange={handlePriceChange} 
                 style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
               />
             </div>
@@ -71,8 +116,8 @@ export default function Settings() {
               <input 
                 type="number" 
                 name="serviceFee" 
-                value={formData.serviceFee} 
-                onChange={handleChange} 
+                value={formData.prices?.[selectedBuilding]?.serviceFee || ''} 
+                onChange={handlePriceChange} 
                 style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
               />
             </div>

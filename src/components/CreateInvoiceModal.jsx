@@ -11,12 +11,20 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
   const currentMonthInput = new Date().toISOString().slice(0, 7); // yyyy-MM
   const [selectedMonth, setSelectedMonth] = useState(currentMonthInput);
 
+  const initialBuilding = rooms.find(r => r.name === tenants[0]?.room)?.building || settings.buildings[0];
+  const initialPrices = settings.prices?.[initialBuilding] || settings;
+
   const [items, setItems] = useState([
     { id: 1, name: 'Tiền phòng', qty: 1, price: 4000000 },
-    { id: 2, name: 'Tiền điện', qty: 0, price: settings.electricityPrice || 3500 },
-    { id: 3, name: 'Tiền nước', qty: 1, price: settings.waterPrice || 100000 },
-    { id: 4, name: 'Phí dịch vụ', qty: 1, price: settings.serviceFee || 150000 }
+    { id: 2, name: 'Tiền điện (Chỉ số: 0 - 0)', qty: 0, price: initialPrices.electricityPrice || 3500 },
+    { id: 3, name: 'Tiền nước (Chỉ số: 0 - 0)', qty: 0, price: initialPrices.waterPrice || 100000 },
+    { id: 4, name: 'Phí dịch vụ', qty: 1, price: initialPrices.serviceFee || 150000 }
   ]);
+
+  const [elecOld, setElecOld] = useState(0);
+  const [elecNew, setElecNew] = useState(0);
+  const [waterOld, setWaterOld] = useState(0);
+  const [waterNew, setWaterNew] = useState(0);
 
   if (!isOpen) return null;
 
@@ -25,12 +33,45 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
     const t = tenants.find(x => x.name === tenantName);
     if (t) {
       setRoom(t.room);
-      // Find room price
+      // Find room price and building
       const roomInfo = rooms.find(r => r.name === t.room);
-      if (roomInfo) {
-        setItems(prev => prev.map(item => item.id === 1 ? { ...item, price: roomInfo.price || 4000000 } : item));
-      }
+      const bName = roomInfo?.building || settings.buildings[0];
+      const prices = settings.prices?.[bName] || settings;
+
+      setItems(prev => prev.map(item => {
+        if (item.id === 1) return { ...item, price: roomInfo?.price || 4000000 };
+        if (item.id === 2) return { ...item, price: prices.electricityPrice || 3500 };
+        if (item.id === 3) return { ...item, price: prices.waterPrice || 100000 };
+        if (item.id === 4) return { ...item, price: prices.serviceFee || 150000 };
+        return item;
+      }));
     }
+  };
+
+  const handleMeterChange = (type, field, val) => {
+    const value = parseInt(val) || 0;
+    if (type === 'elec') {
+      if (field === 'old') setElecOld(value);
+      if (field === 'new') setElecNew(value);
+    } else {
+      if (field === 'old') setWaterOld(value);
+      if (field === 'new') setWaterNew(value);
+    }
+    
+    // Update items array directly to avoid useEffect timing issues
+    setItems(prev => prev.map(item => {
+      if (item.id === 2 && type === 'elec') {
+        const o = field === 'old' ? value : elecOld;
+        const n = field === 'new' ? value : elecNew;
+        return { ...item, qty: Math.max(0, n - o), name: `Tiền điện (Chỉ số: ${o} - ${n})` };
+      }
+      if (item.id === 3 && type === 'water') {
+        const o = field === 'old' ? value : waterOld;
+        const n = field === 'new' ? value : waterNew;
+        return { ...item, qty: Math.max(0, n - o), name: `Tiền nước (Chỉ số: ${o} - ${n})` };
+      }
+      return item;
+    }));
   };
 
   const handleAddItem = () => {
@@ -107,6 +148,39 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
           </div>
 
           <div style={{ marginBottom: '16px', fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Chỉ số Điện / Nước</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
+            <div>
+              <div style={{ fontWeight: '600', marginBottom: '12px', color: 'var(--accent-primary)' }}>⚡ Điện</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>CS Cũ</label>
+                  <input type="number" value={elecOld} onChange={e => handleMeterChange('elec', 'old', e.target.value)} style={{ width: '100%', padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>CS Mới</label>
+                  <input type="number" value={elecNew} onChange={e => handleMeterChange('elec', 'new', e.target.value)} style={{ width: '100%', padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontWeight: '600', marginBottom: '12px', color: '#3b82f6' }}>💧 Nước</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>CS Cũ</label>
+                  <input type="number" value={waterOld} onChange={e => handleMeterChange('water', 'old', e.target.value)} style={{ width: '100%', padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>CS Mới</label>
+                  <input type="number" value={waterNew} onChange={e => handleMeterChange('water', 'new', e.target.value)} style={{ width: '100%', padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '16px', fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span>Chi tiết các khoản thu</span>
             <button onClick={handleAddItem} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>
               <Plus size={14} /> Thêm Dòng
@@ -116,8 +190,8 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {items.map(item => (
               <div key={item.id} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input type="text" value={item.name} onChange={e => updateItem(item.id, 'name', e.target.value)} placeholder="Tên khoản phí" style={{ flex: 2, padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} />
-                <input type="number" value={item.qty} onChange={e => updateItem(item.id, 'qty', parseFloat(e.target.value) || 0)} placeholder="SL" style={{ flex: 1, padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} />
+                <input type="text" value={item.name} onChange={e => updateItem(item.id, 'name', e.target.value)} placeholder="Tên khoản phí" style={{ flex: 2, padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} disabled={item.id === 2 || item.id === 3} />
+                <input type="number" value={item.qty} onChange={e => updateItem(item.id, 'qty', parseFloat(e.target.value) || 0)} placeholder="SL" style={{ flex: 1, padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} disabled={item.id === 2 || item.id === 3} />
                 <input type="number" value={item.price} onChange={e => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)} placeholder="Đơn giá" style={{ flex: 1.5, padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }} />
                 <div style={{ flex: 1.5, textAlign: 'right', fontSize: '0.9rem', color: 'var(--accent-primary)', fontWeight: '600' }}>
                   {(item.qty * item.price).toLocaleString('vi-VN')} đ

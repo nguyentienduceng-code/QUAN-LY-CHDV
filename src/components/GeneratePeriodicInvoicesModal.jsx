@@ -69,15 +69,17 @@ export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
     const newInvoices = tenantsToGenerate.map((t) => {
       const room = rooms.find(r => r.name === t.room);
       const basePrice = room ? room.price : 4000000;
+      const bName = room?.building || settings.buildings[0];
+      const prices = settings.prices?.[bName] || settings;
       
       const isDup = duplicateTenants.some(dt => dt.id === t.id);
       const noteSuffix = (generateSecondTime && isDup) ? ' - Hóa đơn lần 2' : '';
       
       const items = [
         { name: `Tiền phòng (Tháng ${monthStr}${noteSuffix})`, qty: 1, price: basePrice, total: basePrice },
-        { name: 'Tiền điện (Chỉ số: --)', qty: 0, price: settings.electricityPrice || 3500, total: 0 },
-        { name: 'Tiền nước', qty: 1, price: settings.waterPrice || 100000, total: settings.waterPrice || 100000 },
-        { name: 'Phí dịch vụ', qty: 1, price: settings.serviceFee || 150000, total: settings.serviceFee || 150000 }
+        { name: 'Tiền điện (Chưa chốt số)', qty: 0, price: prices.electricityPrice || 3500, total: 0 },
+        { name: 'Tiền nước (Chưa chốt số)', qty: 1, price: prices.waterPrice || 100000, total: prices.waterPrice || 100000 },
+        { name: 'Phí dịch vụ', qty: 1, price: prices.serviceFee || 150000, total: prices.serviceFee || 150000 }
       ];
       
       const totalAmount = items.reduce((acc, curr) => acc + curr.total, 0);

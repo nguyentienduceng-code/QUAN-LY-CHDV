@@ -14,7 +14,12 @@ export default function Home() {
   const occupancyRate = rooms.length > 0 ? Math.round((occupiedRooms / rooms.length) * 100) : 0;
   
   const totalRevenue = invoices.reduce((acc, inv) => acc + (parseInt(inv.amount.replace(/\./g, '')) || 0), 0);
+  const totalExpenses = ['reported', 'inProgress', 'resolved'].reduce((sum, col) => {
+    return sum + tickets[col].reduce((colSum, t) => colSum + (t.cost || 0), 0);
+  }, 0);
+
   const revenueStr = (totalRevenue / 1000000).toFixed(1) + ' Tr';
+  const expensesStr = (totalExpenses / 1000000).toFixed(1) + ' Tr';
 
   const overdueInvoices = invoices.filter(i => i.status === 'unpaid').length;
   const activeTickets = tickets.reported.length + tickets.inProgress.length;
@@ -31,15 +36,29 @@ export default function Home() {
     }
   });
 
+  const monthlyExpenses = {};
+  ['reported', 'inProgress', 'resolved'].forEach(col => {
+    tickets[col].forEach(t => {
+      if (t.cost && t.date) {
+        const parts = t.date.split('/');
+        if (parts.length >= 2) {
+          const m = parseInt(parts[1], 10);
+          monthlyExpenses[`T${m}`] = (monthlyExpenses[`T${m}`] || 0) + t.cost;
+        }
+      }
+    });
+  });
+
   const chartData = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'].map(m => ({
     name: m,
-    revenue: (monthlyRevenue[m] || 0) / 1000000
-  })).filter(d => d.revenue > 0);
+    revenue: (monthlyRevenue[m] || 0) / 1000000,
+    expenses: (monthlyExpenses[m] || 0) / 1000000
+  })).filter(d => d.revenue > 0 || d.expenses > 0);
 
   // If not enough data, pad with previous months
   if (chartData.length < 3) {
-    chartData.unshift({ name: 'T4', revenue: 45 });
-    chartData.unshift({ name: 'T5', revenue: 48 });
+    chartData.unshift({ name: 'T4', revenue: 45, expenses: 5 });
+    chartData.unshift({ name: 'T5', revenue: 48, expenses: 8 });
   }
 
   const pieData = [
@@ -75,8 +94,12 @@ export default function Home() {
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>Doanh thu (T6)</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{revenueStr}</div>
+              <div style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>Thu / Chi phí</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                <span style={{ color: 'var(--accent-primary)' }}>+{revenueStr}</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', margin: '0 8px' }}>/</span>
+                <span style={{ color: 'var(--status-overdue)' }}>-{expensesStr}</span>
+              </div>
             </div>
             <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '12px', borderRadius: '50%' }}>
               <DollarSign size={24} color="var(--accent-primary)" />
@@ -109,7 +132,8 @@ export default function Home() {
                   contentStyle={{ background: 'rgba(10, 14, 26, 0.9)', border: '1px solid var(--border-glass)', borderRadius: '8px' }}
                   itemStyle={{ color: 'var(--accent-primary)' }}
                 />
-                <Line type="monotone" dataKey="revenue" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 4, fill: 'var(--bg-primary)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" name="Doanh thu" dataKey="revenue" stroke="var(--accent-primary)" strokeWidth={3} dot={{ r: 4, fill: 'var(--bg-primary)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" name="Chi phí" dataKey="expenses" stroke="var(--status-overdue)" strokeWidth={3} dot={{ r: 4, fill: 'var(--bg-primary)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

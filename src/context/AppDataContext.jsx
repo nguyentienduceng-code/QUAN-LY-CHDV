@@ -103,12 +103,27 @@ export const AppDataProvider = ({ children }) => {
     bankAccount: '0901234567',
     bankOwner: 'NGUYEN VAN A',
     buildings: ['A', 'B', 'C'],
-    floors: [1, 2, 3, 4]
+    floors: [1, 2, 3, 4],
+    prices: {
+      A: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000 },
+      B: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000 },
+      C: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000 }
+    }
   };
   
   const [settings, setSettings] = useState(() => {
     const stored = JSON.parse(localStorage.getItem('chdv_settings'));
-    return stored ? { ...defaultSettings, ...stored, buildings: stored.buildings || defaultSettings.buildings, floors: stored.floors || defaultSettings.floors } : defaultSettings;
+    if (stored && !stored.prices) {
+      stored.prices = {};
+      (stored.buildings || defaultSettings.buildings).forEach(b => {
+        stored.prices[b] = {
+          electricityPrice: stored.electricityPrice || 3500,
+          waterPrice: stored.waterPrice || 100000,
+          serviceFee: stored.serviceFee || 150000
+        };
+      });
+    }
+    return stored ? { ...defaultSettings, ...stored, buildings: stored.buildings || defaultSettings.buildings, floors: stored.floors || defaultSettings.floors, prices: stored.prices || defaultSettings.prices } : defaultSettings;
   });
 
   useEffect(() => { localStorage.setItem('chdv_rooms', JSON.stringify(rooms)); }, [rooms]);
@@ -165,6 +180,20 @@ export const AppDataProvider = ({ children }) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
 
+  const updateTicket = (id, updatedData) => {
+    setTickets(prev => {
+      const newState = { reported: [...prev.reported], inProgress: [...prev.inProgress], resolved: [...prev.resolved] };
+      for (const col of ['reported', 'inProgress', 'resolved']) {
+        const index = newState[col].findIndex(t => t.id === id);
+        if (index !== -1) {
+          newState[col][index] = { ...newState[col][index], ...updatedData };
+          break;
+        }
+      }
+      return newState;
+    });
+  };
+
   // Move ticket (for Kanban)
   const moveTicket = (sourceCol, destCol, sourceIndex, destIndex) => {
     setTickets(prev => {
@@ -194,7 +223,7 @@ export const AppDataProvider = ({ children }) => {
       tenants, setTenants, addTenant, updateTenant, deleteTenant,
       contracts, setContracts, addContract,
       invoices, setInvoices, addInvoice,
-      tickets, addTicket, moveTicket,
+      tickets, addTicket, updateTicket, moveTicket,
       notifications, markNotificationAsRead,
       settings, setSettings
     }}>

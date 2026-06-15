@@ -3,10 +3,41 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import StatusBadge from '../components/StatusBadge';
 import { useAppData } from '../context/AppDataContext';
 
-import { MessageSquare, Paperclip, User } from 'lucide-react';
+import { MessageSquare, Paperclip, User, DollarSign, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const TicketCard = ({ ticket, index }) => (
+const EditTicketModal = ({ ticket, onClose, onSave }) => {
+  const [cost, setCost] = useState(ticket.cost || 0);
+  const [assignee, setAssignee] = useState(ticket.assignee || '');
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose}></div>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '400px', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', padding: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ margin: 0 }}>Cập nhật Yêu cầu {ticket.id}</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
+        </div>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Người phụ trách</label>
+          <input type="text" value={assignee} onChange={e => setAssignee(e.target.value)} placeholder="Tên thợ / Kỹ thuật viên" style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} />
+        </div>
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Chi phí phát sinh (VND)</label>
+          <input type="number" value={cost} onChange={e => setCost(parseFloat(e.target.value) || 0)} placeholder="VD: 500000" style={{ width: '100%', padding: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer' }}>Hủy</button>
+          <button onClick={() => { onSave(ticket.id, { cost, assignee }); onClose(); }} style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}>Lưu thông tin</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+import { useState } from 'react';
+
+const TicketCard = ({ ticket, index, onEdit }) => (
   <Draggable draggableId={ticket.id} index={index}>
     {(provided) => (
       <div 
@@ -26,7 +57,7 @@ const TicketCard = ({ ticket, index }) => (
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ticket.id}</span>
-          <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}><MoreHorizontal size={16} /></button>
+          <button onClick={() => onEdit(ticket)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}><MoreHorizontal size={16} /></button>
         </div>
         <div style={{ fontWeight: '600', marginBottom: '8px' }}>{ticket.title}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', marginBottom: '12px' }}>
@@ -35,6 +66,11 @@ const TicketCard = ({ ticket, index }) => (
            ticket.priority === 'medium' ? <StatusBadge status="expiring" text="Vừa" /> : 
            <StatusBadge status="occupied" text="Thấp" />}
         </div>
+        {ticket.cost > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--status-overdue)', fontWeight: '600', marginBottom: '12px', background: 'rgba(239, 68, 68, 0.1)', padding: '4px 8px', borderRadius: '4px', width: 'fit-content' }}>
+            <DollarSign size={14} /> Chi phí: {ticket.cost.toLocaleString('vi-VN')} đ
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-glass)', paddingTop: '12px', marginTop: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: ticket.assignee ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
             <User size={14} /> {ticket.assignee || 'Chưa giao'}
@@ -54,14 +90,20 @@ const TicketCard = ({ ticket, index }) => (
 );
 
 export default function Maintenance() {
-  const { tickets, moveTicket, addTicket } = useAppData();
+  const { tickets, moveTicket, addTicket, updateTicket } = useAppData();
+  const [editingTicket, setEditingTicket] = useState(null);
 
   const handleAddTicket = () => {
     const title = prompt('Nhập tiêu đề sự cố (VD: Hỏng bóng đèn):');
     if (!title) return;
     const room = prompt('Khu vực / Số phòng:') || 'Khu chung';
-    addTicket({ title, room, priority: 'medium' });
+    addTicket({ title, room, priority: 'medium', cost: 0 });
     toast.success('Đã tạo thẻ bảo trì mới!');
+  };
+
+  const handleSaveEdit = (id, data) => {
+    updateTicket(id, data);
+    toast.success('Đã cập nhật thông tin bảo trì!');
   };
 
   const onDragEnd = (result) => {
@@ -102,7 +144,7 @@ export default function Maintenance() {
                     {...provided.droppableProps}
                     style={{ flex: 1, overflowY: 'auto', minHeight: '100px' }}
                   >
-                    {tickets[col.id].map((t, i) => <TicketCard key={t.id} index={i} ticket={t} />)}
+                    {tickets[col.id].map((t, i) => <TicketCard key={t.id} index={i} ticket={t} onEdit={setEditingTicket} />)}
                     {provided.placeholder}
                   </div>
                 )}
@@ -111,6 +153,10 @@ export default function Maintenance() {
           ))}
         </div>
       </DragDropContext>
+      
+      {editingTicket && (
+        <EditTicketModal ticket={editingTicket} onClose={() => setEditingTicket(null)} onSave={handleSaveEdit} />
+      )}
     </div>
   );
 }
