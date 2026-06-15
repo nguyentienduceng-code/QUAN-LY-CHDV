@@ -9,7 +9,8 @@ export default function Login() {
   const [role, setRole] = useState('manager'); // 'manager' | 'tenant'
   const [identifier, setIdentifier] = useState('');
   const { login, loginWithGoogle } = useAuth();
-  const { tenants } = useAppData();
+  const appData = useAppData();
+  const { tenants } = appData;
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
@@ -189,6 +190,20 @@ export default function Login() {
 
           <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             Chưa có tài khoản? <a href="#" style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>Đăng ký ngay</a>
+          </div>
+
+          <div style={{ marginTop: '24px', textAlign: 'center' }}>
+            <button 
+              type="button" 
+              onClick={async () => {
+                await appData.loadMockData();
+                toast.success('Đã nạp bộ dữ liệu nhà 3 tầng thành công! Hãy đăng nhập Khách bằng email khach101@gmail.com');
+                setIdentifier('khach101@gmail.com');
+              }}
+              style={{ background: 'transparent', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              Nạp Dữ Liệu Test (Nhà 3 Tầng)
+            </button>
           </div>
         </form>
       </div>

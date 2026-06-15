@@ -191,6 +191,18 @@ export const AppDataProvider = ({ children }) => {
     return true;
   };
 
+  // Mock Data
+  const loadMockData = async () => {
+    const { generateMockData } = await import('../utils/mockData.js');
+    const data = generateMockData();
+    setRooms(data.rooms);
+    setTenants(data.tenants);
+    setContracts(data.contracts);
+    setInvoices(data.invoices);
+    setTickets(data.tickets);
+    return true;
+  };
+
   return (
     <AppDataContext.Provider value={{ 
       rooms, setRooms, addRoom, removeRoom, updateRoom,
@@ -199,7 +211,8 @@ export const AppDataProvider = ({ children }) => {
       invoices, setInvoices, addInvoice, updateInvoice,
       tickets, addTicket, updateTicket, moveTicket,
       notifications, markNotificationAsRead,
-      settings, setSettings, renameBuilding, addNewBuilding
+      settings, setSettings, renameBuilding, addNewBuilding,
+      loadMockData
     }}>
       {children}
     </AppDataContext.Provider>
