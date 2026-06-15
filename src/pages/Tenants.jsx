@@ -64,7 +64,7 @@ export default function Tenants() {
     return buildingsMap;
   }, [rooms, tenants, contracts, invoices]);
 
-  const buildingsList = ['All', 'A', 'B', 'C'];
+  const buildingsList = ['All', ...appData.settings.buildings];
   const buildingsToRender = activeBuilding === 'All' ? Object.keys(hierarchicalData).sort() : [activeBuilding].filter(b => hierarchicalData[b]);
 
   return (

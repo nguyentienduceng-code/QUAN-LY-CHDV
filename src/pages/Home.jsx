@@ -104,9 +104,11 @@ export default function Home() {
     return { name: label, revenue: Math.round(rev / 1000000 * 10) / 10, expenses: Math.round(exp / 1000000 * 10) / 10 };
   });
 
-  const pieData = [
+  const pieData = rooms.length > 0 ? [
     { name: 'Đã thuê', value: occupiedRooms, color: '#10b981' }, // status-occupied
     { name: 'Phòng trống', value: rooms.length - occupiedRooms, color: '#3b82f6' } // accent-primary
+  ] : [
+    { name: 'Chưa có phòng', value: 1, color: 'var(--bg-secondary)' }
   ];
 
   return (

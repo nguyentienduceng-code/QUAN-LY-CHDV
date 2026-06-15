@@ -12,7 +12,7 @@ import UpdateIndexModal from '../components/UpdateIndexModal';
 
 export default function Invoices() {
   const { user } = useAuth();
-  const { invoices, addInvoice, tenants, rooms } = useAppData();
+  const { invoices, addInvoice, tenants, rooms, settings } = useAppData();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
@@ -102,7 +102,7 @@ export default function Invoices() {
 
       {user?.role === 'manager' && (
         <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-          {['All', 'A', 'B', 'C'].map(b => (
+          {['All', ...settings.buildings].map(b => (
             <button
               key={b}
               onClick={() => setActiveBuilding(b)}

@@ -110,6 +110,10 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
   };
 
   const handleSave = () => {
+    if (!selectedRoom) {
+      toast.error('Vui lòng chọn phòng để tạo hóa đơn!');
+      return;
+    }
     const finalItems = items.map(item => ({ ...item, total: item.qty * item.price }));
     const amount = calculateTotal().toLocaleString('vi-VN');
     
