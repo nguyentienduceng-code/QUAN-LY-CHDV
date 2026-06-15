@@ -1,10 +1,10 @@
-export const generateMockData = () => {
+export const generateMockData = (firstBuilding = 'A') => {
   const rooms = [];
   const tenants = [];
   const contracts = [];
   const invoices = [];
 
-  const building = 'A';
+  const building = firstBuilding;
   const price = 4000000;
 
   for (let floor = 1; floor <= 3; floor++) {

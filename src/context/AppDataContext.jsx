@@ -194,7 +194,8 @@ export const AppDataProvider = ({ children }) => {
 
   // Mock Data
   const loadMockData = () => {
-    const data = generateMockData();
+    const firstBuilding = settings.buildings[0];
+    const data = generateMockData(firstBuilding);
     setRooms(data.rooms);
     setTenants(data.tenants);
     setContracts(data.contracts);

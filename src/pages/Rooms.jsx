@@ -140,7 +140,7 @@ export default function Rooms() {
                           transition: 'var(--transition)'
                         }}
                       >
-                        Nhà {b}
+                        {b.toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`}
                       </button>
                       {user?.role === 'manager' && (
                         <button 
@@ -223,7 +223,7 @@ export default function Rooms() {
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 className="page-title" style={{ margin: 0 }}>
-            {user?.role === 'manager' ? `Sơ Đồ Tòa Nhà ${activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
+            {user?.role === 'manager' ? `Sơ Đồ Tòa ${activeBuilding.toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
           </h1>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {user?.role === 'manager' && (
