@@ -1,9 +1,8 @@
-import { Plus, MoreHorizontal } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, MoreHorizontal, MessageSquare, Paperclip, User, DollarSign, X } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import StatusBadge from '../components/StatusBadge';
 import { useAppData } from '../context/AppDataContext';
-
-import { MessageSquare, Paperclip, User, DollarSign, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const COST_CATEGORIES = [
@@ -99,9 +98,7 @@ const EditTicketModal = ({ ticket, onClose, onSave }) => {
   );
 };
 
-import { useState } from 'react';
-
-const TicketCard = ({ ticket, index, onEdit }) => (
+const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice }) => (
   <Draggable draggableId={ticket.id} index={index}>
     {(provided) => (
       <div 
@@ -161,13 +158,126 @@ const TicketCard = ({ ticket, index, onEdit }) => (
             )}
           </div>
         </div>
+
+        {/* Transition Buttons */}
+        <div style={{ marginTop: '14px', borderTop: '1px dashed var(--border-glass)', paddingTop: '12px' }}>
+          {columnId === 'reported' && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onMove(ticket.id, 'reported', 'inProgress'); }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid var(--accent-primary)',
+                color: 'var(--accent-primary)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+            >
+              Nhận xử lý →
+            </button>
+          )}
+
+          {columnId === 'inProgress' && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={(e) => { e.stopPropagation(); onMove(ticket.id, 'inProgress', 'reported'); }}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  background: 'transparent',
+                  border: '1px solid var(--border-glass)',
+                  color: 'var(--text-secondary)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem',
+                  fontWeight: '500'
+                }}
+              >
+                ← Trả lại
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); onMove(ticket.id, 'inProgress', 'resolved'); }}
+                style={{
+                  flex: 1.5,
+                  padding: '8px',
+                  background: 'var(--accent-primary)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem',
+                  fontWeight: '600'
+                }}
+              >
+                Hoàn thành →
+              </button>
+            </div>
+          )}
+
+          {columnId === 'resolved' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onMove(ticket.id, 'resolved', 'inProgress'); }}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    background: 'transparent',
+                    border: '1px solid var(--border-glass)',
+                    color: 'var(--text-secondary)',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.82rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  ← Báo lại
+                </button>
+                {ticket.cost > 0 && !ticket.isBilled && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onCreateInvoice(ticket); }}
+                    style={{
+                      flex: 1.5,
+                      padding: '8px',
+                      background: '#10b981',
+                      border: 'none',
+                      color: '#fff',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.82rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <DollarSign size={14} /> Tạo hóa đơn
+                  </button>
+                )}
+              </div>
+              {ticket.isBilled && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '4px' }}>
+                  <StatusBadge status="occupied" text="Đã xuất hóa đơn" />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     )}
   </Draggable>
 );
 
 export default function Maintenance() {
-  const { tickets, moveTicket, addTicket, updateTicket } = useAppData();
+  const { tickets, moveTicket, addTicket, updateTicket, tenants, addInvoice } = useAppData();
   const [editingTicket, setEditingTicket] = useState(null);
 
   const handleAddTicket = () => {
@@ -188,6 +298,52 @@ export default function Maintenance() {
     if (!destination) return;
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
     moveTicket(source.droppableId, destination.droppableId, source.index, destination.index);
+  };
+
+  const handleMoveTicketColumn = (ticketId, sourceCol, destCol) => {
+    const sourceList = tickets[sourceCol];
+    const index = sourceList.findIndex(t => t.id === ticketId);
+    if (index !== -1) {
+      moveTicket(sourceCol, destCol, index, 0); // moves to the top of the destination column
+      
+      // If moving to resolved, automatically open the edit modal to enter cost/description
+      if (destCol === 'resolved') {
+        const ticket = sourceList[index];
+        // Wait minor delay to allow state update to render card in resolved first
+        setTimeout(() => {
+          setEditingTicket({ ...ticket, column: destCol });
+        }, 100);
+      }
+    }
+  };
+
+  const handleCreateInvoiceFromTicket = (ticket) => {
+    // Find tenant for this room
+    const tenantInfo = tenants.find(t => t.room === ticket.room);
+    const tenantName = tenantInfo?.name || 'Khách thuê';
+
+    const [day, month, year] = (ticket.date || new Date().toLocaleDateString('vi-VN')).split('/');
+    const currentMonth = month || String(new Date().getMonth() + 1).padStart(2, '0');
+    const currentYear = year || new Date().getFullYear();
+
+    const invoiceId = `INV-BT-${ticket.id}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newInvoice = {
+      id: invoiceId,
+      room: ticket.room,
+      tenant: tenantName,
+      amount: ticket.cost.toLocaleString('vi-VN'),
+      due: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN'), // 5 days from now
+      status: 'unpaid',
+      items: [
+        { id: 1, name: `Thanh toán phí bảo trì: ${ticket.title}`, qty: 1, price: ticket.cost, total: ticket.cost }
+      ]
+    };
+
+    addInvoice(newInvoice);
+    updateTicket(ticket.id, { isBilled: true });
+    
+    toast.success(`Đã tạo hóa đơn ${invoiceId} cho Phòng ${ticket.room}!`);
   };
 
   const columns = [
@@ -221,7 +377,17 @@ export default function Maintenance() {
                     {...provided.droppableProps}
                     style={{ flex: 1, overflowY: 'auto', minHeight: '100px' }}
                   >
-                    {tickets[col.id].map((t, i) => <TicketCard key={t.id} index={i} ticket={t} onEdit={setEditingTicket} />)}
+                    {tickets[col.id].map((t, i) => (
+                      <TicketCard 
+                        key={t.id} 
+                        index={i} 
+                        ticket={t} 
+                        columnId={col.id} 
+                        onEdit={setEditingTicket} 
+                        onMove={handleMoveTicketColumn}
+                        onCreateInvoice={handleCreateInvoiceFromTicket}
+                      />
+                    ))}
                     {provided.placeholder}
                   </div>
                 )}

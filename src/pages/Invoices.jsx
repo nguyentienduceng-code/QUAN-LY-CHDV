@@ -12,7 +12,7 @@ import UpdateIndexModal from '../components/UpdateIndexModal';
 
 export default function Invoices() {
   const { user } = useAuth();
-  const { invoices, addInvoice, tenants, rooms, settings } = useAppData();
+  const { invoices, addInvoice, tenants, rooms, settings, updateInvoice } = useAppData();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
@@ -235,9 +235,28 @@ export default function Invoices() {
                                         Chốt số
                                       </button>
                                       {inv.status === 'unpaid' ? (
-                                        <button onClick={() => handleZaloDebt(inv)} style={{ padding: '4px 8px', background: 'var(--status-overdue)', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Đòi nợ</button>
+                                        <>
+                                          <button 
+                                            onClick={() => {
+                                              updateInvoice(inv.id, { status: 'paid' });
+                                              toast.success(`Đã xác nhận thanh toán hóa đơn ${inv.id}!`);
+                                            }} 
+                                            style={{ padding: '4px 8px', background: '#10b981', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500' }}
+                                          >
+                                            Thu tiền
+                                          </button>
+                                          <button onClick={() => handleZaloDebt(inv)} style={{ padding: '4px 8px', background: 'var(--status-overdue)', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Đòi nợ</button>
+                                        </>
                                       ) : (
-                                        <button onClick={() => toast.success(`Đã hoàn tiền cho ${inv.id}!`)} style={{ padding: '4px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Hoàn tiền</button>
+                                        <button 
+                                          onClick={() => {
+                                            updateInvoice(inv.id, { status: 'unpaid' });
+                                            toast.success(`Đã hoàn tiền và chuyển trạng thái ${inv.id} về Chưa thu.`);
+                                          }} 
+                                          style={{ padding: '4px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                                        >
+                                          Hoàn tiền
+                                        </button>
                                       )}
                                     </div>
                                   </td>

@@ -13,6 +13,8 @@ export default function Tenants() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeBuilding, setActiveBuilding] = useState('All');
   const [expandedFloors, setExpandedFloors] = useState({});
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'occupied' | 'vacant'
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleFloor = (buildingFloorKey) => {
     setExpandedFloors(prev => ({
@@ -25,16 +27,80 @@ export default function Tenants() {
     toast('Chức năng thêm khách mới đang được nâng cấp!', { icon: '🚧' });
   };
 
+  const handleCreateContract = (room) => {
+    const tenantName = prompt(`Tạo hợp đồng cho phòng ${room.name}.\nNhập tên khách thuê mới:`);
+    if (!tenantName) return;
+
+    const phone = prompt('Nhập Số điện thoại khách thuê:') || '0901234567';
+    const idCard = prompt('Nhập Số CCCD khách thuê:') || '079123456789';
+    const email = prompt('Nhập Email khách thuê:') || `khach${room.name}@gmail.com`;
+
+    // 1. Add tenant
+    const newTenant = {
+      name: tenantName,
+      phone,
+      idCard,
+      email,
+      room: room.name,
+      building: room.building || 'A',
+      status: 'active',
+      note: 'Khách mới thuê phòng'
+    };
+    appData.addTenant(newTenant);
+
+    // 2. Add contract
+    appData.addContract({
+      tenant: tenantName,
+      tenantName: tenantName,
+      room: room.name,
+      startDate: new Date().toLocaleDateString('vi-VN'),
+      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('vi-VN'),
+      deposit: (room.price * 2).toLocaleString('vi-VN'),
+      status: 'active'
+    });
+
+    // 3. Update room status to occupied
+    appData.updateRoom(room.id, {
+      status: 'occupied',
+      tenant: { name: tenantName }
+    });
+
+    toast.success(`Đã tạo hợp đồng và khách thuê thành công cho phòng ${room.name}!`);
+  };
+
   // Group data: Building -> Floor -> Room -> Tenants
   const hierarchicalData = useMemo(() => {
     const buildingsMap = {};
 
     // Group rooms by building and floor
     rooms.forEach(room => {
-      // Only show rooms that are not completely vacant, or show all? 
-      // The user wants to manage tenants, so we show rooms that have tenants or contracts.
-      // Let's show all occupied or expiring rooms.
-      if (room.status === 'vacant') return;
+      const isRoomVacant = room.status === 'vacant';
+      
+      // Filter by status selection
+      if (statusFilter === 'occupied' && isRoomVacant) return;
+      if (statusFilter === 'vacant' && !isRoomVacant) return;
+
+      const roomTenants = tenants.filter(t => t.room === room.name && (room.building === t.building || !t.building));
+      const roomContract = contracts.find(c => c.room.includes(room.name) || c.room === room.name);
+      const unpaidInvoices = invoices.filter(i => i.room === room.name && (i.status === 'unpaid' || i.status === 'partial'));
+
+      // Filter by search query (room name, tenant name, phone, email, idCard)
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const matchRoom = room.name.toLowerCase().includes(query);
+        const matchBuilding = (room.building || '').toLowerCase().includes(query);
+        const matchTenants = roomTenants.some(t => 
+          (t.name || '').toLowerCase().includes(query) ||
+          (t.phone || '').includes(query) ||
+          (t.email || '').toLowerCase().includes(query) ||
+          (t.idCard || '').includes(query)
+        );
+        const matchContract = roomContract && (roomContract.tenant || '').toLowerCase().includes(query);
+        
+        if (!matchRoom && !matchBuilding && !matchTenants && !matchContract) {
+          return;
+        }
+      }
 
       const building = room.building || 'A';
       const floorMatch = room.name.match(/\.?(\d+)\d{2}/);
@@ -43,10 +109,6 @@ export default function Tenants() {
       if (!buildingsMap[building]) buildingsMap[building] = {};
       if (!buildingsMap[building][floor]) buildingsMap[building][floor] = [];
 
-      const roomTenants = tenants.filter(t => t.room === room.name);
-      const roomContract = contracts.find(c => c.room.includes(room.name));
-      const unpaidInvoices = invoices.filter(i => i.room === room.name && (i.status === 'unpaid' || i.status === 'partial'));
-      
       let totalDebt = 0;
       unpaidInvoices.forEach(inv => {
         totalDebt += parseInt(inv.amount.replace(/\./g, '')) || 0;
@@ -62,13 +124,29 @@ export default function Tenants() {
     });
 
     return buildingsMap;
-  }, [rooms, tenants, contracts, invoices]);
+  }, [rooms, tenants, contracts, invoices, statusFilter, searchQuery]);
 
   const buildingsList = ['All', ...appData.settings.buildings];
   const buildingsToRender = activeBuilding === 'All' ? Object.keys(hierarchicalData).sort() : [activeBuilding].filter(b => hierarchicalData[b]);
 
   return (
     <div>
+      {/* Quick stats summary */}
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: '150px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tổng Số Khách Thuê</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{tenants.length} người</span>
+        </div>
+        <div style={{ flex: 1, minWidth: '150px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Phòng Đang Thuê</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--status-occupied-text)' }}>{rooms.filter(r => r.status !== 'vacant').length} / {rooms.length} phòng</span>
+        </div>
+        <div style={{ flex: 1, minWidth: '150px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Phòng Trống</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--status-vacant-text)' }}>{rooms.filter(r => r.status === 'vacant').length} / {rooms.length} phòng</span>
+        </div>
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
           {buildingsList.map(b => (
@@ -90,10 +168,35 @@ export default function Tenants() {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div className="search-bar" style={{ width: '250px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Status filter select */}
+          <select 
+            value={statusFilter} 
+            onChange={e => setStatusFilter(e.target.value)} 
+            style={{ 
+              padding: '8px 12px', 
+              background: 'var(--bg-secondary)', 
+              border: '1px solid var(--border-glass)', 
+              color: 'var(--text-primary)', 
+              borderRadius: '8px', 
+              outline: 'none', 
+              cursor: 'pointer',
+              fontWeight: '500' 
+            }}
+          >
+            <option value="all" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Tất cả phòng</option>
+            <option value="occupied" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Đang thuê</option>
+            <option value="vacant" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Phòng trống</option>
+          </select>
+
+          <div className="search-bar" style={{ width: '220px' }}>
             <Search size={18} color="var(--text-secondary)" />
-            <input type="text" placeholder="Tìm kiếm phòng/khách..." />
+            <input 
+              type="text" 
+              placeholder="Tìm phòng/khách..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
           </div>
           <button 
             onClick={() => {
@@ -149,7 +252,7 @@ export default function Tenants() {
                                   Phòng {room.name}
                                 </div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <Users size={14} /> {room.tenants.length} Khách đang ở
+                                  <Users size={14} /> {room.status === 'vacant' ? 0 : room.tenants.length} Khách đang ở
                                 </div>
                                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <FileText size={14} /> HĐ hết hạn: <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{room.contract?.endDate || 'N/A'}</span>
@@ -157,7 +260,9 @@ export default function Tenants() {
                               </div>
                               
                               <div style={{ marginTop: '16px' }}>
-                                {room.totalDebt > 0 ? (
+                                {room.status === 'vacant' ? (
+                                  <StatusBadge status="vacant" text="Phòng trống" />
+                                ) : room.totalDebt > 0 ? (
                                   <div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Công nợ:</div>
                                     <div style={{ fontWeight: 'bold', color: 'var(--status-overdue)' }}>{room.totalDebt.toLocaleString('vi-VN')} đ <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>({room.unpaidInvoicesCount} HĐ)</span></div>
@@ -170,8 +275,15 @@ export default function Tenants() {
 
                             {/* Tenants List Right Side */}
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>Danh sách khách thuê:</div>
-                              {room.tenants.length > 0 ? (
+                              <div style={{ fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>
+                                {room.status === 'vacant' ? 'Trạng thái phòng:' : 'Danh sách khách thuê:'}
+                              </div>
+                              {room.status === 'vacant' ? (
+                                <div style={{ padding: '24px', background: 'rgba(59, 130, 246, 0.03)', borderRadius: '8px', border: '1px dashed rgba(59, 130, 246, 0.2)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                  <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--status-vacant-text)' }}>Phòng trống</div>
+                                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Chưa có hợp đồng hoặc khách hàng cư trú tại phòng này.</div>
+                                </div>
+                              ) : room.tenants.length > 0 ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                   {room.tenants.map((t, idx) => (
                                     <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
@@ -199,6 +311,14 @@ export default function Tenants() {
 
                             {/* Actions */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center', paddingLeft: '16px' }}>
+                              {room.status === 'vacant' && (
+                                <button 
+                                  onClick={() => handleCreateContract(room)}
+                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', transition: '0.2s' }}
+                                >
+                                  <Plus size={16} /> Tạo HĐ
+                                </button>
+                              )}
                               <button 
                                 onClick={() => { setSelectedRoomName(room.name); setIsDrawerOpen(true); }}
                                 style={{ padding: '8px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500', transition: '0.2s' }}
@@ -220,7 +340,7 @@ export default function Tenants() {
 
         {buildingsToRender.length === 0 && (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            Không có dữ liệu phòng đang thuê trong Tòa nhà này.
+            Không có dữ liệu phòng phù hợp với bộ lọc trong Tòa nhà này.
           </div>
         )}
       </div>

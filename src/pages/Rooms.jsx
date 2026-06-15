@@ -98,11 +98,12 @@ export default function Rooms() {
   };
 
   const roomsByFloor = displayedRooms.reduce((acc, room) => {
-    if (!acc[room.floor]) acc[room.floor] = [];
-    acc[room.floor].push(room);
+    const floorKey = room.floor !== undefined && room.floor !== null ? room.floor : 1;
+    if (!acc[floorKey]) acc[floorKey] = [];
+    acc[floorKey].push(room);
     return acc;
   }, {});
-  const sortedFloors = Object.keys(roomsByFloor).map(Number).sort((a, b) => b - a);
+  const sortedFloors = Object.keys(roomsByFloor).map(Number).filter(n => !isNaN(n)).sort((a, b) => b - a);
 
   return (
     <div className="rooms-layout" style={{ display: 'flex', gap: '24px', height: '100%' }}>
@@ -250,7 +251,7 @@ export default function Rooms() {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', 
                 gap: '16px' 
               }}>
-                {roomsByFloor[floor].map(room => {
+                {(roomsByFloor[floor] || []).map(room => {
                   const style = getStatusStyle(room.status);
                   return (
                     <div 

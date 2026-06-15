@@ -142,10 +142,17 @@ export const AppDataProvider = ({ children }) => {
   // Move ticket (for Kanban)
   const moveTicket = (sourceCol, destCol, sourceIndex, destIndex) => {
     setTickets(prev => {
-      const newCols = { ...prev };
-      const [movedItem] = newCols[sourceCol].splice(sourceIndex, 1);
-      newCols[destCol].splice(destIndex, 0, movedItem);
-      return newCols;
+      // Clone each array to avoid mutating original state
+      const sourceList = [...prev[sourceCol]];
+      const destList = sourceCol === destCol ? sourceList : [...prev[destCol]];
+      const [movedItem] = sourceList.splice(sourceIndex, 1);
+      if (!movedItem) return prev; // safety guard
+      destList.splice(destIndex, 0, movedItem);
+      return {
+        ...prev,
+        [sourceCol]: sourceList,
+        [destCol]: destList,
+      };
     });
   };
 

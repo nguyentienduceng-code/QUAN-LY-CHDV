@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
+import toast from 'react-hot-toast';
 
 export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
   const { tenants, rooms, settings } = useAppData();

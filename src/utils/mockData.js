@@ -17,6 +17,7 @@ export const generateMockData = (firstBuilding = 'A') => {
         id: roomId,
         name: roomName,
         building: building,
+        floor: floor,
         type: 'Studio',
         price: price,
         status: isVacant ? 'vacant' : 'occupied',

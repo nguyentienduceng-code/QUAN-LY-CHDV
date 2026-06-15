@@ -63,11 +63,11 @@ export default function TenantPortal() {
               <div style={{ fontSize: '0.75rem', opacity: 0.75 }}>{myInvoice.id}</div>
             </div>
             <div style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600' }}>
-              {myInvoice.status === 'unpaid' ? 'CHƯ A THĂNH TOÁN' : 'ĐÃ THĂNH TOÁN'}
+              {myInvoice.status === 'unpaid' ? 'CHƯA THANH TOÁN' : 'ĐÃ THANH TOÁN'}
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '4px' }}>{myInvoice.amount} đ</div>
-          <div style={{ fontSize: '0.85rem', opacity: 0.85, marginBottom: '16px' }}>Hạn chật: {myInvoice.due}</div>
+          <div style={{ fontSize: '0.85rem', opacity: 0.85, marginBottom: '16px' }}>Hạn chót: {myInvoice.due}</div>
 
           {/* Meter readings mini display */}
           {(() => {
