@@ -117,7 +117,7 @@ export default function Invoices() {
                 transition: '0.2s'
               }}
             >
-              {b === 'All' ? 'Tất cả Tòa' : (b.toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`)}
+              {b === 'All' ? 'Tất cả Tòa' : (String(b).toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`)}
             </button>
           ))}
         </div>

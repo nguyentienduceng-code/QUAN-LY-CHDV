@@ -9,7 +9,7 @@ export const exportAllDataToExcel = (data) => {
   const roomsSheet = XLSX.utils.json_to_sheet(rooms.map(r => ({
     'Mã Phòng': r.id,
     'Tên Phòng': r.name,
-    'Tòa Nhà': r.building?.toLowerCase().startsWith('nhà') ? r.building : `Nhà ${r.building}`,
+    'Tòa Nhà': String(r.building || '').toLowerCase().startsWith('nhà') ? r.building : `Nhà ${r.building}`,
     'Tầng': r.floor,
     'Diện Tích (m²)': r.area,
     'Giá Thuê (VND)': r.price,
@@ -25,7 +25,7 @@ export const exportAllDataToExcel = (data) => {
     'Số Điện Thoại': t.phone,
     'Email': t.email || '',
     'CCCD / CMND': t.idCard,
-    'Tòa Nhà': t.building?.toLowerCase().startsWith('nhà') ? t.building : `Nhà ${t.building}`,
+    'Tòa Nhà': String(t.building || '').toLowerCase().startsWith('nhà') ? t.building : `Nhà ${t.building}`,
     'Phòng': t.room,
     'Ngày Hết Hạn HĐ': t.contractEnd || '',
     'Trạng Thái': t.status

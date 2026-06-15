@@ -61,7 +61,7 @@ export default function Rooms() {
     const area = prompt('Nhập Diện Tích (m2):') || '25';
     
     addRoom({ name, price: parseInt(price, 10), area: parseInt(area, 10), floor, building: activeBuilding });
-    toast.success(`Đã thêm phòng ${name} vào Tầng ${floor} ${activeBuilding.toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}!`);
+    toast.success(`Đã thêm phòng ${name} vào Tầng ${floor} ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}!`);
   };
 
   const handleEditBuildings = (e) => {
@@ -140,13 +140,13 @@ export default function Rooms() {
                           transition: 'var(--transition)'
                         }}
                       >
-                        {b.toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`}
+                        {String(b).toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`}
                       </button>
                       {user?.role === 'manager' && (
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            const newName = prompt(`Nhập tên mới cho ${b.toLowerCase().startsWith('nhà') ? b : 'Nhà ' + b}:`, b);
+                            const newName = prompt(`Nhập tên mới cho ${String(b).toLowerCase().startsWith('nhà') ? b : 'Nhà ' + b}:`, b);
                             if (newName && newName.trim() && newName.trim() !== b) {
                               if (renameBuilding(b, newName.trim())) {
                                 toast.success('Đổi tên thành công!');
@@ -223,7 +223,7 @@ export default function Rooms() {
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 className="page-title" style={{ margin: 0 }}>
-            {user?.role === 'manager' ? `Sơ Đồ Tòa ${activeBuilding.toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
+            {user?.role === 'manager' ? `Sơ Đồ Tòa ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
           </h1>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {user?.role === 'manager' && (
