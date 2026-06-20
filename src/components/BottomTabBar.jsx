@@ -16,6 +16,7 @@ export default function BottomTabBar() {
   const tenantNavItems = [
     { path: '/', label: 'Trang chủ', icon: <Home size={20} /> },
     { path: '/invoices', label: 'Hóa đơn', icon: <FileText size={20} /> },
+    { path: '/rooms', label: 'Phòng trống', icon: <Grid size={20} /> },
     { path: '/maintenance', label: 'Báo hỏng', icon: <Wrench size={20} /> },
   ];
 

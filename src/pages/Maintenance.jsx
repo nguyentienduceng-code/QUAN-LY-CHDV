@@ -361,7 +361,9 @@ export default function Maintenance() {
   return (
     <div style={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 className="page-title" style={{ margin: 0 }}>Quản Lý Bảo Trì (Kanban)</h1>
+        <h1 className="page-title" style={{ margin: 0 }}>
+          {(user?.role === 'tenant' || user?.role === 'guest') ? 'Báo Hỏng / Yêu Cầu Bảo Trì' : 'Quản Lý Bảo Trì (Kanban)'}
+        </h1>
         {(user?.role === 'admin' || user?.role === 'staff' || user?.role === 'tenant') && (
           <button onClick={handleAddTicket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
             <Plus size={16} /> Tạo Yêu Cầu
