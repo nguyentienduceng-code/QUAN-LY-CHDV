@@ -17,6 +17,7 @@ import FinanceAndTenants from './pages/FinanceAndTenants';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
 import BottomTabBar from './components/BottomTabBar';
+import { useAppData } from './context/AppDataContext';
 
 import './styles/index.css';
 import './styles/layout.css';
@@ -36,6 +37,28 @@ function ProtectedRoute({ children, allowedRoles }) {
 function MainLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useAuth();
+  const { loading } = useAppData();
+
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+        <div className="bg-animation">
+          <div className="bg-orb bg-orb-1"></div>
+          <div className="bg-orb bg-orb-2"></div>
+        </div>
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+          <div style={{ width: '48px', height: '48px', border: '3px solid var(--border-glass)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+          <div style={{ fontWeight: '600', fontSize: '1.1rem', letterSpacing: '0.5px' }} className="gradient-text">Đang đồng bộ dữ liệu...</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px' }}>Vui lòng chờ trong giây lát</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

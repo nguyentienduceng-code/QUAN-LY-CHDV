@@ -1,7 +1,7 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useContext, useEffect } from 'react';
-import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail } from '../firebase';
+import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const AuthContext = createContext(null);
 
@@ -12,13 +12,27 @@ export const AuthProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       const storedUser = localStorage.getItem('chdv_user');
       // Nếu đăng nhập bằng Google hoặc Email Firebase (có firebaseUser) và không có user cứng trong localStorage (manager)
       if (firebaseUser && !storedUser) {
-        // Look up role from rentflow_users
-        const allUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
-        const registeredUser = allUsers.find(u => u.email === firebaseUser.email);
+        let registeredUser = null;
+        try {
+          // Try to query role from Firestore users collection
+          const q = query(collection(db, 'users'), where('email', '==', firebaseUser.email));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            registeredUser = querySnapshot.docs[0].data();
+          }
+        } catch (err) {
+          console.warn("Lỗi truy vấn vai trò người dùng từ Firestore, sử dụng offline fallback:", err);
+        }
+
+        // Fallback to localStorage rentflow_users
+        if (!registeredUser) {
+          const allUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+          registeredUser = allUsers.find(u => u.email === firebaseUser.email);
+        }
         
         setUser({
           name: registeredUser?.name || firebaseUser.displayName || 'Người dùng',
