@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 export default function Login() {
   const [role, setRole] = useState('manager'); // 'manager' | 'tenant'
   const [identifier, setIdentifier] = useState('');
-  const { login, loginWithGoogle } = useAuth();
+  const [password, setPassword] = useState('password123');
+  const { login, loginWithGoogle, loginWithEmail } = useAuth();
   const appData = useAppData();
   const { tenants, users } = appData;
   const navigate = useNavigate();
@@ -30,8 +31,31 @@ export default function Login() {
     }
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Try Firebase Email/Password Sign-in if credentials provided
+    if (identifier) {
+      try {
+        const firebaseUser = await loginWithEmail(identifier, password);
+        if (firebaseUser) {
+          const registeredUser = users?.find(u => u.email === firebaseUser.email);
+          const mappedRole = registeredUser?.role || (role === 'manager' ? 'admin' : 'tenant');
+          const mappedRoom = registeredUser?.room || null;
+          const mappedName = registeredUser?.name || firebaseUser.displayName || firebaseUser.email.split('@')[0];
+          
+          login({ name: mappedName, role: mappedRole, email: firebaseUser.email, room: mappedRoom });
+          toast.success('Đăng nhập hệ thống (Firebase) thành công!');
+          navigate(mappedRole === 'tenant' || mappedRole === 'guest' ? '/tenant-portal' : '/');
+          return;
+        }
+      } catch (fbError) {
+        console.warn("Firebase email auth failed, falling back to mock authentication:", fbError.message);
+        // If password is wrong or other Auth errors, let it fall through to mock login
+      }
+    }
+
+    // Fallback Mock Login logic
     if (role === 'manager') {
       const emailToSearch = identifier || 'admin';
       const userToLogin = users?.find(u => u.email === emailToSearch || u.id === emailToSearch || u.id === `usr-${emailToSearch}`);
@@ -151,7 +175,8 @@ export default function Login() {
               <KeySquare size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
               <input 
                 type="password" 
-                defaultValue="password123"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
               />
             </div>

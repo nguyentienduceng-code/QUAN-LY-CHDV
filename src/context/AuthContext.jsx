@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useContext, useEffect } from 'react';
-import { auth, signInWithGoogle, firebaseSignOut } from '../firebase';
+import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const AuthContext = createContext(null);
@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       const storedUser = localStorage.getItem('chdv_user');
-      // Nếu đăng nhập bằng Google (có firebaseUser) và không có user cứng trong localStorage (manager)
+      // Nếu đăng nhập bằng Google hoặc Email Firebase (có firebaseUser) và không có user cứng trong localStorage (manager)
       if (firebaseUser && !storedUser) {
         // Look up role from rentflow_users
         const allUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
@@ -50,6 +50,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithEmail = async (email, password) => {
+    try {
+      const result = await firebaseSignInWithEmail(email, password);
+      return result.user;
+    } catch (error) {
+      console.error("Lỗi đăng nhập Email Firebase:", error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     setUser(null);
     localStorage.removeItem('chdv_user');
@@ -57,7 +67,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, login, loginWithGoogle, loginWithEmail, logout }}>
       {children}
     </AuthContext.Provider>
   );
