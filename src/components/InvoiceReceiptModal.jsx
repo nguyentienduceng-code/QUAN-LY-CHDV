@@ -4,7 +4,7 @@ import { useAppData } from '../context/AppDataContext';
 
 export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
   const { user } = useAuth();
-  const { settings, rooms } = useAppData();
+  const { settings, rooms, updateInvoice } = useAppData();
   if (!isOpen || !invoice) return null;
 
   // Extract raw number from amount string (e.g. "4.500.000" -> 4500000)
@@ -28,6 +28,16 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
 
   const handleSend = () => {
     import('react-hot-toast').then(toast => toast.default.success(`Đã gửi Phiếu Thu qua Zalo cho khách hàng ${invoice.tenant} thành công!`));
+  };
+
+  const handleMarkAsPaid = () => {
+    updateInvoice(invoice.id, { status: 'paid' });
+    import('react-hot-toast').then(toast => toast.default.success(`Đã xác nhận thanh toán hóa đơn ${invoice.id}!`));
+  };
+
+  const handleMarkAsUnpaid = () => {
+    updateInvoice(invoice.id, { status: 'unpaid' });
+    import('react-hot-toast').then(toast => toast.default.success(`Đã chuyển trạng thái hóa đơn ${invoice.id} về Chưa thanh toán.`));
   };
 
   return (
@@ -64,6 +74,19 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
           <button className="no-print" onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}><X size={20} /></button>
           <h2 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: '800', textTransform: 'uppercase' }}>Phiếu Thu Tiền</h2>
           <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Căn hộ Dịch Vụ - Tòa nhà A</p>
+          <div style={{ 
+            display: 'inline-block', 
+            padding: '4px 12px', 
+            borderRadius: '20px', 
+            fontSize: '0.75rem', 
+            fontWeight: 'bold', 
+            marginTop: '8px',
+            background: invoice.status === 'paid' ? '#ecfdf5' : '#fef2f2',
+            color: invoice.status === 'paid' ? '#059669' : '#dc2626',
+            border: invoice.status === 'paid' ? '1px solid #10b981' : '1px solid #f87171'
+          }}>
+            {invoice.status === 'paid' ? '● ĐÃ THANH TOÁN' : '● CHƯA THANH TOÁN'}
+          </div>
           <div style={{ marginTop: '16px', fontSize: '0.9rem', textAlign: 'left' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ color: '#64748b' }}>Khách hàng:</span>
@@ -126,32 +149,61 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
           </div>
 
           {/* QR Code Section */}
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px', color: '#3b82f6', fontWeight: 'bold' }}>
-              <QrCode size={18} /> Quét mã để thanh toán (VietQR)
+          {invoice.status === 'paid' ? (
+            <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', textAlign: 'center', color: '#10b981' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', background: '#ecfdf5', border: '2px solid #10b981', marginBottom: '12px' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <h3 style={{ margin: '0 0 4px', color: '#059669', fontWeight: '800', fontSize: '1rem' }}>Giao Dịch Hoàn Tất</h3>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>Hóa đơn này đã được xác nhận thanh toán.</p>
             </div>
-            <img 
-              src={qrUrl} 
-              alt="VietQR Payment" 
-              style={{ width: '200px', height: '200px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', background: '#fff' }} 
-            />
-            <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#64748b' }}>
-              Chuyển khoản đến:<br/>
-              <strong style={{ color: '#0f172a' }}>{bankName} - {bankAccount}</strong><br/>
-              Chủ TK: <strong style={{ color: '#0f172a' }}>{bankOwner}</strong>
+          ) : (
+            <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px', color: '#3b82f6', fontWeight: 'bold' }}>
+                <QrCode size={18} /> Quét mã để thanh toán (VietQR)
+              </div>
+              <img 
+                src={qrUrl} 
+                alt="VietQR Payment" 
+                style={{ width: '200px', height: '200px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', background: '#fff' }} 
+              />
+              <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#64748b' }}>
+                Chuyển khoản đến:<br/>
+                <strong style={{ color: '#0f172a' }}>{bankName} - {bankAccount}</strong><br/>
+                Chủ TK: <strong style={{ color: '#0f172a' }}>{bankOwner}</strong>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Footer Actions */}
         {(user?.role === 'admin' || user?.role === 'staff') ? (
-          <div className="no-print" style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', display: 'flex', gap: '12px' }}>
-            <button onClick={handlePrint} style={{ flex: 1, padding: '10px', background: '#fff', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-              <Printer size={16} /> In Biên Lai
-            </button>
-            <button onClick={handleSend} style={{ flex: 1, padding: '10px', background: '#3b82f6', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-              <Send size={16} /> Gửi Khách
-            </button>
+          <div className="no-print" style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {invoice.status !== 'paid' ? (
+              <button 
+                onClick={handleMarkAsPaid} 
+                style={{ width: '100%', padding: '12px', background: '#10b981', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)' }}
+              >
+                Xác Nhận Đã Thu Tiền (Đóng Tiền)
+              </button>
+            ) : (
+              <button 
+                onClick={handleMarkAsUnpaid} 
+                style={{ width: '100%', padding: '12px', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)' }}
+              >
+                Chuyển Trạng Thái Chưa Thanh Toán
+              </button>
+            )}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={handlePrint} style={{ flex: 1, padding: '10px', background: '#fff', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                <Printer size={16} /> In Biên Lai
+              </button>
+              <button onClick={handleSend} style={{ flex: 1, padding: '10px', background: '#3b82f6', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                <Send size={16} /> Gửi Zalo
+              </button>
+            </div>
           </div>
         ) : (
           <div className="no-print" style={{ padding: '8px', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}></div>
