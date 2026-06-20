@@ -205,34 +205,7 @@ export default function Login() {
             Chưa có tài khoản? <a href="#" style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>Đăng ký ngay</a>
           </div>
 
-          <div style={{ marginTop: '32px', textAlign: 'center', borderTop: '1px solid var(--border-glass)', paddingTop: '24px' }}>
-            <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Dành cho người dùng thử nghiệm:</p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button 
-                type="button" 
-                onClick={() => {
-                  if (window.confirm('CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ dữ liệu Khách, Phòng, Hóa đơn đang có. Bạn chắc chắn chứ?')) {
-                    appData.clearAllData();
-                    toast.success('Đã làm trống toàn bộ dữ liệu hệ thống!');
-                  }
-                }}
-                style={{ flex: 1, background: 'rgba(239, 68, 68, 0.1)', border: '1px dashed var(--status-unpaid)', color: 'var(--status-unpaid)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
-              >
-                Xóa Trắng Dữ Liệu
-              </button>
-              <button 
-                type="button" 
-                onClick={() => {
-                  appData.loadMockData();
-                  toast.success('Đã nạp bộ dữ liệu nhà 3 tầng thành công! Vui lòng đăng nhập Khách bằng email khach101@gmail.com');
-                  setIdentifier('khach101@gmail.com');
-                }}
-                style={{ flex: 1, background: 'rgba(59, 130, 246, 0.1)', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
-              >
-                Nạp Dữ Liệu Mẫu
-              </button>
-            </div>
-          </div>
+
         </form>
       </div>
     </div>

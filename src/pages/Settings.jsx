@@ -4,7 +4,7 @@ import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard } fro
 import toast from 'react-hot-toast';
 
 export default function Settings() {
-  const { settings, setSettings } = useAppData();
+  const { settings, setSettings, clearAllData, loadMockData } = useAppData();
   const [formData, setFormData] = useState(settings);
   const [selectedBuilding, setSelectedBuilding] = useState(settings.buildings[0] || 'A');
 
@@ -226,6 +226,40 @@ export default function Settings() {
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Panel 4: Quản Lý Dữ Liệu (Dành cho thử nghiệm) */}
+        <div className="card" style={{ borderTop: '4px solid var(--status-unpaid)', marginTop: '8px' }}>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-unpaid)' }}>
+            <SettingsIcon size={20} /> Quản Lý Dữ Liệu (Thử nghiệm)
+          </div>
+          <p style={{ margin: '16px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            Khu vực này dùng để làm sạch hoặc tạo bộ dữ liệu mẫu phục vụ cho việc dùng thử hệ thống.
+          </p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button 
+              type="button" 
+              onClick={() => {
+                if (window.confirm('CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ dữ liệu Khách, Phòng, Hóa đơn đang có. Bạn chắc chắn chứ?')) {
+                  clearAllData();
+                  toast.success('Đã làm trống toàn bộ dữ liệu hệ thống!');
+                }
+              }}
+              style={{ padding: '10px 16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px dashed var(--status-unpaid)', color: 'var(--status-unpaid)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' }}
+            >
+              Xóa Trắng Dữ Liệu
+            </button>
+            <button 
+              type="button" 
+              onClick={() => {
+                loadMockData();
+                toast.success('Đã nạp bộ dữ liệu mẫu thành công!');
+              }}
+              style={{ padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' }}
+            >
+              Nạp Dữ Liệu Mẫu
+            </button>
           </div>
         </div>
       </div>
