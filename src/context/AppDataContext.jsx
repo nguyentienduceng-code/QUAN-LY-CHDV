@@ -4,13 +4,35 @@ import { generateMockData } from '../utils/mockData';
 
 const AppDataContext = createContext(null);
 
-const initialRooms = [];
-const initialTenants = [];
-const initialContracts = [];
-const initialInvoices = [];
+const initialRooms = [
+  { id: 101, name: '101', building: 'A', floor: 1, type: 'Studio', price: 4000000, status: 'occupied', area: 25 }
+];
+const initialTenants = [
+  { id: 'TEN-101', name: 'Nguyễn Văn Khách', email: 'khach1@gmail.com', phone: '0901234567', idCard: '079123456789', room: '101', building: 'A', status: 'active', note: 'Tài khoản dùng thử tính năng Khách thuê' }
+];
+const initialContracts = [
+  { id: 'CTR-2026-101', tenant: 'Nguyễn Văn Khách', room: '101', startDate: '01/01/2026', endDate: '31/12/2026', deposit: '4.000.000', status: 'active' }
+];
+const initialInvoices = [
+  {
+    id: 'INV-06-2026-101',
+    tenant: 'Nguyễn Văn Khách',
+    room: '101',
+    amount: '4.500.000',
+    due: '05/07/2026',
+    status: 'unpaid',
+    items: [
+      { id: 1, name: 'Tiền phòng', qty: 1, price: 4000000, total: 4000000 },
+      { id: 2, name: 'Tiền điện', qty: 100, price: 3500, total: 350000 },
+      { id: 3, name: 'Phí dịch vụ', qty: 1, price: 150000, total: 150000 }
+    ]
+  }
+];
 
 const initialTickets = {
-  reported: [],
+  reported: [
+    { id: 'TKT-001', room: '101', title: 'Hỏng vòi nước', desc: 'Vòi nước ở bồn rửa mặt bị rỉ nước liên tục', priority: 'high', date: '20/06/2026' }
+  ],
   inProgress: [],
   resolved: []
 };
@@ -19,15 +41,69 @@ const initialUsers = [
   { id: 'usr-admin', email: 'admin@gmail.com', name: 'Quản trị viên', role: 'admin', room: null },
   { id: 'usr-staff1', email: 'staff@gmail.com', name: 'Nhân viên 1', role: 'staff', room: null },
   { id: 'usr-viewer1', email: 'investor@gmail.com', name: 'Nhà đầu tư', role: 'viewer', room: null },
+  { id: 'usr-khach1', email: 'khach1@gmail.com', name: 'Nguyễn Văn Khách', role: 'tenant', room: '101' },
 ];
 
 export const AppDataProvider = ({ children }) => {
   const [rooms, setRooms] = useState(() => JSON.parse(localStorage.getItem('rentflow_rooms')) || initialRooms);
-  const [tenants, setTenants] = useState(() => JSON.parse(localStorage.getItem('rentflow_tenants')) || initialTenants);
+  const [tenants, setTenants] = useState(() => {
+    const stored = JSON.parse(localStorage.getItem('rentflow_tenants'));
+    if (stored && stored.length > 0) return stored;
+    return initialTenants;
+  });
   const [contracts, setContracts] = useState(() => JSON.parse(localStorage.getItem('rentflow_contracts')) || initialContracts);
-  const [invoices, setInvoices] = useState(() => JSON.parse(localStorage.getItem('rentflow_invoices')) || initialInvoices);
+  const [invoices, setInvoices] = useState(() => {
+    const stored = JSON.parse(localStorage.getItem('rentflow_invoices'));
+    if (stored && stored.length > 0) return stored;
+    return initialInvoices;
+  });
   const [tickets, setTickets] = useState(() => JSON.parse(localStorage.getItem('rentflow_tickets')) || initialTickets);
-  const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem('rentflow_users')) || initialUsers);
+  const [users, setUsers] = useState(() => {
+    const stored = JSON.parse(localStorage.getItem('rentflow_users'));
+    if (stored && stored.length > 0) return stored;
+    return initialUsers;
+  });
+
+  useEffect(() => {
+    // Ensure khach1@gmail.com tenant and invoices are present in loaded state
+    if (!tenants.some(t => t.email === 'khach1@gmail.com')) {
+      const testTenant = { id: 'TEN-101', name: 'Nguyễn Văn Khách', email: 'khach1@gmail.com', phone: '0901234567', idCard: '079123456789', room: '101', building: 'A', status: 'active', note: 'Tài khoản dùng thử tính năng Khách thuê' };
+      setTenants(prev => [testTenant, ...prev]);
+      
+      setRooms(rPrev => {
+        if (!rPrev.some(r => r.name === '101')) {
+          return [{ id: 101, name: '101', building: 'A', floor: 1, type: 'Studio', price: 4000000, status: 'occupied', area: 25 }, ...rPrev];
+        }
+        return rPrev.map(r => r.name === '101' ? { ...r, status: 'occupied' } : r);
+      });
+
+      setInvoices(iPrev => {
+        if (!iPrev.some(i => i.room === '101')) {
+          return [{
+            id: 'INV-06-2026-101',
+            tenant: 'Nguyễn Văn Khách',
+            room: '101',
+            amount: '4.500.000',
+            due: '05/07/2026',
+            status: 'unpaid',
+            items: [
+              { id: 1, name: 'Tiền phòng', qty: 1, price: 4000000, total: 4000000 },
+              { id: 2, name: 'Tiền điện', qty: 100, price: 3500, total: 350000 },
+              { id: 3, name: 'Phí dịch vụ', qty: 1, price: 150000, total: 150000 }
+            ]
+          }, ...iPrev];
+        }
+        return iPrev;
+      });
+
+      setUsers(uPrev => {
+        if (!uPrev.some(u => u.email === 'khach1@gmail.com')) {
+          return [...uPrev, { id: 'usr-khach1', email: 'khach1@gmail.com', name: 'Nguyễn Văn Khách', role: 'tenant', room: '101' }];
+        }
+        return uPrev;
+      });
+    }
+  }, [tenants]);
 
   const defaultSettings = {
     electricityPrice: 3500,

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Grid, Users, Wrench, FileText, Bell } from 'lucide-react';
+import { Home, Grid, Users, Wrench, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function BottomTabBar() {
@@ -7,15 +7,14 @@ export default function BottomTabBar() {
 
   const managerNavItems = [
     { path: '/', label: 'Tổng quan', icon: <Home size={20} /> },
-    { path: '/rooms', label: 'Phòng', icon: <Grid size={20} /> },
-    { path: '/tenants', label: 'Khách', icon: <Users size={20} /> },
-    { path: '/invoices', label: 'Hóa đơn', icon: <FileText size={20} /> },
+    { path: '/rooms', label: 'Quản lý Phòng', icon: <Grid size={20} /> },
+    { path: '/finance', label: 'Khách & HĐ', icon: <Users size={20} /> },
     { path: '/maintenance', label: 'Bảo trì', icon: <Wrench size={20} /> },
   ];
 
   const tenantNavItems = [
-    { path: '/', label: 'Trang chủ', icon: <Home size={20} /> },
-    { path: '/invoices', label: 'Hóa đơn', icon: <FileText size={20} /> },
+    { path: '/', label: 'Phòng của tôi', icon: <Home size={20} /> },
+    { path: '/invoices', label: 'Hóa đơn của tôi', icon: <FileSpreadsheet size={20} /> },
     { path: '/rooms', label: 'Phòng trống', icon: <Grid size={20} /> },
   ];
 

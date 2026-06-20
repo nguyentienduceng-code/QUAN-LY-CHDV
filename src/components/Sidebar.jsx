@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home as HomeIcon, Users, FileSpreadsheet, PenTool, UserCheck, Moon, Sun, Settings, Key } from 'lucide-react';
+import { Home as HomeIcon, Grid, Users, FileSpreadsheet, Wrench, Moon, Sun, Settings, Key } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -14,9 +14,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   
   const managerNavItems = [
     { path: '/', label: 'Tổng quan', icon: <HomeIcon size={20} /> },
-    { path: '/rooms', label: 'Quản lý Phòng', icon: <HomeIcon size={20} /> },
+    { path: '/rooms', label: 'Quản lý Phòng', icon: <Grid size={20} /> },
     { path: '/finance', label: 'Khách & Hóa Đơn', icon: <Users size={20} /> },
-    { path: '/maintenance', label: 'Bảo trì (Kanban)', icon: <PenTool size={20} /> },
+    { path: '/maintenance', label: 'Bảo trì (Kanban)', icon: <Wrench size={20} /> },
   ];
 
   if (user?.role === 'admin') {
@@ -27,7 +27,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const tenantNavItems = [
     { path: '/', label: 'Phòng của tôi', icon: <HomeIcon size={20} /> },
     { path: '/invoices', label: 'Hóa đơn của tôi', icon: <FileSpreadsheet size={20} /> },
-    { path: '/rooms', label: 'Phòng trống (Giới thiệu)', icon: <UserCheck size={20} /> },
+    { path: '/rooms', label: 'Phòng trống', icon: <Grid size={20} /> },
   ];
 
   const navItems = (user?.role !== 'tenant' && user?.role !== 'guest') ? managerNavItems : tenantNavItems;
