@@ -27,7 +27,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   const tenantNavItems = [
     { path: '/', label: 'Phòng của tôi', icon: <HomeIcon size={20} /> },
     { path: '/invoices', label: 'Hóa đơn của tôi', icon: <FileSpreadsheet size={20} /> },
-    { path: '/maintenance', label: 'Báo hỏng', icon: <PenTool size={20} /> },
     { path: '/rooms', label: 'Phòng trống (Giới thiệu)', icon: <UserCheck size={20} /> },
   ];
 
