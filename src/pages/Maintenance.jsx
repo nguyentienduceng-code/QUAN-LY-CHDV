@@ -3,6 +3,8 @@ import { Plus, MoreHorizontal, MessageSquare, Paperclip, User, DollarSign, X } f
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import StatusBadge from '../components/StatusBadge';
 import { useAppData } from '../context/AppDataContext';
+import { useCustomPrompt } from '../context/CustomPromptContext';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const COST_CATEGORIES = [
@@ -98,8 +100,8 @@ const EditTicketModal = ({ ticket, onClose, onSave }) => {
   );
 };
 
-const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice }) => (
-  <Draggable draggableId={ticket.id} index={index}>
+const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice, user }) => (
+  <Draggable draggableId={ticket.id} index={index} isDragDisabled={user?.role === 'viewer' || user?.role === 'tenant' || user?.role === 'guest'}>
     {(provided) => (
       <div 
         ref={provided.innerRef}
@@ -118,7 +120,9 @@ const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice }
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ticket.id}</span>
-          <button onClick={() => onEdit(ticket)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}><MoreHorizontal size={16} /></button>
+          {(user?.role === 'admin' || user?.role === 'staff') && (
+            <button onClick={() => onEdit(ticket)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}><MoreHorizontal size={16} /></button>
+          )}
         </div>
         <div style={{ fontWeight: '600', marginBottom: '8px' }}>{ticket.title}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', marginBottom: '12px' }}>
@@ -160,7 +164,8 @@ const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice }
         </div>
 
         {/* Transition Buttons */}
-        <div style={{ marginTop: '14px', borderTop: '1px dashed var(--border-glass)', paddingTop: '12px' }}>
+        {(user?.role === 'admin' || user?.role === 'staff') && (
+          <div style={{ marginTop: '14px', borderTop: '1px dashed var(--border-glass)', paddingTop: '12px' }}>
           {columnId === 'reported' && (
             <button 
               onClick={(e) => { e.stopPropagation(); onMove(ticket.id, 'reported', 'inProgress'); }}
@@ -271,19 +276,23 @@ const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice }
             </div>
           )}
         </div>
+        )}
       </div>
     )}
   </Draggable>
 );
 
 export default function Maintenance() {
-  const { tickets, moveTicket, addTicket, updateTicket, tenants, addInvoice } = useAppData();
+  const { tickets, updateTicket, addTicket, moveTicket, tenants } = useAppData();
+  const { user } = useAuth();
+  const prompt = useCustomPrompt();
   const [editingTicket, setEditingTicket] = useState(null);
 
-  const handleAddTicket = () => {
-    const title = prompt('Nhập tiêu đề sự cố (VD: Hỏng bóng đèn):');
+  const handleAddTicket = async () => {
+    const title = await prompt('Nhập tiêu đề sự cố (VD: Hỏng bóng đèn):');
     if (!title) return;
-    const room = prompt('Khu vực / Số phòng:') || 'Khu chung';
+    const room = await prompt('Khu vực / Số phòng:', user?.room || 'Khu chung');
+    if (!room) return;
     addTicket({ title, room, priority: 'medium', cost: 0 });
     toast.success('Đã tạo thẻ bảo trì mới!');
   };
@@ -304,12 +313,10 @@ export default function Maintenance() {
     const sourceList = tickets[sourceCol];
     const index = sourceList.findIndex(t => t.id === ticketId);
     if (index !== -1) {
-      moveTicket(sourceCol, destCol, index, 0); // moves to the top of the destination column
+      moveTicket(sourceCol, destCol, index, 0); 
       
-      // If moving to resolved, automatically open the edit modal to enter cost/description
       if (destCol === 'resolved') {
         const ticket = sourceList[index];
-        // Wait minor delay to allow state update to render card in resolved first
         setTimeout(() => {
           setEditingTicket({ ...ticket, column: destCol });
         }, 100);
@@ -318,7 +325,6 @@ export default function Maintenance() {
   };
 
   const handleCreateInvoiceFromTicket = (ticket) => {
-    // Find tenant for this room
     const tenantInfo = tenants.find(t => t.room === ticket.room);
     const tenantName = tenantInfo?.name || 'Khách thuê';
 
@@ -333,7 +339,7 @@ export default function Maintenance() {
       room: ticket.room,
       tenant: tenantName,
       amount: ticket.cost.toLocaleString('vi-VN'),
-      due: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN'), // 5 days from now
+      due: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN'), 
       status: 'unpaid',
       items: [
         { id: 1, name: `Thanh toán phí bảo trì: ${ticket.title}`, qty: 1, price: ticket.cost, total: ticket.cost }
@@ -356,9 +362,11 @@ export default function Maintenance() {
     <div style={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="page-title" style={{ margin: 0 }}>Quản Lý Bảo Trì (Kanban)</h1>
-        <button onClick={handleAddTicket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
-          <Plus size={16} /> Tạo Yêu Cầu
-        </button>
+        {(user?.role === 'admin' || user?.role === 'staff' || user?.role === 'tenant') && (
+          <button onClick={handleAddTicket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+            <Plus size={16} /> Tạo Yêu Cầu
+          </button>
+        )}
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
@@ -377,7 +385,7 @@ export default function Maintenance() {
                     {...provided.droppableProps}
                     style={{ flex: 1, overflowY: 'auto', minHeight: '100px' }}
                   >
-                    {tickets[col.id].map((t, i) => (
+                    {(user?.role === 'tenant' ? tickets[col.id].filter(t => t.room === user?.room) : tickets[col.id]).map((t, i) => (
                       <TicketCard 
                         key={t.id} 
                         index={i} 
@@ -386,6 +394,7 @@ export default function Maintenance() {
                         onEdit={setEditingTicket} 
                         onMove={handleMoveTicketColumn}
                         onCreateInvoice={handleCreateInvoiceFromTicket}
+                        user={user}
                       />
                     ))}
                     {provided.placeholder}

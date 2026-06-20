@@ -10,7 +10,7 @@ export default function Login() {
   const [identifier, setIdentifier] = useState('');
   const { login, loginWithGoogle } = useAuth();
   const appData = useAppData();
-  const { tenants } = appData;
+  const { tenants, users } = appData;
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
@@ -33,16 +33,29 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
     if (role === 'manager') {
-      login({ name: 'Admin (Quản lý)', role: 'manager' });
-      navigate('/');
+      const emailToSearch = identifier || 'admin';
+      const userToLogin = users?.find(u => u.email === emailToSearch || u.id === emailToSearch || u.id === `usr-${emailToSearch}`);
+      
+      if (userToLogin) {
+        login({ name: userToLogin.name, role: userToLogin.role, email: userToLogin.email });
+        navigate('/');
+      } else if (emailToSearch === 'admin') {
+        // Fallback default admin
+        login({ name: 'Admin (Quản lý)', role: 'admin', email: 'admin@gmail.com' });
+        navigate('/');
+      } else {
+        toast.error('Tài khoản quản lý không tồn tại!');
+      }
     } else {
       const emailToSearch = identifier || 'khach1@gmail.com';
-      const tenant = tenants.find(t => t.email === emailToSearch);
+      const tenant = tenants?.find(t => t.email === emailToSearch);
       if (tenant) {
-        login({ name: tenant.name, role: 'tenant', room: tenant.room, email: tenant.email });
+        // Find if this tenant has a mapped user role
+        const mappedUser = users?.find(u => u.email === emailToSearch);
+        login({ name: tenant.name, role: mappedUser?.role || 'tenant', room: tenant.room, email: tenant.email });
         navigate('/tenant-portal');
       } else {
-        toast.error('Email không tồn tại trong hệ thống!');
+        toast.error('Email khách thuê không tồn tại!');
       }
     }
   };
@@ -124,7 +137,7 @@ export default function Login() {
               )}
               <input 
                 type="text" 
-                placeholder={role === 'manager' ? 'admin' : 'khach1@gmail.com'}
+                placeholder={role === 'manager' ? 'admin@gmail.com' : 'khach1@gmail.com'}
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 

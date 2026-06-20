@@ -1,10 +1,12 @@
-import { X, User, Calendar, DollarSign, Wrench, Image as ImageIcon, Plus, UploadCloud, Edit3, Check, FileText, Trash2 } from 'lucide-react';
+import { X, User, Calendar, DollarSign, Wrench, Image as ImageIcon, Plus, UploadCloud, Edit3, Check, FileText, Trash2, ChevronDown } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useAppData } from '../context/AppDataContext';
 import { useAuth } from '../context/AuthContext';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+
+const AVAILABLE_AMENITIES = ['Máy lạnh', 'Tủ lạnh', 'Giường nệm', 'Tủ quần áo', 'Bếp điện', 'Máy giặt', 'Ban công', 'Cửa sổ', 'Tivi', 'Sofa', 'Wifi'];
 
 export default function RoomDetailDrawer({ isOpen, onClose, room }) {
   const { user } = useAuth();
@@ -18,11 +20,14 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
   const [editPrice, setEditPrice] = useState('');
   const [editArea, setEditArea] = useState('');
   const [editType, setEditType] = useState('');
+  const [editAmenities, setEditAmenities] = useState([]);
+  const [isAmenitiesDropdownOpen, setIsAmenitiesDropdownOpen] = useState(false);
 
   const startEditing = () => {
     setEditPrice(String(room.price || ''));
     setEditArea(String(room.area || ''));
     setEditType(room.type || 'Studio');
+    setEditAmenities(room.amenities || []);
     setIsEditingInfo(true);
   };
 
@@ -37,9 +42,11 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
       price: priceNum,
       area: areaNum || room.area,
       type: editType || room.type,
+      amenities: editAmenities,
     });
     toast.success('Đã cập nhật thông tin phòng!');
     setIsEditingInfo(false);
+    setIsAmenitiesDropdownOpen(false);
   };
 
   const compressImage = (file) => {
@@ -151,7 +158,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
               <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                 <DollarSign size={18} /> Thông Tin Phòng
               </h3>
-              {user?.role === 'manager' && !isEditingInfo && (
+              {(user?.role === 'admin' || user?.role === 'staff') && !isEditingInfo && (
                 <button
                   onClick={startEditing}
                   style={{ background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--accent-primary)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -198,13 +205,48 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
                       onChange={e => setEditType(e.target.value)}
                       style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.95rem' }}
                     >
-                      <option value="Studio">Studio</option>
-                      <option value="1PN">1 Phòng ngủ</option>
-                      <option value="2PN">2 Phòng ngủ</option>
-                      <option value="Penthouse">Penthouse</option>
-                      <option value="Duplex">Duplex</option>
+                      <option value="Studio" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Studio</option>
+                      <option value="1PN" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>1 Phòng ngủ</option>
+                      <option value="2PN" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>2 Phòng ngủ</option>
+                      <option value="Penthouse" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Penthouse</option>
+                      <option value="Duplex" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>Duplex</option>
                     </select>
                   </div>
+                </div>
+                
+                <div style={{ position: 'relative' }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Tiện ích</label>
+                  <div 
+                    onClick={() => setIsAmenitiesDropdownOpen(!isAmenitiesDropdownOpen)}
+                    style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.95rem' }}>
+                      {editAmenities.length > 0 ? editAmenities.join(', ') : 'Chọn tiện ích...'}
+                    </span>
+                    <ChevronDown size={14} color="var(--text-secondary)" />
+                  </div>
+                  {isAmenitiesDropdownOpen && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', padding: '6px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                      {AVAILABLE_AMENITIES.map(amenity => (
+                        <div 
+                          key={amenity}
+                          onClick={() => {
+                            if (editAmenities.includes(amenity)) {
+                              setEditAmenities(editAmenities.filter(a => a !== amenity));
+                            } else {
+                              setEditAmenities([...editAmenities, amenity]);
+                            }
+                          }}
+                          style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', borderRadius: '4px', background: editAmenities.includes(amenity) ? 'rgba(59, 130, 246, 0.1)' : 'transparent', transition: 'background 0.2s' }}
+                        >
+                          <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: '1px solid var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: editAmenities.includes(amenity) ? 'var(--accent-primary)' : 'transparent', flexShrink: 0 }}>
+                            {editAmenities.includes(amenity) && <Check size={14} color="#fff" />}
+                          </div>
+                          <span style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{amenity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -279,7 +321,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
           <div style={{ marginBottom: '28px' }}>
             <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
               <ImageIcon size={18} /> Ảnh Phòng
-              {user?.role === 'manager' && (
+              {(user?.role === 'admin' || user?.role === 'staff') && (
                 <>
                   <input
                     type="file"
@@ -328,7 +370,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
                         alt={`Phòng ${room.name} - ${i + 1}`}
                         style={{ width: '110px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-glass)' }}
                       />
-                      {user?.role === 'manager' && (
+                      {(user?.role === 'admin' || user?.role === 'staff') && (
                         <button
                           onClick={() => handleDeleteImage(i)}
                           style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239,68,68,0.85)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
@@ -341,12 +383,12 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
                 </div>
               ) : (
                 <div
-                  onClick={() => user?.role === 'manager' && fileInputRef.current?.click()}
-                  style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center', padding: '28px 16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px dashed var(--border-glass)', cursor: user?.role === 'manager' ? 'pointer' : 'default' }}
+                  onClick={() => (user?.role === 'admin' || user?.role === 'staff') && fileInputRef.current?.click()}
+                  style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center', padding: '28px 16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px dashed var(--border-glass)', cursor: (user?.role === 'admin' || user?.role === 'staff') ? 'pointer' : 'default' }}
                 >
                   <UploadCloud size={28} style={{ marginBottom: '8px', opacity: 0.4, display: 'block', margin: '0 auto 8px' }} />
                   Chưa có ảnh nào.{' '}
-                  {user?.role === 'manager' && <span style={{ color: 'var(--accent-primary)' }}>Nhấp để tải ảnh lên</span>}
+                  {(user?.role === 'admin' || user?.role === 'staff') && <span style={{ color: 'var(--accent-primary)' }}>Nhấp để tải ảnh lên</span>}
                 </div>
               )}
             </div>
@@ -375,7 +417,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
         </div>
 
         {/* Footer Actions */}
-        {user?.role === 'manager' && (
+        {(user?.role === 'admin' || user?.role === 'staff') && (
           <div className="drawer-footer">
             {room.status === 'vacant' ? (
               <>

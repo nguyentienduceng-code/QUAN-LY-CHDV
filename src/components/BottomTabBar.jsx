@@ -19,7 +19,7 @@ export default function BottomTabBar() {
     { path: '/maintenance', label: 'Báo hỏng', icon: <Wrench size={20} /> },
   ];
 
-  const navItems = user?.role === 'manager' ? managerNavItems : tenantNavItems;
+  const navItems = (user?.role !== 'tenant' && user?.role !== 'guest') ? managerNavItems : tenantNavItems;
 
   if (!user) return null;
 

@@ -16,13 +16,17 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('chdv_user');
       // Nếu đăng nhập bằng Google (có firebaseUser) và không có user cứng trong localStorage (manager)
       if (firebaseUser && !storedUser) {
+        // Look up role from rentflow_users
+        const allUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+        const registeredUser = allUsers.find(u => u.email === firebaseUser.email);
+        
         setUser({
-          name: firebaseUser.displayName,
+          name: registeredUser?.name || firebaseUser.displayName || 'Người dùng',
           email: firebaseUser.email,
           photo: firebaseUser.photoURL,
           uid: firebaseUser.uid,
-          role: 'tenant',
-          room: 'P.101', // Mặc định cho bản demo, thực tế cần map email với phòng trong dữ liệu
+          role: registeredUser?.role || 'guest',
+          room: registeredUser?.room || null,
         });
       } else if (!firebaseUser && !storedUser) {
         setUser(null);

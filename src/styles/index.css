@@ -165,4 +165,31 @@ a:hover {
     padding: 12px 8px !important;
     font-size: 0.9rem;
   }
+
+
+  .tenant-row-card {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .tenant-left-col {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px dashed var(--border-glass) !important;
+    padding-right: 0 !important;
+    padding-bottom: 16px !important;
+  }
+  .tenant-right-col {
+    width: 100% !important;
+  }
+  .tenant-actions-col {
+    flex-direction: row !important;
+    padding-left: 0 !important;
+    border-top: 1px dashed var(--border-glass) !important;
+    padding-top: 16px !important;
+    justify-content: flex-start !important;
+  }
+  .tenant-empty-state {
+    height: auto !important;
+    padding: 16px !important;
+  }
 }

@@ -421,8 +421,8 @@
   }
 
   /* Modal/popup sizing on mobile */
-  [style*="maxWidth: '460px'"],
-  [style*="max-width: 460px"] {
+  div[style*="maxWidth:"],
+  div[style*="max-width:"] {
     max-width: calc(100vw - 32px) !important;
   }
 

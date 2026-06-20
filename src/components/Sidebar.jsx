@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home as HomeIcon, Users, FileSpreadsheet, PenTool, Smartphone, UserCheck, Moon, Sun, Settings } from 'lucide-react';
+import { Home as HomeIcon, Users, FileSpreadsheet, PenTool, UserCheck, Moon, Sun, Settings, Key } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -17,8 +17,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { path: '/rooms', label: 'Quản lý Phòng', icon: <HomeIcon size={20} /> },
     { path: '/finance', label: 'Khách & Hóa Đơn', icon: <Users size={20} /> },
     { path: '/maintenance', label: 'Bảo trì (Kanban)', icon: <PenTool size={20} /> },
-    { path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> },
   ];
+
+  if (user?.role === 'admin') {
+    managerNavItems.push({ path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> });
+    managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
+  }
 
   const tenantNavItems = [
     { path: '/', label: 'Phòng của tôi', icon: <HomeIcon size={20} /> },
@@ -26,12 +30,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { path: '/rooms', label: 'Phòng trống (Giới thiệu)', icon: <UserCheck size={20} /> },
   ];
 
-  const navItems = user?.role === 'manager' ? managerNavItems : tenantNavItems;
+  const navItems = (user?.role !== 'tenant' && user?.role !== 'guest') ? managerNavItems : tenantNavItems;
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header gradient-text" style={{ padding: '24px', fontSize: '1.25rem', fontWeight: '800', borderBottom: '1px solid var(--border-glass)', letterSpacing: '1px' }}>
-        {user?.role === 'manager' ? 'RentFlow' : 'Tenant Portal'}
+        {(user?.role !== 'tenant' && user?.role !== 'guest') ? 'RentFlow' : 'Tenant Portal'}
       </div>
       <nav className="sidebar-nav">
         {navItems.map((item) => (

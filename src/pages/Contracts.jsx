@@ -5,18 +5,20 @@ import StatusBadge from '../components/StatusBadge';
 import TenantDetailDrawer from '../components/TenantDetailDrawer';
 import { exportAllDataToExcel } from '../utils/exportExcel';
 import { useState } from 'react';
+import { useCustomPrompt } from '../context/CustomPromptContext';
 
 export default function Contracts() {
   const appData = useAppData();
+  const customPrompt = useCustomPrompt();
   const { contracts, tenants, addContract } = appData;
   const [selectedTenantId, setSelectedTenantId] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const handleAddContract = () => {
-    const tenantName = prompt('Nhập tên khách thuê:');
+  const handleAddContract = async () => {
+    const tenantName = await customPrompt('Nhập tên khách thuê:');
     if (!tenantName) return;
-    const room = prompt('Nhập Tòa nhà và Số phòng (Ví dụ: Nhà A - P.101):');
-    const deposit = prompt('Nhập tiền cọc (VNĐ):') || '5.000.000';
+    const room = await customPrompt('Nhập Tòa nhà và Số phòng (Ví dụ: Nhà A - P.101):');
+    const deposit = await customPrompt('Nhập tiền cọc (VNĐ):', '5.000.000');
     addContract({ tenantName, room, deposit, startDate: new Date().toLocaleDateString('vi-VN'), endDate: '31/12/2026' });
     toast.success('Đã tạo hợp đồng mới!');
   };
@@ -51,7 +53,7 @@ export default function Contracts() {
         border: '1px solid var(--border-glass)',
         overflow: 'hidden'
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <table className="mobile-card-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-glass)' }}>
             <tr>
               <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Mã HĐ</th>
@@ -67,21 +69,21 @@ export default function Contracts() {
           <tbody>
             {contracts.map((c, index) => (
               <tr key={c.id} style={{ borderBottom: index === contracts.length - 1 ? 'none' : '1px solid var(--border-glass)', transition: 'background 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-glass)'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                <td style={{ padding: '16px', fontWeight: '500', color: 'var(--accent-primary)' }}>{c.id}</td>
-                <td style={{ padding: '16px', fontWeight: '600' }}>{c.tenantName}</td>
-                <td style={{ padding: '16px' }}><span style={{ background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>{c.room}</span></td>
-                <td style={{ padding: '16px' }}>{c.startDate}</td>
-                <td style={{ padding: '16px', color: c.status === 'expiring' ? 'var(--status-expiring)' : 'inherit' }}>
+                <td data-label="Mã HĐ" style={{ padding: '16px', fontWeight: '500', color: 'var(--accent-primary)' }}>{c.id}</td>
+                <td data-label="Khách Thuê" style={{ padding: '16px', fontWeight: '600' }}>{c.tenantName}</td>
+                <td data-label="Phòng" style={{ padding: '16px' }}><span style={{ background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>{c.room}</span></td>
+                <td data-label="Ngày Bắt Đầu" style={{ padding: '16px' }}>{c.startDate}</td>
+                <td data-label="Ngày Kết Thúc" style={{ padding: '16px', color: c.status === 'expiring' ? 'var(--status-expiring)' : 'inherit' }}>
                   {c.endDate} {c.status === 'expiring' && <span style={{ fontSize: '0.8rem', marginLeft: '4px' }}>(Còn 15 ngày)</span>}
                 </td>
-                <td style={{ padding: '16px', fontWeight: '600' }}>{c.deposit}</td>
-                <td style={{ padding: '16px' }}>
+                <td data-label="Tiền Cọc" style={{ padding: '16px', fontWeight: '600' }}>{c.deposit}</td>
+                <td data-label="Trạng Thái" style={{ padding: '16px' }}>
                   <StatusBadge 
                     status={c.status === 'expiring' ? 'expiring' : 'occupied'} 
                     text={c.status === 'expiring' ? 'Sắp hết hạn' : 'Đang hiệu lực'} 
                   />
                 </td>
-                <td style={{ padding: '16px', textAlign: 'right' }}>
+                <td data-label="Hành Động" style={{ padding: '16px', textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                     <button 
                       onClick={() => {

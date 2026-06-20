@@ -23,7 +23,7 @@ export default function Header({ toggleSidebar }) {
         <button className="menu-toggle" onClick={toggleSidebar}>
           <Menu size={24} color="var(--sidebar-text)" />
         </button>
-        {user?.role === 'manager' && (
+        {(user?.role !== 'tenant' && user?.role !== 'guest') && (
           <div className="search-bar">
             <Search size={18} color="var(--sidebar-text-muted)" />
             <input type="text" placeholder="Tìm kiếm phòng, khách thuê, hóa đơn..." style={{ color: 'var(--sidebar-text)' }} />
@@ -90,7 +90,7 @@ export default function Header({ toggleSidebar }) {
           <div className="hide-on-mobile" style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--sidebar-text)' }}>{user?.name}</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--sidebar-text-muted)' }}>
-              {user?.role === 'manager' ? 'Quản Lý' : `Khách Thuê - ${user?.room}`}
+              {(user?.role !== 'tenant' && user?.role !== 'guest') ? 'Quản Lý' : `Khách Thuê - ${user?.room || ''}`}
             </div>
           </div>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sidebar-text-muted)' }}>

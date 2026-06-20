@@ -7,10 +7,12 @@ import { Filter, Plus, ChevronDown, ChevronRight, Edit3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { useAppData } from '../context/AppDataContext';
+import { useCustomPrompt } from '../context/CustomPromptContext';
 
 export default function Rooms() {
   const { user } = useAuth();
   const { rooms, addRoom, settings, setSettings, renameBuilding, addNewBuilding } = useAppData();
+  const customPrompt = useCustomPrompt();
   const [activeBuilding, setActiveBuilding] = useState(settings.buildings[0] || 'A');
   const [activeFloor, setActiveFloor] = useState(settings.floors[0] || 1);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -30,9 +32,9 @@ export default function Rooms() {
     displayedRooms = displayedRooms.filter(r => r.status === statusFilter);
   }
 
-  const handleRoomClick = (room) => {
-    if (room.status === 'vacant' && user?.role === 'manager') {
-      const tenantName = prompt(`Tạo hợp đồng cho phòng ${room.name}.\nNhập tên khách thuê mới:`);
+  const handleRoomClick = async (room) => {
+    if (room.status === 'vacant' && (user?.role === 'admin' || user?.role === 'staff')) {
+      const tenantName = await customPrompt(`Tạo hợp đồng cho phòng ${room.name}.\nNhập tên khách thuê mới:`);
       if (tenantName) {
         toast.success('Đã tạo hợp đồng thành công (Mô phỏng)!');
       }
@@ -46,27 +48,29 @@ export default function Rooms() {
     setIsDrawerOpen(false);
   };
 
-  const handleAddRoom = () => {
-    const name = prompt(`Nhập Tên Phòng Mới cho Tòa ${activeBuilding} (Ví dụ: P.109):`);
+  const handleAddRoom = async () => {
+    const name = await customPrompt(`Nhập Tên Phòng Mới cho Tòa ${activeBuilding} (Ví dụ: P.109):`);
     if (!name) return;
 
     const floorMatch = name.match(/\d+/);
     const autoFloor = floorMatch ? Math.floor(parseInt(floorMatch[0], 10) / 100) : 1;
     
-    const floorStr = prompt(`Phòng ${name} thuộc Tầng số mấy?`, autoFloor.toString());
+    const floorStr = await customPrompt(`Phòng ${name} thuộc Tầng số mấy?`, autoFloor.toString());
     if (!floorStr) return;
     const floor = parseInt(floorStr, 10) || autoFloor;
 
-    const price = prompt('Nhập Giá Thuê Cơ Bản (VNĐ):') || '4000000';
-    const area = prompt('Nhập Diện Tích (m2):') || '25';
+    const price = await customPrompt('Nhập Giá Thuê Cơ Bản (VNĐ):', '4000000');
+    if (!price) return;
+    const area = await customPrompt('Nhập Diện Tích (m2):', '25');
+    if (!area) return;
     
     addRoom({ name, price: parseInt(price, 10), area: parseInt(area, 10), floor, building: activeBuilding });
     toast.success(`Đã thêm phòng ${name} vào Tầng ${floor} ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}!`);
   };
 
-  const handleEditBuildings = (e) => {
+  const handleEditBuildings = async (e) => {
     e.stopPropagation();
-    const newBuildings = prompt('Nhập danh sách Tên Nhà, cách nhau bằng dấu phẩy (VD: A, B, C, D):', settings.buildings.join(', '));
+    const newBuildings = await customPrompt('Nhập danh sách Tên Nhà, cách nhau bằng dấu phẩy (VD: A, B, C, D):', settings.buildings.join(', '));
     if (newBuildings) {
       const arr = newBuildings.split(',').map(s => s.trim()).filter(Boolean);
       setSettings(prev => ({ ...prev, buildings: arr }));
@@ -75,9 +79,9 @@ export default function Rooms() {
     }
   };
 
-  const handleEditFloors = (e) => {
+  const handleEditFloors = async (e) => {
     e.stopPropagation();
-    const newFloors = prompt('Nhập danh sách số Tầng, cách nhau bằng dấu phẩy (VD: 1, 2, 3, 4, 5):', settings.floors.join(', '));
+    const newFloors = await customPrompt('Nhập danh sách số Tầng, cách nhau bằng dấu phẩy (VD: 1, 2, 3, 4, 5):', settings.floors.join(', '));
     if (newFloors) {
       const arr = newFloors.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
       setSettings(prev => ({ ...prev, floors: arr }));
@@ -125,7 +129,7 @@ export default function Rooms() {
   return (
     <div className="rooms-layout" style={{ display: 'flex', gap: '24px', height: '100%' }}>
       {/* Sidebar Filters */}
-      {user?.role === 'manager' && (
+      {(user?.role === 'admin' || user?.role === 'staff') && (
         <div className="rooms-filter-sidebar" style={{ width: '250px', flexShrink: 0 }}>
           <Card title={<><Filter size={18} /> Bộ Lọc</>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -160,11 +164,11 @@ export default function Rooms() {
                       >
                         {String(b).toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`}
                       </button>
-                      {user?.role === 'manager' && (
+                      {(user?.role === 'admin' || user?.role === 'staff') && (
                         <button 
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            const newName = prompt(`Nhập tên mới cho ${String(b).toLowerCase().startsWith('nhà') ? b : 'Nhà ' + b}:`, b);
+                            const newName = await customPrompt(`Nhập tên mới cho ${String(b).toLowerCase().startsWith('nhà') ? b : 'Nhà ' + b}:`, b);
                             if (newName && newName.trim() && newName.trim() !== b) {
                               if (renameBuilding(b, newName.trim())) {
                                 toast.success('Đổi tên thành công!');
@@ -182,10 +186,10 @@ export default function Rooms() {
                       )}
                     </div>
                   ))}
-                  {user?.role === 'manager' && (
+                  {(user?.role === 'admin' || user?.role === 'staff') && (
                     <button 
-                      onClick={() => {
-                        const newName = prompt('Nhập tên tòa nhà mới:');
+                      onClick={async () => {
+                        const newName = await customPrompt('Nhập tên tòa nhà mới:');
                         if (newName && newName.trim()) {
                           if (addNewBuilding(newName.trim())) {
                             toast.success('Thêm nhà thành công!');
@@ -241,14 +245,14 @@ export default function Rooms() {
       <div style={{ flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 className="page-title" style={{ margin: 0 }}>
-            {user?.role === 'manager' ? `Sơ Đồ Tòa ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
+            {(user?.role !== 'tenant' && user?.role !== 'guest') ? `Sơ Đồ Tòa ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
           </h1>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            {user?.role === 'manager' && (
+            {(user?.role === 'admin' || user?.role === 'staff') && (
               <StatusBadge status="occupied" text={`Đang thuê: ${displayedRooms.filter(r => r.status === 'occupied' || r.status === 'expiring' || r.status === 'overdue').length}`} />
             )}
             <StatusBadge status="vacant" text={`Trống: ${displayedRooms.filter(r => r.status === 'vacant').length}`} />
-            {user?.role === 'manager' && (
+            {(user?.role === 'admin' || user?.role === 'staff') && (
               <button onClick={handleAddRoom} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600', marginLeft: '12px' }}>
                 <Plus size={16} /> Tạo Phòng Mới
               </button>

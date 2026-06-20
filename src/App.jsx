@@ -15,17 +15,18 @@ import Maintenance from './pages/Maintenance';
 import TenantPortal from './pages/TenantPortal';
 import FinanceAndTenants from './pages/FinanceAndTenants';
 import Settings from './pages/Settings';
+import Users from './pages/Users';
 import BottomTabBar from './components/BottomTabBar';
 
 import './styles/index.css';
 import './styles/layout.css';
 
-function ProtectedRoute({ children, requireRole }) {
+function ProtectedRoute({ children, allowedRoles }) {
   const { user } = useAuth();
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  if (requireRole && user.role !== requireRole) {
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Tenant trying to access manager-only page → redirect to home
     return <Navigate to="/" replace />;
   }
@@ -53,16 +54,17 @@ function MainLayout() {
           <div className="page-content">
             <Routes>
               {/* Common / Conditional Home */}
-              <Route path="/" element={user.role === 'manager' ? <Home /> : <TenantPortal />} />
+              <Route path="/" element={user.role !== 'tenant' && user.role !== 'guest' ? <Home /> : <TenantPortal />} />
               
-              {/* Manager-only Routes */}
+              {/* Manager/Staff Routes */}
               <Route path="/rooms" element={<Rooms />} />
-              <Route path="/finance" element={<ProtectedRoute requireRole="manager"><FinanceAndTenants /></ProtectedRoute>} />
-              <Route path="/tenants" element={<ProtectedRoute requireRole="manager"><Tenants /></ProtectedRoute>} />
-              <Route path="/contracts" element={<ProtectedRoute requireRole="manager"><Contracts /></ProtectedRoute>} />
+              <Route path="/finance" element={<ProtectedRoute allowedRoles={['admin', 'staff', 'viewer']}><FinanceAndTenants /></ProtectedRoute>} />
+              <Route path="/tenants" element={<ProtectedRoute allowedRoles={['admin', 'staff', 'viewer']}><Tenants /></ProtectedRoute>} />
+              <Route path="/contracts" element={<ProtectedRoute allowedRoles={['admin', 'staff', 'viewer']}><Contracts /></ProtectedRoute>} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/settings" element={<ProtectedRoute requireRole="manager"><Settings /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
+              <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><Users /></ProtectedRoute>} />
               
               {/* Tenant Routes */}
               <Route path="/tenant-portal" element={<TenantPortal />} />
@@ -76,11 +78,13 @@ function MainLayout() {
 }
 
 import { AppDataProvider } from './context/AppDataContext';
+import { CustomPromptProvider } from './context/CustomPromptContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
     <ErrorBoundary>
+      <CustomPromptProvider>
       <AuthProvider>
         <AppDataProvider>
           <Toaster 
@@ -129,6 +133,7 @@ function App() {
         </Router>
         </AppDataProvider>
       </AuthProvider>
+      </CustomPromptProvider>
     </ErrorBoundary>
   );
 }

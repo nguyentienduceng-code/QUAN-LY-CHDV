@@ -15,12 +15,19 @@ const initialTickets = {
   resolved: []
 };
 
+const initialUsers = [
+  { id: 'usr-admin', email: 'admin@gmail.com', name: 'Quản trị viên', role: 'admin', room: null },
+  { id: 'usr-staff1', email: 'staff@gmail.com', name: 'Nhân viên 1', role: 'staff', room: null },
+  { id: 'usr-viewer1', email: 'investor@gmail.com', name: 'Nhà đầu tư', role: 'viewer', room: null },
+];
+
 export const AppDataProvider = ({ children }) => {
   const [rooms, setRooms] = useState(() => JSON.parse(localStorage.getItem('rentflow_rooms')) || initialRooms);
   const [tenants, setTenants] = useState(() => JSON.parse(localStorage.getItem('rentflow_tenants')) || initialTenants);
   const [contracts, setContracts] = useState(() => JSON.parse(localStorage.getItem('rentflow_contracts')) || initialContracts);
   const [invoices, setInvoices] = useState(() => JSON.parse(localStorage.getItem('rentflow_invoices')) || initialInvoices);
   const [tickets, setTickets] = useState(() => JSON.parse(localStorage.getItem('rentflow_tickets')) || initialTickets);
+  const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem('rentflow_users')) || initialUsers);
 
   const defaultSettings = {
     electricityPrice: 3500,
@@ -73,6 +80,7 @@ export const AppDataProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('rentflow_invoices', JSON.stringify(invoices)); }, [invoices]);
   useEffect(() => { localStorage.setItem('rentflow_tickets', JSON.stringify(tickets)); }, [tickets]);
   useEffect(() => { localStorage.setItem('rentflow_settings', JSON.stringify(settings)); }, [settings]);
+  useEffect(() => { localStorage.setItem('rentflow_users', JSON.stringify(users)); }, [users]);
   
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'Hệ thống', message: 'Chào mừng bạn đến với hệ thống Quản lý CHDV', isRead: false, date: new Date().toLocaleDateString('vi-VN') }
@@ -185,6 +193,17 @@ export const AppDataProvider = ({ children }) => {
 
     setRooms(prev => prev.map(r => r.building === oldName ? { ...r, building: newName } : r));
     setTenants(prev => prev.map(t => t.building === oldName ? { ...t, building: newName } : t));
+    
+    // Update contracts that contain the old building name in their room string
+    setContracts(prev => prev.map(c => {
+      if (c.room && typeof c.room === 'string' && c.room.includes(`Nhà ${oldName} -`)) {
+        return { ...c, room: c.room.replace(`Nhà ${oldName} -`, `Nhà ${newName} -`) };
+      } else if (c.room && typeof c.room === 'string' && c.room.includes(`${oldName} -`)) {
+        return { ...c, room: c.room.replace(`${oldName} -`, `${newName} -`) };
+      }
+      return c;
+    }));
+    
     return true;
   };
 
@@ -220,6 +239,18 @@ export const AppDataProvider = ({ children }) => {
     return true;
   };
 
+  const addUser = (userData) => {
+    setUsers(prev => [...prev, { ...userData, id: `usr-${Date.now()}` }]);
+  };
+
+  const updateUser = (id, updatedData) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
+  };
+
+  const deleteUser = (id) => {
+    setUsers(prev => prev.filter(u => u.id !== id));
+  };
+
   return (
     <AppDataContext.Provider value={{ 
       rooms, setRooms, addRoom, removeRoom, updateRoom,
@@ -227,6 +258,7 @@ export const AppDataProvider = ({ children }) => {
       contracts, setContracts, addContract,
       invoices, setInvoices, addInvoice, updateInvoice,
       tickets, addTicket, updateTicket, moveTicket,
+      users, setUsers, addUser, updateUser, deleteUser,
       notifications, markNotificationAsRead,
       settings, setSettings, renameBuilding, addNewBuilding,
       loadMockData, clearAllData

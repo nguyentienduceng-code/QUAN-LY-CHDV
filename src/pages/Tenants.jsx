@@ -5,9 +5,11 @@ import TenantDetailDrawer from '../components/TenantDetailDrawer';
 import { exportAllDataToExcel } from '../utils/exportExcel';
 import { useState, useMemo } from 'react';
 import StatusBadge from '../components/StatusBadge';
+import { useCustomPrompt } from '../context/CustomPromptContext';
 
 export default function Tenants() {
   const appData = useAppData();
+  const customPrompt = useCustomPrompt();
   const { tenants, rooms, contracts, invoices } = appData;
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -27,13 +29,16 @@ export default function Tenants() {
     toast('Chức năng thêm khách mới đang được nâng cấp!', { icon: '🚧' });
   };
 
-  const handleCreateContract = (room) => {
-    const tenantName = prompt(`Tạo hợp đồng cho phòng ${room.name}.\nNhập tên khách thuê mới:`);
+  const handleCreateContract = async (room) => {
+    const tenantName = await customPrompt(`Tạo hợp đồng cho phòng ${room.name}.\nNhập tên khách thuê mới:`);
     if (!tenantName) return;
 
-    const phone = prompt('Nhập Số điện thoại khách thuê:') || '0901234567';
-    const idCard = prompt('Nhập Số CCCD khách thuê:') || '079123456789';
-    const email = prompt('Nhập Email khách thuê:') || `khach${room.name}@gmail.com`;
+    const phone = await customPrompt('Nhập Số điện thoại khách thuê:', '0901234567');
+    if (!phone) return;
+    const idCard = await customPrompt('Nhập Số CCCD khách thuê:', '079123456789');
+    if (!idCard) return;
+    const email = await customPrompt('Nhập Email khách thuê:', `khach${room.name}@gmail.com`);
+    if (!email) return;
 
     // 1. Add tenant
     const newTenant = {
@@ -243,10 +248,10 @@ export default function Tenants() {
                     {isExpanded && (
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {floorRooms.map((room, index) => (
-                          <div key={room.id} style={{ display: 'flex', borderBottom: index < floorRooms.length - 1 ? '1px solid var(--border-glass)' : 'none', padding: '16px', gap: '20px', alignItems: 'stretch' }}>
+                          <div key={room.id} className="tenant-row-card" style={{ display: 'flex', borderBottom: index < floorRooms.length - 1 ? '1px solid var(--border-glass)' : 'none', padding: '16px', gap: '20px', alignItems: 'stretch' }}>
                             
                             {/* Room Info Left Side */}
-                            <div style={{ width: '250px', borderRight: '1px dashed var(--border-glass)', paddingRight: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div className="tenant-left-col" style={{ width: '250px', borderRight: '1px dashed var(--border-glass)', paddingRight: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                               <div>
                                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--accent-primary)', marginBottom: '8px' }}>
                                   Phòng {room.name}
@@ -274,12 +279,12 @@ export default function Tenants() {
                             </div>
 
                             {/* Tenants List Right Side */}
-                            <div style={{ flex: 1 }}>
+                            <div className="tenant-right-col" style={{ flex: 1 }}>
                               <div style={{ fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>
                                 {room.status === 'vacant' ? 'Trạng thái phòng:' : 'Danh sách khách thuê:'}
                               </div>
                               {room.status === 'vacant' ? (
-                                <div style={{ padding: '24px', background: 'rgba(59, 130, 246, 0.03)', borderRadius: '8px', border: '1px dashed rgba(59, 130, 246, 0.2)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                <div className="tenant-empty-state" style={{ padding: '24px', background: 'rgba(59, 130, 246, 0.03)', borderRadius: '8px', border: '1px dashed rgba(59, 130, 246, 0.2)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                                   <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--status-vacant-text)' }}>Phòng trống</div>
                                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Chưa có hợp đồng hoặc khách hàng cư trú tại phòng này.</div>
                                 </div>
@@ -310,7 +315,7 @@ export default function Tenants() {
                             </div>
 
                             {/* Actions */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center', paddingLeft: '16px' }}>
+                            <div className="tenant-actions-col" style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center', paddingLeft: '16px' }}>
                               {room.status === 'vacant' && (
                                 <button 
                                   onClick={() => handleCreateContract(room)}

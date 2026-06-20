@@ -32,7 +32,7 @@ export default function Invoices() {
 
   // Group invoices by Building -> Room
   const groupedData = {};
-  if (user?.role === 'manager') {
+  if (user?.role !== 'tenant' && user?.role !== 'guest') {
     displayedInvoices.forEach(inv => {
       // Find building for this room
       const roomInfo = rooms.find(r => r.name === inv.room);
@@ -87,7 +87,7 @@ export default function Invoices() {
           <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
             <Download size={16} /> Xuất Excel
           </button>
-          {user?.role === 'manager' && (
+          {(user?.role === 'admin' || user?.role === 'staff') && (
             <>
               <button onClick={() => setIsGenerateModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
                 <Plus size={16} /> Tạo HĐ Định Kỳ
@@ -100,7 +100,7 @@ export default function Invoices() {
         </div>
       </div>
 
-      {user?.role === 'manager' && (
+      {(user?.role !== 'tenant' && user?.role !== 'guest') && (
         <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
           {['All', ...settings.buildings].map(b => (
             <button
@@ -231,32 +231,38 @@ export default function Invoices() {
                                       <button onClick={() => handleViewInvoice(inv)} style={{ padding: '4px 8px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <Eye size={12} /> Xem
                                       </button>
-                                      <button onClick={() => handleOpenUpdateModal(inv)} style={{ padding: '4px 8px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                                        Chốt số
-                                      </button>
+                                      {(user?.role === 'admin' || user?.role === 'staff') && (
+                                        <button onClick={() => handleOpenUpdateModal(inv)} style={{ padding: '4px 8px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                                          Chốt số
+                                        </button>
+                                      )}
                                       {inv.status === 'unpaid' ? (
                                         <>
-                                          <button 
-                                            onClick={() => {
-                                              updateInvoice(inv.id, { status: 'paid' });
-                                              toast.success(`Đã xác nhận thanh toán hóa đơn ${inv.id}!`);
-                                            }} 
-                                            style={{ padding: '4px 8px', background: '#10b981', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500' }}
-                                          >
-                                            Thu tiền
-                                          </button>
+                                          {(user?.role === 'admin' || user?.role === 'staff') && (
+                                            <button 
+                                              onClick={() => {
+                                                updateInvoice(inv.id, { status: 'paid' });
+                                                toast.success(`Đã xác nhận thanh toán hóa đơn ${inv.id}!`);
+                                              }} 
+                                              style={{ padding: '4px 8px', background: '#10b981', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '500' }}
+                                            >
+                                              Thu tiền
+                                            </button>
+                                          )}
                                           <button onClick={() => handleZaloDebt(inv)} style={{ padding: '4px 8px', background: 'var(--status-overdue)', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Đòi nợ</button>
                                         </>
                                       ) : (
-                                        <button 
-                                          onClick={() => {
-                                            updateInvoice(inv.id, { status: 'unpaid' });
-                                            toast.success(`Đã hoàn tiền và chuyển trạng thái ${inv.id} về Chưa thu.`);
-                                          }} 
-                                          style={{ padding: '4px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
-                                        >
-                                          Hoàn tiền
-                                        </button>
+                                        (user?.role === 'admin' || user?.role === 'staff') && (
+                                          <button 
+                                            onClick={() => {
+                                              updateInvoice(inv.id, { status: 'unpaid' });
+                                              toast.success(`Đã hoàn tiền và chuyển trạng thái ${inv.id} về Chưa thu.`);
+                                            }} 
+                                            style={{ padding: '4px 8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                                          >
+                                            Hoàn tiền
+                                          </button>
+                                        )
                                       )}
                                     </div>
                                   </td>

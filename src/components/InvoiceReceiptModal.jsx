@@ -144,7 +144,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
         </div>
 
         {/* Footer Actions */}
-        {user?.role === 'manager' ? (
+        {(user?.role === 'admin' || user?.role === 'staff') ? (
           <div className="no-print" style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', display: 'flex', gap: '12px' }}>
             <button onClick={handlePrint} style={{ flex: 1, padding: '10px', background: '#fff', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
               <Printer size={16} /> In Biên Lai
