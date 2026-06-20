@@ -251,6 +251,65 @@ export const AppDataProvider = ({ children }) => {
     setUsers(prev => prev.filter(u => u.id !== id));
   };
 
+  const importExcelData = (parsedData) => {
+    // Merge Rooms
+    if (parsedData.rooms && parsedData.rooms.length > 0) {
+      setRooms(prev => {
+        const newRooms = [...prev];
+        parsedData.rooms.forEach(r => {
+          const index = newRooms.findIndex(existing => existing.id === r.id || existing.name === r.name);
+          if (index >= 0) {
+            newRooms[index] = { ...newRooms[index], ...r };
+          } else {
+            newRooms.push({ ...r, id: r.id || `R${Date.now()}-${Math.random()}` });
+          }
+        });
+        return newRooms;
+      });
+
+      // Update buildings list if new buildings are found
+      setSettings(prev => {
+        const newBuildings = [...new Set(parsedData.rooms.map(r => r.building))];
+        const updatedBuildings = [...prev.buildings];
+        let changed = false;
+        newBuildings.forEach(b => {
+          if (b && !updatedBuildings.includes(b)) {
+            updatedBuildings.push(b);
+            changed = true;
+          }
+        });
+        
+        if (changed) {
+          const templatePrices = prev.prices[prev.buildings[0]] || defaultSettings.prices['A'];
+          const newPrices = { ...prev.prices };
+          newBuildings.forEach(b => {
+            if (!newPrices[b]) newPrices[b] = { ...templatePrices };
+          });
+          return { ...prev, buildings: updatedBuildings, prices: newPrices };
+        }
+        return prev;
+      });
+    }
+
+    // Merge Tenants
+    if (parsedData.tenants && parsedData.tenants.length > 0) {
+      setTenants(prev => {
+        const newTenants = [...prev];
+        parsedData.tenants.forEach(t => {
+          const index = newTenants.findIndex(existing => existing.id === t.id || (existing.name === t.name && existing.room === t.room));
+          if (index >= 0) {
+            newTenants[index] = { ...newTenants[index], ...t };
+          } else {
+            newTenants.push({ ...t, id: t.id || `KH-${Date.now()}-${Math.random()}` });
+          }
+        });
+        return newTenants;
+      });
+    }
+
+    return true;
+  };
+
   return (
     <AppDataContext.Provider value={{ 
       rooms, setRooms, addRoom, removeRoom, updateRoom,
@@ -261,7 +320,7 @@ export const AppDataProvider = ({ children }) => {
       users, setUsers, addUser, updateUser, deleteUser,
       notifications, markNotificationAsRead,
       settings, setSettings, renameBuilding, addNewBuilding,
-      loadMockData, clearAllData
+      loadMockData, clearAllData, importExcelData
     }}>
       {children}
     </AppDataContext.Provider>
