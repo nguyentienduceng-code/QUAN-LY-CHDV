@@ -18,6 +18,7 @@ import Settings from './pages/Settings';
 import Users from './pages/Users';
 import BottomTabBar from './components/BottomTabBar';
 import { useAppData } from './context/AppDataContext';
+import DevBackdoor from './components/DevBackdoor';
 
 import './styles/index.css';
 import './styles/layout.css';
@@ -153,6 +154,7 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
+          <DevBackdoor />
         </Router>
         </AppDataProvider>
       </AuthProvider>
