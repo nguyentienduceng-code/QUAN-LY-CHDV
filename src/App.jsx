@@ -154,7 +154,7 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
-          <DevBackdoor />
+          {import.meta.env.DEV && <DevBackdoor />}
         </Router>
         </AppDataProvider>
       </AuthProvider>
