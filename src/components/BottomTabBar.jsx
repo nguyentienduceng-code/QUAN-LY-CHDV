@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Grid, Users, Wrench, FileSpreadsheet } from 'lucide-react';
+import { Home, Grid, Users, Wrench, FileSpreadsheet, Settings, Key } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function BottomTabBar() {
@@ -7,10 +7,15 @@ export default function BottomTabBar() {
 
   const managerNavItems = [
     { path: '/', label: 'Tổng quan', icon: <Home size={20} /> },
-    { path: '/rooms', label: 'Quản lý Phòng', icon: <Grid size={20} /> },
+    { path: '/rooms', label: 'Phòng', icon: <Grid size={20} /> },
     { path: '/finance', label: 'Khách & HĐ', icon: <Users size={20} /> },
     { path: '/maintenance', label: 'Bảo trì', icon: <Wrench size={20} /> },
   ];
+
+  if (user?.role === 'admin') {
+    managerNavItems.push({ path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> });
+    managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
+  }
 
   const tenantNavItems = [
     { path: '/', label: 'Phòng của tôi', icon: <Home size={20} /> },

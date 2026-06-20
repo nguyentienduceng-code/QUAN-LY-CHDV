@@ -89,17 +89,19 @@ export default function Users() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-header">
         <h1 className="page-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Key size={28} color="var(--accent-primary)" />
           Phân Quyền & Tài Khoản
         </h1>
-        <button 
-          onClick={() => handleOpenModal()} 
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}
-        >
-          <Plus size={16} /> Thêm Tài Khoản
-        </button>
+        <div className="page-header-actions">
+          <button 
+            onClick={() => handleOpenModal()} 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}
+          >
+            <Plus size={16} /> Thêm Tài Khoản
+          </button>
+        </div>
       </div>
 
       <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-glass)', overflow: 'hidden' }}>

@@ -51,11 +51,13 @@ export default function Settings() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-          <SettingsIcon size={24} />
+      <div className="page-header" style={{ alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
+            <SettingsIcon size={24} />
+          </div>
+          <h1 className="page-title" style={{ margin: 0 }}>Cài đặt & Cấu hình</h1>
         </div>
-        <h1 className="page-title" style={{ margin: 0 }}>Cài đặt & Cấu hình</h1>
       </div>
 
       <div style={{ display: 'flex', gap: '24px', flexDirection: 'column' }}>

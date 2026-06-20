@@ -54,7 +54,7 @@ function MainLayout() {
           <div className="page-content">
             <Routes>
               {/* Common / Conditional Home */}
-              <Route path="/" element={user.role !== 'tenant' && user.role !== 'guest' ? <Home /> : <TenantPortal />} />
+              <Route path="/" element={user?.role !== 'tenant' && user?.role !== 'guest' ? <Home /> : <TenantPortal />} />
               
               {/* Manager/Staff Routes */}
               <Route path="/rooms" element={<Rooms />} />

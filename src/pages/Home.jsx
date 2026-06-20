@@ -116,9 +116,9 @@ export default function Home() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-header">
         <h1 className="page-title" style={{ margin: 0 }}>Tổng quan hệ thống</h1>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="page-header-actions">
           <button onClick={() => setIsImportOpen(true)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
             <Upload size={16} /> Nhập Dữ Liệu
           </button>

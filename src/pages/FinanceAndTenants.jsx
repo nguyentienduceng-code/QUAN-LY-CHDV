@@ -15,7 +15,7 @@ export default function FinanceAndTenants() {
 
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-header">
         <h1 className="page-title gradient-text">Quản Lý Khách & Hóa Đơn</h1>
       </div>
 

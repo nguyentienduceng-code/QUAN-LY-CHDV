@@ -243,11 +243,11 @@ export default function Rooms() {
 
       {/* Grid View */}
       <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="page-header">
           <h1 className="page-title" style={{ margin: 0 }}>
             {(user?.role !== 'tenant' && user?.role !== 'guest') ? `Sơ Đồ Tòa ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
           </h1>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className="page-header-actions">
             {(user?.role === 'admin' || user?.role === 'staff') && (
               <StatusBadge status="occupied" text={`Đang thuê: ${displayedRooms.filter(r => r.status === 'occupied' || r.status === 'expiring' || r.status === 'overdue').length}`} />
             )}
