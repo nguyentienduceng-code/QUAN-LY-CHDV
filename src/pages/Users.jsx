@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Shield, Plus, Edit, Trash2, Key } from 'lucide-react';
+import { Shield, Plus, Edit, Trash2, Key, ChevronDown, ChevronRight, Building, User } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -32,6 +32,54 @@ export default function Users() {
     
     return merged;
   }, [users, tenants]);
+  
+  const groupedUsers = useMemo(() => {
+    const groups = {
+      globals: [],
+      buildings: {},
+      guests: []
+    };
+    
+    displayUsers.forEach(u => {
+      if (u.role === 'guest') {
+        groups.guests.push(u);
+      } else if (u.role === 'admin' || u.role === 'staff' || (u.allowedBuildings && u.allowedBuildings.includes('all'))) {
+        groups.globals.push(u);
+      } else if (u.role === 'investor' || u.role === 'tech') {
+        if (u.allowedBuildings && u.allowedBuildings.length > 0) {
+          u.allowedBuildings.forEach(bldg => {
+            if (!groups.buildings[bldg]) groups.buildings[bldg] = { managers: [], floors: {} };
+            groups.buildings[bldg].managers.push(u);
+          });
+        } else {
+          groups.globals.push(u);
+        }
+      } else if (u.role === 'tenant') {
+        const roomInfo = rooms?.find(r => r.name === u.room);
+        const building = roomInfo ? roomInfo.building : 'Khác';
+        
+        const getFloor = (r) => {
+          if (r && r.floor !== undefined && r.floor !== null && !isNaN(Number(r.floor))) return Number(r.floor);
+          const digits = u.room.replace(/\D/g, '');
+          if (digits.length >= 3) return parseInt(digits.slice(0, digits.length - 2), 10) || 1;
+          return 1;
+        };
+        const floor = getFloor(roomInfo);
+
+        if (!groups.buildings[building]) groups.buildings[building] = { managers: [], floors: {} };
+        if (!groups.buildings[building].floors[floor]) groups.buildings[building].floors[floor] = {};
+        if (!groups.buildings[building].floors[floor][u.room]) groups.buildings[building].floors[floor][u.room] = [];
+        groups.buildings[building].floors[floor][u.room].push(u);
+      }
+    });
+    
+    return groups;
+  }, [displayUsers, rooms]);
+
+  const [expandedBuildings, setExpandedBuildings] = useState([]);
+  const toggleBuilding = (bldg) => {
+    setExpandedBuildings(prev => prev.includes(bldg) ? prev.filter(b => b !== bldg) : [...prev, bldg]);
+  };
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -125,6 +173,36 @@ export default function Users() {
     guest: 'var(--text-secondary)'
   };
 
+  const UserRow = ({ u }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', background: 'rgba(255,255,255,0.01)', borderBottom: '1px solid var(--border-glass)', gap: '16px', flexWrap: 'wrap' }}>
+      <div style={{ flex: '1 1 200px' }}>
+        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{u.name}</div>
+        <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: '500', marginTop: '4px' }}>
+          {u.email}
+          {u.isAutoSynced && <span style={{ marginLeft: '8px', fontSize: '0.7rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '2px 6px', borderRadius: '4px' }}>Tự động</span>}
+        </div>
+      </div>
+      <div style={{ flex: '1 1 120px' }}>
+        <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', color: roleColor[u.role] || 'var(--text-secondary)', border: `1px solid ${roleColor[u.role]}` }}>
+          {roleText[u.role] || u.role}
+        </span>
+      </div>
+      {u.room && (
+        <div style={{ width: '80px' }}>
+          <span style={{ background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>P.{u.room}</span>
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button onClick={() => handleOpenModal(u)} style={{ padding: '6px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer' }}>
+          <Edit size={16} />
+        </button>
+        <button onClick={() => handleDelete(u.id, u.isAutoSynced)} style={{ padding: '6px', background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--status-overdue)', borderRadius: '4px', cursor: 'pointer' }}>
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div>
       <div className="page-header">
@@ -142,50 +220,69 @@ export default function Users() {
         </div>
       </div>
 
-      <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-glass)', overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="mobile-card-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-glass)' }}>
-              <tr>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Email Đăng Nhập</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Họ Tên</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Vai Trò</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Phòng</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)', textAlign: 'right' }}>Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayUsers.map((u, index) => (
-                <tr key={u.id} style={{ borderBottom: index === displayUsers.length - 1 ? 'none' : '1px solid var(--border-glass)', transition: 'background 0.2s' }}>
-                  <td data-label="Email" style={{ padding: '16px', fontWeight: '500', color: 'var(--accent-primary)' }}>
-                    {u.email}
-                    {u.isAutoSynced && <span style={{ marginLeft: '8px', fontSize: '0.7rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '2px 6px', borderRadius: '4px' }}>Tự động</span>}
-                  </td>
-                  <td data-label="Họ Tên" style={{ padding: '16px', fontWeight: '600' }}>{u.name}</td>
-                  <td data-label="Vai Trò" style={{ padding: '16px' }}>
-                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', color: roleColor[u.role] || 'var(--text-secondary)', border: `1px solid ${roleColor[u.role]}` }}>
-                      {roleText[u.role] || u.role}
-                    </span>
-                  </td>
-                  <td data-label="Phòng" style={{ padding: '16px' }}>
-                    {u.room ? <span style={{ background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>P.{u.room}</span> : <span style={{ color: 'var(--text-secondary)' }}>-</span>}
-                  </td>
-                  <td data-label="Thao Tác" style={{ padding: '16px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                      <button onClick={() => handleOpenModal(u)} style={{ padding: '6px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer' }}>
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(u.id, u.isAutoSynced)} style={{ padding: '6px', background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--status-overdue)', borderRadius: '4px', cursor: 'pointer' }}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* GLOBAL USERS */}
+      {groupedUsers.globals.length > 0 && (
+        <div style={{ marginBottom: '24px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-glass)', overflow: 'hidden' }}>
+          <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border-glass)', fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Shield size={20} /> Hệ Thống Chung (Quản trị, Nhân sự)
+          </div>
+          {groupedUsers.globals.map(u => <UserRow key={u.id} u={u} />)}
         </div>
-      </div>
+      )}
+
+      {/* BUILDINGS */}
+      {Object.keys(groupedUsers.buildings).sort().map(bldg => {
+        const buildingData = groupedUsers.buildings[bldg];
+        const isExpanded = expandedBuildings.includes(bldg);
+        return (
+          <div key={bldg} style={{ marginBottom: '16px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-glass)', overflow: 'hidden' }}>
+            <div 
+              onClick={() => toggleBuilding(bldg)}
+              style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderBottom: isExpanded ? '1px solid var(--border-glass)' : 'none', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}
+            >
+              {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+              <Building size={20} color="var(--accent-primary)" /> Tòa Nhà {bldg}
+            </div>
+            {isExpanded && (
+              <div>
+                {/* Managers of this building */}
+                {buildingData.managers.length > 0 && (
+                  <div>
+                    <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-glass)', fontWeight: '600', color: '#f59e0b' }}>
+                      Quản lý Tòa nhà (Nhà đầu tư / Kỹ thuật)
+                    </div>
+                    {buildingData.managers.map(u => <UserRow key={`mgr-${u.id}`} u={u} />)}
+                  </div>
+                )}
+                
+                {/* Floors */}
+                {Object.keys(buildingData.floors).sort((a,b)=>a-b).map(floor => (
+                  <div key={floor}>
+                    <div style={{ padding: '10px 24px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-glass)', borderTop: '1px solid var(--border-glass)', fontWeight: 'bold', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      Tầng {floor}
+                    </div>
+                    {Object.keys(buildingData.floors[floor]).sort().map(roomName => (
+                      <div key={roomName} style={{ paddingLeft: '16px', borderLeft: '4px solid var(--accent-primary)' }}>
+                        {buildingData.floors[floor][roomName].map(u => <UserRow key={u.id} u={u} />)}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* GUESTS */}
+      {groupedUsers.guests.length > 0 && (
+        <div style={{ marginBottom: '24px', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-glass)', overflow: 'hidden' }}>
+          <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border-glass)', fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--status-overdue)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <User size={20} /> Khách Chưa Phân Quyền
+          </div>
+          {groupedUsers.guests.map(u => <UserRow key={u.id} u={u} />)}
+        </div>
+      )}
 
       {isModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
