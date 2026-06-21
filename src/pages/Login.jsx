@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
@@ -17,16 +17,22 @@ export default function Login() {
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
-  const { login, loginWithGoogle, loginWithEmail, signUpWithEmail } = useAuth();
+  const { user, login, loginWithGoogle, loginWithEmail, signUpWithEmail } = useAuth();
   const appData = useAppData();
   const { tenants, users } = appData;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleGoogleLogin = async () => {
     try {
       await loginWithGoogle();
       toast.success('Đăng nhập qua Google thành công!');
-      navigate('/tenant-portal');
+      navigate('/');
     } catch (error) {
       console.error(error);
       if (error.code === 'auth/configuration-not-found' || error.message.includes('CONFIGURATION_NOT_FOUND') || error.code === 'auth/invalid-api-key') {
@@ -59,7 +65,6 @@ export default function Login() {
           
           login({ name: mappedName, role: mappedRole, email: firebaseUser.email, room: mappedRoom });
           toast.success('Đăng nhập hệ thống thành công!');
-          navigate(mappedRole === 'tenant' || mappedRole === 'guest' ? '/tenant-portal' : '/');
           return;
         }
       } catch (fbError) {
@@ -126,7 +131,6 @@ export default function Login() {
     try {
       const newUser = await signUpWithEmail(regEmail.trim(), regPassword, regName.trim());
       toast.success('Đăng ký tài khoản mới thành công!');
-      navigate(newUser.role === 'tenant' || newUser.role === 'guest' ? '/tenant-portal' : '/');
     } catch (error) {
       console.error(error);
       toast.error('Đăng ký thất bại: ' + (error.message || 'Lỗi không xác định'));
