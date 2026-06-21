@@ -1,11 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-import { X, Users, FileText, FileSpreadsheet, Trash2, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { X, Users, FileText, FileSpreadsheet, Trash2, Plus, File } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useAppData } from '../context/AppDataContext';
 import toast from 'react-hot-toast';
+import AddTenantModal from './AddTenantModal';
 
 export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
   const { tenants, contracts, invoices, deleteTenant } = useAppData();
+  const [isAddTenantOpen, setIsAddTenantOpen] = useState(false);
   
   if (!isOpen || !roomName) return null;
 
@@ -60,6 +63,19 @@ export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
                   <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Tiền cọc:</span>
                   <span style={{ fontWeight: '600' }}>{contract.deposit} đ</span>
                 </div>
+                {contract.attachedFiles && contract.attachedFiles.length > 0 && (
+                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-glass)' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '8px' }}>Tệp đính kèm:</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {contract.attachedFiles.map((file, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: 'var(--bg-card)', borderRadius: '6px', border: '1px solid var(--border-glass)' }}>
+                          <File size={16} color="var(--accent-primary)" />
+                          <span style={{ fontSize: '0.85rem' }}>{file.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>Chưa có hợp đồng nào được tạo.</div>
@@ -72,7 +88,7 @@ export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
               <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                 <Users size={18} /> Khách đang cư trú
               </h3>
-              <button onClick={() => toast.success('Đã mở form thêm khách mới!')} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}>
+              <button onClick={() => setIsAddTenantOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}>
                 <Plus size={16} /> Thêm khách
               </button>
             </div>
@@ -126,6 +142,11 @@ export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
 
         </div>
       </div>
+      <AddTenantModal 
+        isOpen={isAddTenantOpen} 
+        onClose={() => setIsAddTenantOpen(false)} 
+        roomName={roomName}
+      />
     </>
   );
 }

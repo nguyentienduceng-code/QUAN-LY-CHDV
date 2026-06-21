@@ -610,6 +610,50 @@ export const AppDataProvider = ({ children }) => {
     }
   };
 
+  const deleteBuilding = async (name) => {
+    if (!name || !settings.buildings.includes(name)) return false;
+    
+    // Tìm danh sách ID các phòng, khách, hợp đồng, hóa đơn cần xóa
+    const roomsToDelete = rooms.filter(r => r.building === name);
+    const tenantsToDelete = tenants.filter(t => t.building === name);
+    // Hợp đồng liên kết với phòng
+    const roomNames = roomsToDelete.map(r => r.name);
+    const contractsToDelete = contracts.filter(c => roomNames.some(rn => typeof c.room === 'string' && c.room.includes(rn)));
+    const invoicesToDelete = invoices.filter(i => roomNames.some(rn => typeof i.room === 'string' && i.room.includes(rn)));
+
+    if (isCloudMode) {
+      try {
+        const newBuildings = settings.buildings.filter(b => b !== name);
+        const newPrices = { ...settings.prices };
+        delete newPrices[name];
+        await setDoc(doc(db, 'settings', 'global'), { buildings: newBuildings, prices: newPrices }, { merge: true });
+        
+        for (const r of roomsToDelete) await deleteDoc(doc(db, 'rooms', String(r.id)));
+        for (const t of tenantsToDelete) await deleteDoc(doc(db, 'tenants', String(t.id)));
+        for (const c of contractsToDelete) await deleteDoc(doc(db, 'contracts', String(c.id)));
+        for (const i of invoicesToDelete) await deleteDoc(doc(db, 'invoices', String(i.id)));
+        
+        return true;
+      } catch (err) {
+        console.error("Lỗi xóa nhà trên Cloud:", err);
+        return false;
+      }
+    } else {
+      setSettings(prev => {
+        const newBuildings = prev.buildings.filter(b => b !== name);
+        const newPrices = { ...prev.prices };
+        delete newPrices[name];
+        return { ...prev, buildings: newBuildings, prices: newPrices };
+      });
+      
+      setRooms(prev => prev.filter(r => r.building !== name));
+      setTenants(prev => prev.filter(t => t.building !== name));
+      setContracts(prev => prev.filter(c => !roomNames.some(rn => typeof c.room === 'string' && c.room.includes(rn))));
+      setInvoices(prev => prev.filter(i => !roomNames.some(rn => typeof i.room === 'string' && i.room.includes(rn))));
+      return true;
+    }
+  };
+
   // Mock Data
   const loadMockData = async () => {
     const firstBuilding = settings.buildings[0] || 'A';
@@ -783,7 +827,7 @@ export const AppDataProvider = ({ children }) => {
       tickets, addTicket, updateTicket, moveTicket,
       users, setUsers, addUser, updateUser, deleteUser,
       notifications, markNotificationAsRead,
-      settings, setSettings: handleUpdateSettings, renameBuilding, addNewBuilding,
+      settings, setSettings: handleUpdateSettings, renameBuilding, addNewBuilding, deleteBuilding,
       loadMockData, clearAllData, importExcelData,
       isCloudMode, loading
     }}>

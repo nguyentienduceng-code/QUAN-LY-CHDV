@@ -283,7 +283,7 @@ const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice, 
 );
 
 export default function Maintenance() {
-  const { tickets, updateTicket, addTicket, moveTicket, tenants } = useAppData();
+  const { tickets, updateTicket, addTicket, moveTicket, tenants, addInvoice } = useAppData();
   const { user } = useAuth();
   const prompt = useCustomPrompt();
   const [editingTicket, setEditingTicket] = useState(null);

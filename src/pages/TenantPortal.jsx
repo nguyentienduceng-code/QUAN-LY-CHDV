@@ -19,6 +19,7 @@ export default function TenantPortal() {
   const [selectedPlan, setSelectedPlan] = useState(null); // 'basic' | 'pro'
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   const handleUpgrade = async () => {
     if (!selectedPlan) return;
@@ -245,7 +246,6 @@ export default function TenantPortal() {
   const tenantRoom = user?.room || 'P.101';
   const myInvoices = invoices.filter(inv => inv.room === tenantRoom);
   const myInvoice = myInvoices.find(inv => inv.status === 'unpaid') || myInvoices[0];
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   const handleReportIssue = (title) => {
     addTicket({

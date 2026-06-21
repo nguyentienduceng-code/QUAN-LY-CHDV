@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import StatusBadge from '../components/StatusBadge';
 import RoomDetailDrawer from '../components/RoomDetailDrawer';
-import { Filter, Plus, ChevronDown, ChevronRight, Edit3 } from 'lucide-react';
+import CreateContractModal from '../components/CreateContractModal';
+import { Filter, Plus, ChevronDown, ChevronRight, Edit3, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { useAppData } from '../context/AppDataContext';
@@ -11,7 +12,7 @@ import { useCustomPrompt } from '../context/CustomPromptContext';
 
 export default function Rooms() {
   const { user } = useAuth();
-  const { rooms, addRoom, settings, setSettings, renameBuilding, addNewBuilding } = useAppData();
+  const { rooms, addRoom, settings, setSettings, renameBuilding, addNewBuilding, deleteBuilding } = useAppData();
   const customPrompt = useCustomPrompt();
   const [activeBuilding, setActiveBuilding] = useState(settings.buildings[0] || 'A');
   const [activeFloor, setActiveFloor] = useState(settings.floors[0] || 1);
@@ -22,6 +23,7 @@ export default function Rooms() {
   const [isBuildingExpanded, setIsBuildingExpanded] = useState(false);
   const [isFloorExpanded, setIsFloorExpanded] = useState(false);
   const [isStatusExpanded, setIsStatusExpanded] = useState(true);
+  const [contractModalRoom, setContractModalRoom] = useState(null);
 
   // Filter rooms based on role and status
   let displayedRooms = user?.role === 'tenant' 
@@ -34,10 +36,7 @@ export default function Rooms() {
 
   const handleRoomClick = async (room) => {
     if (room.status === 'vacant' && (user?.role === 'admin' || user?.role === 'staff')) {
-      const tenantName = await customPrompt(`Tạo hợp đồng cho phòng ${room.name}.\nNhập tên khách thuê mới:`);
-      if (tenantName) {
-        toast.success('Đã tạo hợp đồng thành công (Mô phỏng)!');
-      }
+      setContractModalRoom(room);
     } else {
       setSelectedRoom(room);
       setIsDrawerOpen(true);
@@ -170,24 +169,41 @@ export default function Rooms() {
                         {String(b).toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`}
                       </button>
                       {(user?.role === 'admin' || user?.role === 'staff') && (
-                        <button 
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            const newName = await customPrompt(`Nhập tên mới cho ${String(b).toLowerCase().startsWith('nhà') ? b : 'Nhà ' + b}:`, b);
-                            if (newName && newName.trim() && newName.trim() !== b) {
-                              if (renameBuilding(b, newName.trim())) {
-                                toast.success('Đổi tên thành công!');
-                                if (activeBuilding === b) setActiveBuilding(newName.trim());
-                              } else {
-                                toast.error('Tên nhà không hợp lệ hoặc đã tồn tại.');
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <button 
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const newName = await customPrompt(`Nhập tên mới cho ${String(b).toLowerCase().startsWith('nhà') ? b : 'Nhà ' + b}:`, b);
+                              if (newName && newName.trim() && newName.trim() !== b) {
+                                if (renameBuilding(b, newName.trim())) {
+                                  toast.success('Đổi tên thành công!');
+                                  if (activeBuilding === b) setActiveBuilding(newName.trim());
+                                } else {
+                                  toast.error('Tên nhà không hợp lệ hoặc đã tồn tại.');
+                                }
                               }
-                            }
-                          }} 
-                          style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px' }} 
-                          title="Đổi tên"
-                        >
-                          <Edit3 size={16} />
-                        </button>
+                            }} 
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '8px 4px' }} 
+                            title="Đổi tên"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`CẢNH BÁO: Xóa tòa nhà này sẽ XÓA TOÀN BỘ PHÒNG, KHÁCH, VÀ HỢP ĐỒNG thuộc tòa nhà này. Hành động này không thể hoàn tác!\n\nBạn có chắc chắn muốn xóa Tòa ${b}?`)) {
+                                if (deleteBuilding && deleteBuilding(b)) {
+                                  toast.success('Đã xóa tòa nhà và toàn bộ dữ liệu liên quan!');
+                                  if (activeBuilding === b) setActiveBuilding(settings.buildings.find(bl => bl !== b) || '');
+                                }
+                              }
+                            }} 
+                            style={{ background: 'transparent', border: 'none', color: 'var(--status-overdue)', cursor: 'pointer', padding: '8px 4px' }} 
+                            title="Xóa nhà"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -412,6 +428,15 @@ export default function Rooms() {
         isOpen={isDrawerOpen} 
         onClose={closeDrawer} 
         room={selectedRoom} 
+        onCreateContract={(room) => {
+          closeDrawer();
+          setContractModalRoom(room);
+        }}
+      />
+      <CreateContractModal 
+        isOpen={!!contractModalRoom} 
+        onClose={() => setContractModalRoom(null)} 
+        room={contractModalRoom}
       />
     </div>
   );

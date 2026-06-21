@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 const AVAILABLE_AMENITIES = ['Máy lạnh', 'Tủ lạnh', 'Giường nệm', 'Tủ quần áo', 'Bếp điện', 'Máy giặt', 'Ban công', 'Cửa sổ', 'Tivi', 'Sofa', 'Wifi'];
 
-export default function RoomDetailDrawer({ isOpen, onClose, room }) {
+export default function RoomDetailDrawer({ isOpen, onClose, room, onCreateContract }) {
   const { user } = useAuth();
   const { removeRoom, updateRoom } = useAppData();
   const navigate = useNavigate();
@@ -434,7 +434,14 @@ export default function RoomDetailDrawer({ isOpen, onClose, room }) {
                   <Trash2 size={16} /> Xóa
                 </button>
                 <button
-                  onClick={() => { onClose(); navigate('/tenants'); }}
+                  onClick={() => { 
+                    if (onCreateContract) {
+                      onCreateContract(room);
+                    } else {
+                      onClose(); 
+                      navigate('/tenants'); 
+                    }
+                  }}
                   style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
                   <Plus size={16} /> Tạo Hợp Đồng Mới

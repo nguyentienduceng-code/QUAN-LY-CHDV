@@ -7,10 +7,10 @@ import { useState, useMemo } from 'react';
 import StatusBadge from '../components/StatusBadge';
 import { useCustomPrompt } from '../context/CustomPromptContext';
 import CreateInvoiceModal from '../components/CreateInvoiceModal';
+import CreateContractModal from '../components/CreateContractModal';
 
 export default function Tenants() {
   const appData = useAppData();
-  const customPrompt = useCustomPrompt();
   const { tenants, rooms, contracts, invoices, addInvoice } = appData;
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -20,6 +20,7 @@ export default function Tenants() {
   const [expandedFloors, setExpandedFloors] = useState({});
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'occupied' | 'vacant'
   const [searchQuery, setSearchQuery] = useState('');
+  const [contractModalRoom, setContractModalRoom] = useState(null);
 
   const toggleFloor = (buildingFloorKey) => {
     setExpandedFloors(prev => ({
@@ -33,47 +34,7 @@ export default function Tenants() {
   };
 
   const handleCreateContract = async (room) => {
-    const tenantName = await customPrompt(`Tạo hợp đồng cho phòng ${room.name}.\nNhập tên khách thuê mới:`);
-    if (!tenantName) return;
-
-    const phone = await customPrompt('Nhập Số điện thoại khách thuê:', '0901234567');
-    if (!phone) return;
-    const idCard = await customPrompt('Nhập Số CCCD khách thuê:', '079123456789');
-    if (!idCard) return;
-    const email = await customPrompt('Nhập Email khách thuê:', `khach${room.name}@gmail.com`);
-    if (!email) return;
-
-    // 1. Add tenant
-    const newTenant = {
-      name: tenantName,
-      phone,
-      idCard,
-      email,
-      room: room.name,
-      building: room.building || 'A',
-      status: 'active',
-      note: 'Khách mới thuê phòng'
-    };
-    appData.addTenant(newTenant);
-
-    // 2. Add contract
-    appData.addContract({
-      tenant: tenantName,
-      tenantName: tenantName,
-      room: room.name,
-      startDate: new Date().toLocaleDateString('vi-VN'),
-      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('vi-VN'),
-      deposit: (room.price * 2).toLocaleString('vi-VN'),
-      status: 'active'
-    });
-
-    // 3. Update room status to occupied
-    appData.updateRoom(room.id, {
-      status: 'occupied',
-      tenant: { name: tenantName }
-    });
-
-    toast.success(`Đã tạo hợp đồng và khách thuê thành công cho phòng ${room.name}!`);
+    setContractModalRoom(room);
   };
 
   const handleOpenCreateInvoice = (roomName) => {
@@ -385,6 +346,12 @@ export default function Tenants() {
         onClose={() => setIsCreateModalOpen(false)} 
         onSave={handleCreateSave}
         initialRoomName={invoiceRoomName}
+      />
+      
+      <CreateContractModal 
+        isOpen={!!contractModalRoom} 
+        onClose={() => setContractModalRoom(null)} 
+        room={contractModalRoom}
       />
     </div>
   );
