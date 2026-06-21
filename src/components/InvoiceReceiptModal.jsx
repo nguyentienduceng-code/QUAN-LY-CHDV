@@ -111,11 +111,69 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
               display: none !important;
             }
           }
+          
+          /* Mobile Responsiveness for Classic Luxury Invoice */
+          @media (max-width: 600px) {
+            .inv-container {
+              width: 100% !important;
+              border-radius: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+              max-height: 100vh !important;
+            }
+            .inv-header {
+              padding: 24px 20px 16px !important;
+              flex-direction: column !important;
+              gap: 16px !important;
+            }
+            .inv-header-right {
+              text-align: left !important;
+            }
+            .inv-info-section {
+              margin: 0 20px 24px !important;
+              flex-direction: column !important;
+              gap: 16px !important;
+              padding: 16px 0 !important;
+            }
+            .inv-info-right {
+              border-left: none !important;
+              padding-left: 0 !important;
+              border-top: 1px dashed #EAE1D0 !important;
+              padding-top: 16px !important;
+            }
+            .inv-items-table {
+              margin: 0 20px !important;
+            }
+            .inv-table-header {
+              font-size: 0.65rem !important;
+            }
+            .inv-table-row, .inv-table-header {
+              grid-template-columns: 2fr 0.8fr 1.2fr 1.5fr !important;
+              gap: 4px;
+            }
+            .inv-total-section {
+              margin: 24px 20px 0 !important;
+            }
+            .inv-payment-section {
+              margin: 24px 20px 0 !important;
+              padding: 24px 16px !important;
+              flex-direction: column !important;
+              gap: 20px !important;
+              align-items: center !important;
+            }
+            .inv-payment-info {
+              width: 100% !important;
+            }
+            .inv-payment-info > div {
+              grid-template-columns: 80px 1fr !important;
+              gap: 8px !important;
+            }
+          }
         `}
       </style>
       <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose} className="no-print"></div>
-        <div id="invoice-print-area" style={{ position: 'relative', width: '520px', maxWidth: '100vw', background: '#FDFBF7', color: '#2C2C2C', borderRadius: '2px', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden', fontFamily: '"Montserrat", "Lato", "Helvetica Neue", sans-serif', border: '1px solid #EAE1D0' }}>
+        <div id="invoice-print-area" className="inv-container" style={{ position: 'relative', width: '520px', maxWidth: '100vw', background: '#FDFBF7', color: '#2C2C2C', borderRadius: '2px', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden', fontFamily: '"Montserrat", "Lato", "Helvetica Neue", sans-serif', border: '1px solid #EAE1D0' }}>
         
         <button className="no-print" onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0,0,0,0.03)', border: 'none', color: '#A69C8B', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, transition: 'background 0.2s' }}><X size={18} /></button>
 
@@ -128,7 +186,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
 
         <div style={{ overflowY: 'auto', flex: 1, paddingBottom: '40px' }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '48px 40px 24px', position: 'relative', zIndex: 1 }}>
+          <div className="inv-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '48px 40px 24px', position: 'relative', zIndex: 1 }}>
             <div>
               <h1 style={{ margin: 0, fontSize: '2.4rem', fontFamily: '"Playfair Display", "Cormorant Garamond", serif', fontWeight: '700', color: '#2C2C2C', letterSpacing: '2px' }}>HÓA ĐƠN</h1>
               <div style={{ color: '#A69C8B', fontSize: '0.9rem', marginTop: '6px', fontWeight: '500', fontFamily: 'monospace', letterSpacing: '1px' }}>MÃ: #{invoice.id}</div>
@@ -136,28 +194,28 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
                 {invoice.status === 'paid' ? <><CheckCircle2 size={14}/> Đã Thanh Toán</> : 'Chưa Thanh Toán'}
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div className="inv-header-right" style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '1.25rem', fontFamily: '"Playfair Display", "Cormorant Garamond", serif', fontWeight: '600', color: '#3E2723', letterSpacing: '1px' }}>{building.toLowerCase().startsWith('nhà') ? building.toUpperCase() : `TÒA NHÀ ${building.toUpperCase()}`}</div>
               <div style={{ color: '#A69C8B', fontSize: '0.85rem', marginTop: '8px', fontWeight: '500' }}>Ngày lập: {new Date().toLocaleDateString('vi-VN')}</div>
             </div>
           </div>
 
           {/* Info Section */}
-          <div style={{ margin: '0 40px 32px', display: 'flex', gap: '32px', borderTop: '1px solid #EAE1D0', borderBottom: '1px solid #EAE1D0', padding: '24px 0' }}>
+          <div className="inv-info-section" style={{ margin: '0 40px 32px', display: 'flex', gap: '32px', borderTop: '1px solid #EAE1D0', borderBottom: '1px solid #EAE1D0', padding: '24px 0' }}>
             <div style={{ flex: 1.5 }}>
               <div style={{ fontSize: '0.7rem', color: '#A69C8B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '2px', marginBottom: '8px' }}>Khách hàng</div>
               <div style={{ fontSize: '1.1rem', fontWeight: '600', color: '#2C2C2C', letterSpacing: '0.5px' }}>{invoice.tenant}</div>
               <div style={{ fontSize: '0.9rem', color: '#5C5C5C', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>Phòng: <span style={{ color: '#2C2C2C', fontWeight: '700', fontSize: '0.95rem' }}>{invoice.room}</span></div>
             </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderLeft: '1px solid #EAE1D0', paddingLeft: '32px' }}>
+            <div className="inv-info-right" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderLeft: '1px solid #EAE1D0', paddingLeft: '32px' }}>
               <div style={{ fontSize: '0.7rem', color: '#A69C8B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '2px', marginBottom: '8px' }}>Hạn thanh toán</div>
               <div style={{ fontSize: '1.15rem', fontWeight: '600', color: invoice.status === 'paid' ? '#A69C8B' : '#800020' }}>{invoice.due}</div>
             </div>
           </div>
 
           {/* Items Table */}
-          <div style={{ margin: '0 40px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 0.8fr 1.2fr 1.5fr', borderBottom: '1px solid #2C2C2C', paddingBottom: '12px', fontSize: '0.75rem', fontWeight: '700', color: '#2C2C2C', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          <div className="inv-items-table" style={{ margin: '0 40px' }}>
+            <div className="inv-table-header" style={{ display: 'grid', gridTemplateColumns: '2fr 0.8fr 1.2fr 1.5fr', borderBottom: '1px solid #2C2C2C', paddingBottom: '12px', fontSize: '0.75rem', fontWeight: '700', color: '#2C2C2C', textTransform: 'uppercase', letterSpacing: '1px' }}>
               <span>Nội dung chi tiết</span>
               <span style={{ textAlign: 'center' }}>SL</span>
               <span style={{ textAlign: 'right' }}>Đơn giá</span>
@@ -167,7 +225,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
             <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.9rem', marginTop: '12px' }}>
               {(invoice.items || []).map((item, index) => (
                 <div key={index} style={{ borderBottom: '1px solid #EAE1D0', padding: '16px 0' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 0.8fr 1.2fr 1.5fr', alignItems: 'center' }}>
+                  <div className="inv-table-row" style={{ display: 'grid', gridTemplateColumns: '2fr 0.8fr 1.2fr 1.5fr', alignItems: 'center' }}>
                     <span style={{ fontWeight: '500', color: '#2C2C2C' }}>{item.name}</span>
                     <span style={{ textAlign: 'center', color: '#5C5C5C' }}>{item.qty}</span>
                     <span style={{ textAlign: 'right', color: '#5C5C5C', fontFamily: '"Montserrat", monospace', fontSize: '0.95rem' }}>{item.price?.toLocaleString('vi-VN')}</span>
@@ -191,7 +249,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
           </div>
           
           {/* Total Section */}
-          <div style={{ margin: '32px 40px 0', display: 'flex', justifyContent: 'flex-end' }}>
+          <div className="inv-total-section" style={{ margin: '32px 40px 0', display: 'flex', justifyContent: 'flex-end' }}>
             <div style={{ width: '100%', maxWidth: '340px', borderTop: '3px double #C5A059', borderBottom: '3px double #C5A059', padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#2C2C2C', letterSpacing: '2px', textTransform: 'uppercase' }}>Tổng Thanh Toán</span>
@@ -213,7 +271,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
               <p style={{ margin: 0, fontSize: '0.9rem', color: '#5C5C5C' }}>Cảm ơn quý khách đã thanh toán đúng hạn.</p>
             </div>
           ) : (
-            <div style={{ margin: '40px 40px 0', padding: '32px', border: '1px solid #EAE1D0', display: 'flex', gap: '32px', alignItems: 'center', background: '#FDFBF7' }}>
+            <div className="inv-payment-section" style={{ margin: '40px 40px 0', padding: '32px', border: '1px solid #EAE1D0', display: 'flex', gap: '32px', alignItems: 'center', background: '#FDFBF7' }}>
               <div style={{ flex: '0 0 140px' }}>
                 <div style={{ padding: '8px', border: '1px solid #D4AF37', background: '#fff' }}>
                   <img 
@@ -224,7 +282,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
                   />
                 </div>
               </div>
-              <div style={{ flex: 1, fontSize: '0.9rem', color: '#5C5C5C' }}>
+              <div className="inv-payment-info" style={{ flex: 1, fontSize: '0.9rem', color: '#5C5C5C' }}>
                 <div style={{ fontWeight: '600', color: '#2C2C2C', marginBottom: '16px', fontSize: '1.1rem', letterSpacing: '1px', textTransform: 'uppercase', borderBottom: '1px solid #EAE1D0', paddingBottom: '8px' }}>Chuyển Khoản</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '95px 1fr', gap: '12px', marginBottom: '8px', alignItems: 'start' }}>
                   <span style={{ color: '#A69C8B', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '1px', paddingTop: '3px' }}>Ngân hàng:</span>
