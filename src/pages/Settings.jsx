@@ -193,13 +193,29 @@ export default function Settings() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                   <CreditCard size={16} /> Tên Ngân Hàng (VD: MB, VCB)
                 </label>
-                <input 
-                  type="text" 
+                <select 
                   name="bankName" 
                   value={formData.prices?.[selectedBuilding]?.bankName || ''} 
                   onChange={handlePriceChange} 
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
-                />
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', appearance: 'none' }}
+                >
+                  <option value="">-- Chọn ngân hàng --</option>
+                  <option value="MB">MBBank (Quân Đội)</option>
+                  <option value="VCB">Vietcombank</option>
+                  <option value="TCB">Techcombank</option>
+                  <option value="VPB">VPBank</option>
+                  <option value="ACB">ACB (Á Châu)</option>
+                  <option value="BIDV">BIDV</option>
+                  <option value="CTG">VietinBank</option>
+                  <option value="VBA">Agribank</option>
+                  <option value="TPB">TPBank</option>
+                  <option value="STB">Sacombank</option>
+                  <option value="VIB">VIB</option>
+                  <option value="HDB">HDBank</option>
+                  <option value="SHB">SHB</option>
+                  <option value="MOMO">Ví MoMo</option>
+                  <option value="VIETTELMONEY">Viettel Money</option>
+                </select>
               </div>
               
               <div>
