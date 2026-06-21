@@ -42,18 +42,20 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
       return;
     }
     
-    let msg = `[RentFlow] Thông báo cước phòng ${invoice.room}\n`;
-    msg += `- Mã HĐ: ${invoice.id}\n`;
-    msg += `- Tổng tiền: ${invoice.amount} VNĐ\n`;
-    msg += `- Hạn thanh toán: ${invoice.due}\n\n`;
+    let msg = `🌟 THÔNG BÁO CƯỚC PHÒNG ${invoice.room} 🌟\n`;
+    msg += `Kính gửi Quý khách hàng,\n\n`;
+    msg += `Mã Hóa Đơn: #${invoice.id}\n`;
+    msg += `Tổng thanh toán: ${invoice.amount} VNĐ\n`;
+    msg += `Hạn thanh toán: ${invoice.due}\n\n`;
     if (invoice.status !== 'paid') {
       msg += `💳 THÔNG TIN CHUYỂN KHOẢN:\n`;
       msg += `• Ngân hàng: ${displayBankName}\n`;
-      msg += `• Số TK: ${bankAccount}\n`;
-      msg += `• Chủ TK: ${bankOwner}\n\n`;
-      msg += `(Vui lòng ghi chú mã HĐ: ${invoice.id})\nCảm ơn bạn!`;
+      msg += `• Số Tài khoản: ${bankAccount}\n`;
+      msg += `• Chủ Tài khoản: ${bankOwner}\n\n`;
+      msg += `📌 Vui lòng ghi chú: "Thanh toan ${invoice.id}" khi chuyển khoản.\n\n`;
+      msg += `Trân trọng cảm ơn Quý khách!`;
     } else {
-      msg += `✅ Hóa đơn này đã được xác nhận thanh toán. Cảm ơn bạn!`;
+      msg += `✅ Hóa đơn đã được thanh toán thành công.\nTrân trọng cảm ơn Quý khách!`;
     }
 
     const url = `https://zalo.me/${tenantInfo.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
@@ -92,17 +94,17 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
             }
             #invoice-print-area {
               position: absolute;
-              left: 0;
+              left: 50%;
               top: 0;
               width: 100% !important;
-              max-width: 100% !important;
+              max-width: 550px !important;
               max-height: none !important;
               overflow: visible !important;
               box-shadow: none !important;
-              border: none !important;
+              border: 1px solid #EAE1D0 !important;
               margin: 0 !important;
               padding: 0 !important;
-              transform: scale(0.95);
+              transform: translateX(-50%) scale(0.95);
               transform-origin: top center;
             }
             .no-print {
