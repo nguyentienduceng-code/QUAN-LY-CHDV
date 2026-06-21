@@ -192,12 +192,17 @@ export const AuthProvider = ({ children }) => {
     if (!user) return null;
     
     let newRole = 'manager';
-    let newPlan = planId; // 'basic', 'pro', or 'pending_pro'
+    let newPlan = planId; // 'basic', 'pro', 'pending_pro', 'pending_basic'
+    let gracePeriodEndsAt = undefined;
     
-    if (planId === 'pro') {
-      newRole = 'admin'; // Cấp thẳng admin nếu nâng cấp tự động (hoặc qua Super Admin)
-    } else if (planId === 'pending_pro') {
-      newRole = 'guest'; // Chờ duyệt, chưa được vào hệ thống
+    if (planId === 'pro' || planId === 'pending_pro') {
+      newRole = 'admin'; // Cấp thẳng admin ngay cả khi đang pending để khách xài thử
+    } else if (planId === 'basic' || planId === 'pending_basic') {
+      newRole = 'manager';
+    }
+
+    if (planId.startsWith('pending_')) {
+      gracePeriodEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
     }
 
     const updatedData = { 
@@ -205,6 +210,10 @@ export const AuthProvider = ({ children }) => {
       plan: newPlan,
       ownerId: user.uid || user.email // Chủ của workspace
     };
+    
+    if (gracePeriodEndsAt) {
+      updatedData.gracePeriodEndsAt = gracePeriodEndsAt;
+    }
     
     try {
       const userRef = doc(db, 'users', `usr-${user.uid || user.email}`);

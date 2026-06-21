@@ -43,9 +43,11 @@ export default function TenantPortal() {
   };
 
   const isTrialExpired = user?.plan === 'trial' && new Date() > new Date(user?.trialEndsAt);
+  const isGraceExpired = user?.plan?.startsWith('pending') && user?.gracePeriodEndsAt && new Date() > new Date(user.gracePeriodEndsAt);
+  const isSubscriptionExpired = (user?.plan === 'pro' || user?.plan === 'basic') && user?.subscriptionEndsAt && new Date() > new Date(user.subscriptionEndsAt);
 
-  if (user?.role === 'guest' || isTrialExpired) {
-    if (user?.plan === 'pending_pro' || user?.plan === 'pending_basic') {
+  if (user?.role === 'guest' || isTrialExpired || isGraceExpired || isSubscriptionExpired) {
+    if ((user?.plan === 'pending_pro' || user?.plan === 'pending_basic') && !isGraceExpired) {
       return (
         <div style={{ maxWidth: '480px', margin: '0 auto', padding: '40px 16px 100px', fontFamily: 'var(--font-main)', textAlign: 'center' }}>
           <div className="bg-animation">
@@ -120,10 +122,14 @@ export default function TenantPortal() {
         </div>
         <div style={{ position: 'relative', zIndex: 1, background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(16px)', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '32px 20px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>
-            {isTrialExpired ? 'Hết hạn Dùng thử' : 'Nâng cấp Tài Khoản'}
+            {isGraceExpired ? 'Đã quá hạn Chờ duyệt' : isSubscriptionExpired ? 'Hết hạn Sử dụng' : isTrialExpired ? 'Hết hạn Dùng thử' : 'Nâng cấp Tài Khoản'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '24px' }}>
-            {isTrialExpired 
+            {isGraceExpired 
+              ? `Thời gian ân hạn 3 ngày chờ duyệt đã kết thúc. Vui lòng liên hệ BQL hoặc chuyển khoản lại.`
+              : isSubscriptionExpired
+              ? `Gói cước 30 ngày của bạn đã hết hạn. Vui lòng thanh toán gia hạn để tiếp tục.`
+              : isTrialExpired 
               ? `Thời gian dùng thử 30 ngày của bạn đã kết thúc. Vui lòng nâng cấp gói để tiếp tục quản lý nhà trọ.`
               : `Chào ${user.name}, chọn một gói để bắt đầu quản lý nhà trọ của bạn.`}
           </p>

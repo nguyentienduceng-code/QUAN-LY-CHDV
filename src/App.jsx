@@ -42,6 +42,8 @@ function MainLayout() {
   const { loading } = useAppData();
 
   const isTrialExpired = user?.plan === 'trial' && new Date() > new Date(user?.trialEndsAt);
+  const isGraceExpired = user?.plan?.startsWith('pending') && user?.gracePeriodEndsAt && new Date() > new Date(user.gracePeriodEndsAt);
+  const isSubscriptionExpired = (user?.plan === 'pro' || user?.plan === 'basic') && user?.subscriptionEndsAt && new Date() > new Date(user.subscriptionEndsAt);
 
   if (loading) {
     return (
@@ -64,7 +66,7 @@ function MainLayout() {
     );
   }
 
-  if (isTrialExpired) {
+  if (isTrialExpired || isGraceExpired || isSubscriptionExpired) {
     return (
       <>
         <div className="bg-animation">

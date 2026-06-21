@@ -24,6 +24,13 @@ export default function Header({ toggleSidebar }) {
     trialRemaining = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
   }
 
+  // Tính số ngày sử dụng còn lại (nếu đã mua gói)
+  let subscriptionRemaining = null;
+  if ((user?.plan === 'pro' || user?.plan === 'basic') && user?.subscriptionEndsAt) {
+    const remainingMs = new Date(user.subscriptionEndsAt) - new Date();
+    subscriptionRemaining = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+  }
+
   return (
     <header className="header" style={{ color: 'var(--sidebar-text)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -42,6 +49,12 @@ export default function Header({ toggleSidebar }) {
         {trialRemaining !== null && (
           <div className="hide-on-mobile" style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.5)', color: '#f59e0b', padding: '6px 12px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
              Dùng thử: Còn {trialRemaining} ngày
+          </div>
+        )}
+        
+        {subscriptionRemaining !== null && subscriptionRemaining <= 3 && (
+          <div className="hide-on-mobile" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#ef4444', padding: '6px 12px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap', animation: 'pulse 2s infinite' }}>
+             Sắp hết hạn gói: Còn {subscriptionRemaining} ngày
           </div>
         )}
         

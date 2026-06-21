@@ -22,11 +22,12 @@ export default function SuperAdmin() {
   }
 
   const handleApprove = (userId, currentPlan) => {
-    if (window.confirm(`Bạn xác nhận đã nhận được tiền và cấp Gói ${currentPlan === 'pending_pro' ? 'PRO' : 'CƠ BẢN'} cho tài khoản này?`)) {
+    if (window.confirm(`Bạn xác nhận đã nhận được tiền và cấp Gói ${currentPlan === 'pending_pro' ? 'PRO' : 'CƠ BẢN'} cho tài khoản này (30 ngày)?`)) {
+      const subscriptionEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       if (currentPlan === 'pending_pro') {
-        updateUser(userId, { role: 'admin', plan: 'pro' });
+        updateUser(userId, { role: 'admin', plan: 'pro', subscriptionEndsAt, gracePeriodEndsAt: null });
       } else {
-        updateUser(userId, { role: 'manager', plan: 'basic' });
+        updateUser(userId, { role: 'manager', plan: 'basic', subscriptionEndsAt, gracePeriodEndsAt: null });
       }
       toast.success('Đã duyệt nâng cấp tài khoản thành công!');
     }
