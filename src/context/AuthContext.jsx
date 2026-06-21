@@ -266,6 +266,13 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setUser(null);
     localStorage.removeItem('chdv_user');
+    localStorage.removeItem('rentflow_rooms');
+    localStorage.removeItem('rentflow_tenants');
+    localStorage.removeItem('rentflow_contracts');
+    localStorage.removeItem('rentflow_invoices');
+    localStorage.removeItem('rentflow_tickets');
+    localStorage.removeItem('rentflow_settings');
+    localStorage.removeItem('rentflow_users');
     await firebaseSignOut().catch(() => {});
   };
 
