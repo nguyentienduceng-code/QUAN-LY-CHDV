@@ -146,40 +146,40 @@ export const AppDataProvider = ({ children }) => {
     const ownerId = user.ownerId;
     let unsubscribes = [];
     
-    const migrateLocalStorageToFirestore = async () => {
+    const setupInitialCloudData = async () => {
       try {
-        console.log("Di cư dữ liệu: Khởi chạy...");
-        await setDoc(doc(db, 'settings', ownerId), settings);
+        console.log("Khởi tạo dữ liệu mẫu cho tài khoản mới...");
+        await setDoc(doc(db, 'settings', ownerId), defaultSettings);
         
-        for (const r of rooms) {
+        for (const r of initialRooms) {
           await setDoc(doc(db, 'rooms', String(r.id)), { ...r, ownerId });
         }
-        for (const t of tenants) {
+        for (const t of initialTenants) {
           await setDoc(doc(db, 'tenants', String(t.id)), { ...t, ownerId });
         }
-        for (const c of contracts) {
+        for (const c of initialContracts) {
           await setDoc(doc(db, 'contracts', String(c.id)), { ...c, ownerId });
         }
-        for (const inv of invoices) {
+        for (const inv of initialInvoices) {
           await setDoc(doc(db, 'invoices', String(inv.id)), { ...inv, ownerId });
         }
         
         const allTickets = [
-          ...tickets.reported.map(t => ({ ...t, status: 'reported', ownerId })),
-          ...tickets.inProgress.map(t => ({ ...t, status: 'inProgress', ownerId })),
-          ...tickets.resolved.map(t => ({ ...t, status: 'resolved', ownerId }))
+          ...initialTickets.reported.map(t => ({ ...t, status: 'reported', ownerId })),
+          ...initialTickets.inProgress.map(t => ({ ...t, status: 'inProgress', ownerId })),
+          ...initialTickets.resolved.map(t => ({ ...t, status: 'resolved', ownerId }))
         ];
         for (const t of allTickets) {
           await setDoc(doc(db, 'tickets', String(t.id)), t);
         }
         
-        for (const u of users) {
+        for (const u of initialUsers) {
           const newUserId = u.email || String(u.id);
           await setDoc(doc(db, 'users', newUserId), { ...u, id: newUserId, ownerId });
         }
-        console.log("Di cư dữ liệu lên Firestore hoàn tất!");
+        console.log("Khởi tạo dữ liệu mẫu hoàn tất!");
       } catch (e) {
-        console.error("Lỗi khi di cư dữ liệu lên Firestore:", e);
+        console.error("Lỗi khi khởi tạo dữ liệu mẫu:", e);
       }
     };
 
@@ -247,8 +247,8 @@ export const AppDataProvider = ({ children }) => {
         console.log("Connected to Firebase Firestore Cloud Database successfully.");
         
         if (!testDoc.exists()) {
-          console.log("Firestore settings not found. Performing auto-migration from localStorage...");
-          await migrateLocalStorageToFirestore();
+          console.log("Firestore settings not found. Khởi tạo dữ liệu mẫu...");
+          await setupInitialCloudData();
         }
         
         // Initial Fetch
