@@ -22,19 +22,23 @@ service cloud.firestore {
     match /users/{userId} {
       // Cho phép đăng nhập lấy thông tin cá nhân
       allow read: if request.auth != null && request.auth.token.email == userId;
+      // Cho phép tài khoản mới tạo hồ sơ
+      allow create: if request.auth != null && request.auth.token.email == userId && request.resource.data.ownerId == request.auth.uid;
       // Admin/Manager quản lý nhân viên của mình VÀ SuperAdmin có toàn quyền
-      allow read, write: if isSuperAdmin() || (request.auth != null && 
+      allow read, update, delete: if isSuperAdmin() || (request.auth != null && 
                             (isOwner(resource.data.ownerId) || isOwner(request.resource.data.ownerId)));
     }
 
     // Bảng Settings
     match /settings/{docId} {
-      allow read, write: if isSuperAdmin() || (request.auth != null && (request.auth.uid == docId || getUserData().ownerId == docId));
+      allow create: if isSuperAdmin() || (request.auth != null && request.auth.uid == docId);
+      allow read, update, delete: if isSuperAdmin() || (request.auth != null && (request.auth.uid == docId || getUserData().ownerId == docId));
     }
 
     // Áp dụng cho TẤT CẢ các bảng còn lại (rooms, tenants, contracts, invoices, tickets...)
     match /{collection}/{document=**} {
-      allow read, write: if isSuperAdmin() || (request.auth != null && 
+      allow create: if isSuperAdmin() || (request.auth != null && isOwner(request.resource.data.ownerId));
+      allow read, update, delete: if isSuperAdmin() || (request.auth != null && 
                             (isOwner(resource.data.ownerId) || isOwner(request.resource.data.ownerId)));
     }
   }
