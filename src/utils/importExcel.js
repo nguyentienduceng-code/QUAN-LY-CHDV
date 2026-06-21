@@ -80,7 +80,7 @@ export const parseExcelImport = async (file) => {
               floor: parseInt(row['Tầng']) || 1,
               area: parseFloat(row['Diện Tích (m²)']) || 0,
               price: parseFloat(row['Giá Thuê (VND)']) || 0,
-              status: row['Trạng Thái'] === 'Đã thuê' ? 'occupied' : 'vacant',
+              status: (row['Trạng Thái'] === 'Đã thuê' || row['Trạng Thái'] === 'occupied') ? 'occupied' : (row['Trạng Thái'] === 'Bảo trì' ? 'maintenance' : 'vacant'),
             };
           }).filter(r => r.id && r.name);
         }
@@ -101,7 +101,7 @@ export const parseExcelImport = async (file) => {
               building: String(row['Tòa Nhà'] || 'A'),
               room: String(row['Phòng'] || ''),
               contractEnd: String(row['Ngày Hết Hạn HĐ'] || ''),
-              status: row['Trạng Thái'] === 'Đã chuyển đi' ? 'moved' : 'active'
+              status: (row['Trạng Thái'] === 'Đã chuyển đi' || row['Trạng Thái'] === 'moved') ? 'moved' : 'active'
             };
           }).filter(t => t.name && t.room);
         }

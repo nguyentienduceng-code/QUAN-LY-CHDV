@@ -89,8 +89,18 @@ export default function Tenants() {
       }
 
       const building = room.building || 'A';
-      const floorMatch = room.name.match(/\.?(\d+)\d{2}/);
-      const floor = floorMatch ? parseInt(floorMatch[1]) : 1;
+      
+      const getFloor = (r) => {
+        if (r.floor !== undefined && r.floor !== null && !isNaN(Number(r.floor))) {
+          return Number(r.floor);
+        }
+        const digits = r.name.replace(/\D/g, '');
+        if (digits.length >= 3) {
+          return parseInt(digits.slice(0, digits.length - 2), 10) || 1;
+        }
+        return 1;
+      };
+      const floor = getFloor(room);
 
       if (!buildingsMap[building]) buildingsMap[building] = {};
       if (!buildingsMap[building][floor]) buildingsMap[building][floor] = [];

@@ -13,9 +13,10 @@ export const exportAllDataToExcel = (data) => {
     'Tầng': r.floor,
     'Diện Tích (m²)': r.area,
     'Giá Thuê (VND)': r.price,
-    'Trạng Thái': r.status,
+    'Trạng Thái': r.status === 'occupied' ? 'Đã thuê' : (r.status === 'maintenance' ? 'Bảo trì' : 'Trống'),
     'Khách Đang Thuê': r.tenant?.name || ''
   })));
+  roomsSheet['!cols'] = [{wch: 15}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 25}];
   XLSX.utils.book_append_sheet(wb, roomsSheet, 'Danh Sach Phong');
 
   // ── Sheet 2: Tenants ─────────────────────────────────────────────
@@ -28,8 +29,9 @@ export const exportAllDataToExcel = (data) => {
     'Tòa Nhà': String(t.building || '').toLowerCase().startsWith('nhà') ? t.building : `Nhà ${t.building}`,
     'Phòng': t.room,
     'Ngày Hết Hạn HĐ': t.contractEnd || '',
-    'Trạng Thái': t.status
+    'Trạng Thái': t.status === 'moved' ? 'Đã chuyển đi' : 'Đang thuê'
   })));
+  tenantsSheet['!cols'] = [{wch: 15}, {wch: 25}, {wch: 15}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}];
   XLSX.utils.book_append_sheet(wb, tenantsSheet, 'Khach Thue');
 
   // ── Sheet 3: Contracts ───────────────────────────────────────────
@@ -40,8 +42,9 @@ export const exportAllDataToExcel = (data) => {
     'Tiền Cọc (VND)': c.deposit,
     'Ngày Bắt Đầu': c.startDate,
     'Ngày Kết Thúc': c.endDate,
-    'Trạng Thái': c.status
+    'Trạng Thái': c.status === 'expired' ? 'Hết hạn' : 'Hiệu lực'
   })));
+  contractsSheet['!cols'] = [{wch: 20}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}];
   XLSX.utils.book_append_sheet(wb, contractsSheet, 'Hop Dong');
 
   // ── Sheet 4: Invoices – Full detail with meter indices ────────────
@@ -87,6 +90,7 @@ export const exportAllDataToExcel = (data) => {
     invoiceRows.push(base);
   });
   const invoicesSheet = XLSX.utils.json_to_sheet(invoiceRows);
+  invoicesSheet['!cols'] = [{wch: 15}, {wch: 20}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}];
   XLSX.utils.book_append_sheet(wb, invoicesSheet, 'Hoa Don Chi Tiet');
 
   // ── Sheet 5: Monthly Summary ─────────────────────────────────────
@@ -117,6 +121,7 @@ export const exportAllDataToExcel = (data) => {
   }
 
   const summarySheet = XLSX.utils.json_to_sheet(monthlySummary);
+  summarySheet['!cols'] = [{wch: 15}, {wch: 15}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 15}];
   XLSX.utils.book_append_sheet(wb, summarySheet, 'Tong Hop Thang');
 
   // ── Sheet 6: Maintenance Tickets ────────────────────────────────
@@ -135,6 +140,7 @@ export const exportAllDataToExcel = (data) => {
     'Chi Phí (VND)': t.cost || 0,
     'Trạng Thái': t.column
   })));
+  ticketsSheet['!cols'] = [{wch: 15}, {wch: 25}, {wch: 15}, {wch: 10}, {wch: 15}, {wch: 20}, {wch: 15}, {wch: 15}];
   XLSX.utils.book_append_sheet(wb, ticketsSheet, 'Bao Tri');
 
   // ── Save ─────────────────────────────────────────────────────────
