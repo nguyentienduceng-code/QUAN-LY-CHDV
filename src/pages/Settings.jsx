@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAppData } from '../context/AppDataContext';
 import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -7,6 +7,63 @@ export default function Settings() {
   const { settings, setSettings, clearAllData, loadMockData } = useAppData();
   const [formData, setFormData] = useState(settings);
   const [selectedBuilding, setSelectedBuilding] = useState(settings.buildings[0] || 'A');
+  const [isDragging, setIsDragging] = useState(false);
+  const qrInputRef = useRef(null);
+
+  const handleImageUpload = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh hợp lệ.');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_SIZE = 400; // Giới hạn kích thước ảnh QR để Base64 không quá nặng
+        
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; // Nền trắng cho QR
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85); // Nén 85%
+        
+        setFormData(prev => ({
+          ...prev,
+          prices: {
+            ...prev.prices,
+            [selectedBuilding]: {
+              ...(prev.prices[selectedBuilding] || {}),
+              qrImageLink: dataUrl
+            }
+          }
+        }));
+        
+        toast.success('Đã tải lên & tối ưu hóa ảnh mã QR!');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -246,18 +303,64 @@ export default function Settings() {
 
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  <CreditCard size={16} /> Link Ảnh Mã QR Cá Nhân (Tùy chọn)
+                  <CreditCard size={16} /> Ảnh Mã QR Cá Nhân (Tùy chọn)
                 </label>
-                <input 
-                  type="text" 
-                  name="qrImageLink" 
-                  value={formData.prices?.[selectedBuilding]?.qrImageLink || ''} 
-                  onChange={handlePriceChange} 
-                  placeholder="https://... (Nếu để trống sẽ dùng VietQR)"
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
-                />
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                  Hỗ trợ chèn link ảnh mã QR tĩnh (Google Drive, Imgur, v.v) nếu bạn không muốn dùng VietQR tự động.
+                
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files && e.dataTransfer.files[0]) handleImageUpload(e.dataTransfer.files[0]); }}
+                  onClick={() => qrInputRef.current.click()}
+                  style={{
+                    width: '100%', padding: '24px', background: isDragging ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-secondary)', 
+                    border: isDragging ? '2px dashed #3b82f6' : '2px dashed var(--border-glass)', 
+                    borderRadius: '12px', color: 'var(--text-primary)', textAlign: 'center', cursor: 'pointer',
+                    transition: 'all 0.2s ease', position: 'relative', overflow: 'hidden'
+                  }}
+                >
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    ref={qrInputRef} 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => { if (e.target.files && e.target.files[0]) handleImageUpload(e.target.files[0]); }} 
+                  />
+                  
+                  {formData.prices?.[selectedBuilding]?.qrImageLink ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                      <img 
+                        src={formData.prices?.[selectedBuilding]?.qrImageLink} 
+                        alt="QR Mã Thanh toán" 
+                        style={{ width: '120px', height: '120px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--border-glass)', background: '#fff', padding: '4px' }} 
+                      />
+                      <div style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: 'bold' }}>Nhấp hoặc Kéo thả ảnh mới để thay thế</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', opacity: 0.7 }}>
+                      <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}>
+                        <CreditCard size={32} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 'bold', marginBottom: '4px' }}>Nhấp để chọn hoặc kéo thả ảnh vào đây</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Tự động tối ưu dung lượng tải lên</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: '12px', position: 'relative' }}>
+                  <input 
+                    type="text" 
+                    name="qrImageLink" 
+                    value={formData.prices?.[selectedBuilding]?.qrImageLink || ''} 
+                    onChange={handlePriceChange} 
+                    placeholder="Hoặc dán Link URL ảnh (https://...) vào đây"
+                    style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.1)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-secondary)', outline: 'none', fontSize: '0.85rem' }} 
+                  />
+                </div>
+                
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                  Nếu tải lên/dán ảnh, hệ thống sẽ sử dụng ảnh này làm QR chuyển khoản. Nếu để trống, hệ thống dùng VietQR tự động.
                 </p>
               </div>
             </div>
