@@ -9,7 +9,8 @@ import ReportIssueModal from '../components/ReportIssueModal';
 
 export default function TenantPortal() {
   const { user, logout, upgradeUserAccount } = useAuth();
-  const { addTicket, invoices } = useAppData();
+  const appData = useAppData();
+  const { addTicket, invoices } = appData;
   const navigate = useNavigate();
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
