@@ -265,26 +265,49 @@ export default function Login() {
                 Đăng Nhập <ChevronRight size={18} />
               </button>
               
-              {role === 'tenant' && (
-                <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
-                    Hoặc đăng nhập bằng
-                    <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button type="button" onClick={handleGoogleLogin} style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: '18px' }} /> Google
-                    </button>
-                    <button type="button" style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                      <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" style={{ width: '18px' }} /> Facebook
-                    </button>
-                  </div>
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
+                  Hoặc đăng nhập bằng
+                  <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
                 </div>
-              )}
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button type="button" onClick={handleGoogleLogin} style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: '0.2s' }}>
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: '18px' }} /> Google
+                  </button>
+                  <button type="button" style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', transition: '0.2s' }}>
+                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" style={{ width: '18px' }} /> Facebook
+                  </button>
+                </div>
+              </div>
 
-              <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                Chưa có tài khoản? <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(true); }} style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>Đăng ký ngay</a>
+              <div style={{ marginTop: '24px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setIsRegistering(true)} 
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px', 
+                    background: 'transparent', 
+                    color: 'var(--text-primary)', 
+                    border: '1px solid var(--border-glass)', 
+                    borderRadius: '12px', 
+                    fontSize: '0.95rem', 
+                    fontWeight: '500', 
+                    cursor: 'pointer',
+                    transition: '0.2s'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-glass)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                >
+                  Chưa có tài khoản? <span style={{ fontWeight: 'bold' }}>Đăng ký ngay</span>
+                </button>
               </div>
             </form>
           </>
