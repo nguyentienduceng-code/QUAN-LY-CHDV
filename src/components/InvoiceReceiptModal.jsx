@@ -182,12 +182,13 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
           
           {/* Total Section */}
           <div style={{ margin: '24px 32px 0', display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ width: '100%', maxWidth: '320px', background: '#1e293b', color: '#fff', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.4)' }}>
+            <div style={{ width: '100%', maxWidth: '340px', background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)', color: '#fff', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: '0 12px 25px -5px rgba(30, 58, 138, 0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#94a3b8', letterSpacing: '1px' }}>TỔNG THANH TOÁN</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#93c5fd', letterSpacing: '1px' }}>TỔNG THANH TOÁN</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <span style={{ fontSize: '2rem', fontWeight: '900', color: '#10b981', letterSpacing: '-0.5px' }}>{invoice.amount} <span style={{ fontSize: '1.2rem', color: '#6ee7b7' }}>₫</span></span>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', gap: '4px' }}>
+                <span style={{ fontSize: '2.2rem', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.5px' }}>{invoice.amount}</span>
+                <span style={{ fontSize: '1.4rem', color: '#60a5fa', fontWeight: '700' }}>₫</span>
               </div>
             </div>
           </div>
@@ -214,18 +215,18 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
                 </div>
               </div>
               <div style={{ flex: 1, fontSize: '0.9rem', color: '#475569' }}>
-                <div style={{ fontWeight: '800', color: '#1e293b', marginBottom: '8px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}><QrCode size={18} color="#3b82f6" /> CHUYỂN KHOẢN</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', gap: '4px', marginBottom: '4px' }}>
-                  <span style={{ color: '#94a3b8' }}>Ngân hàng:</span>
-                  <strong style={{ color: '#0f172a' }}>{bankName}</strong>
+                <div style={{ fontWeight: '800', color: '#1e293b', marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}><QrCode size={18} color="#3b82f6" /> CHUYỂN KHOẢN</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '85px 1fr', gap: '8px', marginBottom: '6px', alignItems: 'start' }}>
+                  <span style={{ color: '#94a3b8', fontWeight: '500' }}>Ngân hàng:</span>
+                  <strong style={{ color: '#0f172a', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.4' }}>{bankName}</strong>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', gap: '4px', marginBottom: '4px' }}>
-                  <span style={{ color: '#94a3b8' }}>Số TK:</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '85px 1fr', gap: '8px', marginBottom: '6px', alignItems: 'center' }}>
+                  <span style={{ color: '#94a3b8', fontWeight: '500' }}>Số TK:</span>
                   <strong style={{ color: '#0f172a', fontSize: '1.05rem', letterSpacing: '0.5px' }}>{bankAccount}</strong>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', gap: '4px' }}>
-                  <span style={{ color: '#94a3b8' }}>Chủ TK:</span>
-                  <strong style={{ color: '#0f172a' }}>{bankOwner}</strong>
+                <div style={{ display: 'grid', gridTemplateColumns: '85px 1fr', gap: '8px', alignItems: 'start' }}>
+                  <span style={{ color: '#94a3b8', fontWeight: '500' }}>Chủ TK:</span>
+                  <strong style={{ color: '#0f172a', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.4' }}>{bankOwner}</strong>
                 </div>
               </div>
             </div>
