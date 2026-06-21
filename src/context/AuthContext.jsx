@@ -34,13 +34,25 @@ export const AuthProvider = ({ children }) => {
           registeredUser = allUsers.find(u => u.email === firebaseUser.email);
         }
         
+        let finalRole = registeredUser?.role || 'guest';
+        let finalPlan = registeredUser?.plan || 'none';
+        let finalTrialEndsAt = registeredUser?.trialEndsAt || null;
+        
+        if (firebaseUser.email === 'nguyentienducbmt123@gmail.com' || firebaseUser.email === 'admin@gmail.com') {
+          finalRole = 'admin';
+          finalPlan = 'pro';
+          finalTrialEndsAt = null;
+        }
+
         setUser({
           name: registeredUser?.name || firebaseUser.displayName || 'Người dùng',
           email: firebaseUser.email,
           photo: firebaseUser.photoURL,
           uid: firebaseUser.uid,
-          role: registeredUser?.role || 'guest',
+          role: finalRole,
           room: registeredUser?.room || null,
+          plan: finalPlan,
+          trialEndsAt: finalTrialEndsAt
         });
       } else if (!firebaseUser && !storedUser) {
         setUser(null);
@@ -50,8 +62,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('chdv_user', JSON.stringify(userData));
+    const dataToSave = { ...userData };
+    if (dataToSave.email === 'nguyentienducbmt123@gmail.com' || dataToSave.email === 'admin@gmail.com') {
+      dataToSave.role = 'admin';
+      dataToSave.plan = 'pro';
+      dataToSave.trialEndsAt = null;
+    }
+    setUser(dataToSave);
+    localStorage.setItem('chdv_user', JSON.stringify(dataToSave));
   };
 
   const loginWithGoogle = async () => {
@@ -118,6 +136,13 @@ export const AuthProvider = ({ children }) => {
         trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       }
 
+      // Force super admin permissions
+      if (email === 'nguyentienducbmt123@gmail.com' || email === 'admin@gmail.com') {
+        determinedRole = 'admin';
+        plan = 'pro';
+        trialEndsAt = null;
+      }
+
       const newUser = {
         id: `usr-${firebaseUser.uid}`,
         email: email,
@@ -137,6 +162,12 @@ export const AuthProvider = ({ children }) => {
         const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
         localUsers.push(newUser);
         localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
+      }
+
+      if (email === 'nguyentienducbmt123@gmail.com' || email === 'admin@gmail.com') {
+        newUser.role = 'admin';
+        newUser.plan = 'pro';
+        newUser.trialEndsAt = null;
       }
 
       // Log in the user locally
