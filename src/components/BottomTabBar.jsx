@@ -12,10 +12,8 @@ export default function BottomTabBar() {
     { path: '/maintenance', label: 'Bảo trì', icon: <Wrench size={20} /> },
   ];
 
-  if (user?.role === 'admin') {
-    managerNavItems.push({ path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> });
-    managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
-  }
+  // Remove Settings and Users from bottom bar to avoid crowding on mobile
+  // Users can still access them via the Hamburger Menu (Sidebar)
 
   const tenantNavItems = [
     { path: '/', label: 'Phòng của tôi', icon: <Home size={20} /> },

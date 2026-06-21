@@ -155,7 +155,7 @@ export default function SuperAdmin() {
         ) : (
           <div style={{ display: 'grid', gap: '16px' }}>
             {activeUsers.map(u => (
-              <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px' }}>
+              <div key={u.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px' }}>
                 <div>
                   <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{u.name}</div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>Email: {u.email}</div>
@@ -197,7 +197,7 @@ export default function SuperAdmin() {
         ) : (
           <div style={{ display: 'grid', gap: '16px' }}>
             {globalUsers.map(u => (
-              <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: u.status === 'blocked' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px' }}>
+              <div key={u.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', background: u.status === 'blocked' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px' }}>
                 <div>
                   <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: u.status === 'blocked' ? 'var(--text-secondary)' : 'var(--text-primary)', textDecoration: u.status === 'blocked' ? 'line-through' : 'none' }}>{u.name}</div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>Email: {u.email}</div>
