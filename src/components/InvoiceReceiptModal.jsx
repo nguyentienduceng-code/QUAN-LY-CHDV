@@ -168,7 +168,16 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
                 src={qrUrl} 
                 alt="VietQR Payment" 
                 style={{ width: '200px', height: '200px', objectFit: 'contain', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', background: '#fff' }} 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                  const fallbackInfo = document.getElementById(`qr-fallback-${invoice.id}`);
+                  if (fallbackInfo) fallbackInfo.style.display = 'block';
+                }}
               />
+              <div id={`qr-fallback-${invoice.id}`} style={{ display: 'none', color: '#ef4444', fontSize: '0.85rem', marginTop: '8px', padding: '8px', background: '#fef2f2', border: '1px dashed #f87171', borderRadius: '8px' }}>
+                Ngân hàng/Ví điện tử này chưa hỗ trợ tạo mã VietQR tự động. Vui lòng chuyển khoản thủ công.
+              </div>
               <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#64748b' }}>
                 Chuyển khoản đến:<br/>
                 <strong style={{ color: '#0f172a' }}>{bankName} - {bankAccount}</strong><br/>
