@@ -14,13 +14,21 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
   const room = rooms?.find(r => r.name === invoice.room);
   const building = room ? room.building : (settings.buildings[0] || 'A');
   const bConfig = settings.prices?.[building] || {};
-  const bankName = bConfig.bankName || 'MB';
+  const bankCode = bConfig.bankName || 'MB';
   const bankAccount = bConfig.bankAccount || '0901234567';
-  const bankOwner = bConfig.bankOwner || 'NGUYEN VAN A';
+  const bankOwner = (bConfig.bankOwner || 'NGUYEN VAN A').toUpperCase();
   const customQrLink = bConfig.qrImageLink;
 
+  const BANK_NAMES = {
+    'MB': 'MBBank', 'VCB': 'Vietcombank', 'TCB': 'Techcombank', 'VPB': 'VPBank', 
+    'ACB': 'ACB', 'BIDV': 'BIDV', 'CTG': 'VietinBank', 'VBA': 'Agribank', 
+    'TPB': 'TPBank', 'STB': 'Sacombank', 'VIB': 'VIB', 'HDB': 'HDBank', 
+    'SHB': 'SHB', 'MOMO': 'Ví MoMo', 'VIETTELMONEY': 'Viettel Money'
+  };
+  const displayBankName = BANK_NAMES[bankCode] || bankCode;
+
   // Generate VietQR URL (Without Amount to ensure safety)
-  const qrUrl = customQrLink || `https://img.vietqr.io/image/${bankName}-${bankAccount}-compact2.png?addInfo=${encodeURIComponent(`Thanh toan ${invoice.id}`)}&accountName=${encodeURIComponent(bankOwner)}`;
+  const qrUrl = customQrLink || `https://img.vietqr.io/image/${bankCode}-${bankAccount}-compact2.png?addInfo=${encodeURIComponent(`Thanh toan ${invoice.id}`)}&accountName=${encodeURIComponent(bankOwner)}`;
 
   const handlePrint = () => {
     import('react-hot-toast').then(toast => toast.default.success('Đang kết nối máy in...'));
@@ -40,7 +48,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
     msg += `- Hạn thanh toán: ${invoice.due}\n\n`;
     if (invoice.status !== 'paid') {
       msg += `💳 THÔNG TIN CHUYỂN KHOẢN:\n`;
-      msg += `• Ngân hàng: ${bankName}\n`;
+      msg += `• Ngân hàng: ${displayBankName}\n`;
       msg += `• Số TK: ${bankAccount}\n`;
       msg += `• Chủ TK: ${bankOwner}\n\n`;
       msg += `(Vui lòng ghi chú mã HĐ: ${invoice.id})\nCảm ơn bạn!`;
@@ -218,7 +226,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
                 <div style={{ fontWeight: '800', color: '#1e293b', marginBottom: '12px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}><QrCode size={18} color="#3b82f6" /> CHUYỂN KHOẢN</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '85px 1fr', gap: '8px', marginBottom: '6px', alignItems: 'start' }}>
                   <span style={{ color: '#94a3b8', fontWeight: '500' }}>Ngân hàng:</span>
-                  <strong style={{ color: '#0f172a', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.4' }}>{bankName}</strong>
+                  <strong style={{ color: '#0f172a', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.4' }}>{displayBankName}</strong>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '85px 1fr', gap: '8px', marginBottom: '6px', alignItems: 'center' }}>
                   <span style={{ color: '#94a3b8', fontWeight: '500' }}>Số TK:</span>
