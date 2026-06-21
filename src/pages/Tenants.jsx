@@ -8,7 +8,7 @@ import { useState, useMemo } from 'react';
 import StatusBadge from '../components/StatusBadge';
 import { useCustomPrompt } from '../context/CustomPromptContext';
 import CreateInvoiceModal from '../components/CreateInvoiceModal';
-import CreateContractModal from '../components/CreateContractModal';
+import CreateContractModal from '../components/CreateContractModal';import AddTenantModal from '../components/AddTenantModal';
 
 export default function Tenants({ onSwitchToInvoices }) {
   const { user } = useAuth();
@@ -23,6 +23,7 @@ export default function Tenants({ onSwitchToInvoices }) {
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'occupied' | 'vacant'
   const [searchQuery, setSearchQuery] = useState('');
   const [contractModalRoom, setContractModalRoom] = useState(null);
+  const [isAddTenantOpen, setIsAddTenantOpen] = useState(false);
 
   const toggleFloor = (buildingFloorKey) => {
     setExpandedFloors(prev => ({
@@ -32,7 +33,7 @@ export default function Tenants({ onSwitchToInvoices }) {
   };
 
   const handleAddTenant = () => {
-    toast('Chức năng thêm khách mới đang được nâng cấp!', { icon: '🚧' });
+    setIsAddTenantOpen(true);
   };
 
   const handleCreateContract = async (room) => {
@@ -376,6 +377,11 @@ export default function Tenants({ onSwitchToInvoices }) {
         isOpen={!!contractModalRoom} 
         onClose={() => setContractModalRoom(null)} 
         room={contractModalRoom}
+      />
+
+      <AddTenantModal 
+        isOpen={isAddTenantOpen} 
+        onClose={() => setIsAddTenantOpen(false)} 
       />
     </div>
   );

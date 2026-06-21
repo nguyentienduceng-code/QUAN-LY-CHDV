@@ -18,10 +18,23 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser && !storedUser) {
         let registeredUser = null;
         try {
-          // Try to get role from Firestore users collection directly by email ID
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.email));
-          if (userDoc.exists()) {
-            registeredUser = userDoc.data();
+          // Try email query first
+          const q = query(collection(db, 'users'), where('email', '==', firebaseUser.email));
+          const querySnap = await getDocs(q);
+          if (!querySnap.empty) {
+            registeredUser = querySnap.docs[0].data();
+          } else {
+            // Try direct doc lookup fallback by email
+            const userDoc = await getDoc(doc(db, 'users', firebaseUser.email));
+            if (userDoc.exists()) {
+              registeredUser = userDoc.data();
+            } else {
+              // Try direct doc lookup fallback by uid
+              const userDocUid = await getDoc(doc(db, 'users', `usr-${firebaseUser.uid}`));
+              if (userDocUid.exists()) {
+                registeredUser = userDocUid.data();
+              }
+            }
           }
         } catch (err) {
           console.warn("Lỗi truy vấn vai trò người dùng từ Firestore, sử dụng offline fallback:", err);
@@ -31,6 +44,28 @@ export const AuthProvider = ({ children }) => {
         if (!registeredUser) {
           const allUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
           registeredUser = allUsers.find(u => u.email === firebaseUser.email);
+        }
+
+        // Auto-heal/sync check against tenants collection
+        let landlordOwnerId = registeredUser?.ownerId;
+        let tenantRoom = registeredUser?.room;
+        let tenantName = registeredUser?.name;
+        let isTenantInDB = false;
+        
+        try {
+          const tenantQuery = query(collection(db, 'tenants'), where('email', '==', firebaseUser.email));
+          const tenantSnapshot = await getDocs(tenantQuery);
+          if (!tenantSnapshot.empty) {
+            const tenantDoc = tenantSnapshot.docs[0].data();
+            isTenantInDB = true;
+            landlordOwnerId = tenantDoc.ownerId;
+            tenantRoom = tenantDoc.room || null;
+            if (tenantDoc.name) {
+              tenantName = tenantDoc.name;
+            }
+          }
+        } catch (e) {
+          console.warn("Lỗi tra cứu khách thuê từ Firestore:", e);
         }
         
         if (registeredUser?.status === 'blocked') {
@@ -43,24 +78,31 @@ export const AuthProvider = ({ children }) => {
         let finalRole = registeredUser?.role;
         let finalPlan = registeredUser?.plan;
         let finalTrialEndsAt = registeredUser?.trialEndsAt;
-        let finalOwnerId = registeredUser?.ownerId || firebaseUser.uid;
+        let finalOwnerId = landlordOwnerId || registeredUser?.ownerId || firebaseUser.uid;
         
         // Nếu là người dùng mới tinh (đăng nhập Google lần đầu)
         if (!registeredUser) {
-          finalRole = 'admin';
-          finalPlan = 'trial';
-          finalTrialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          if (isTenantInDB) {
+            finalRole = 'tenant';
+            finalPlan = 'none';
+            finalTrialEndsAt = null;
+          } else {
+            finalRole = 'admin';
+            finalPlan = 'trial';
+            finalTrialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          }
           
           // Tự động lưu người dùng mới này vào local/firestore để lần sau đồng bộ
           const newUser = {
             id: firebaseUser.email,
             email: firebaseUser.email,
-            name: firebaseUser.displayName || 'Người dùng Google',
+            name: tenantName || firebaseUser.displayName || 'Người dùng Google',
             role: finalRole,
             plan: finalPlan,
             trialEndsAt: finalTrialEndsAt,
             uid: firebaseUser.uid,
-            allowedBuildings: ['all'],
+            room: tenantRoom || null,
+            allowedBuildings: finalRole === 'tenant' ? [] : ['all'],
             ownerId: finalOwnerId
           };
           const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
@@ -69,6 +111,39 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
           }
           setDoc(doc(db, 'users', newUser.id), newUser).catch(() => {});
+          registeredUser = newUser;
+        } else {
+          // Auto-heal existing user if they are registered as admin/guest but are actually a tenant, or missing ownerId
+          let needsUpdate = false;
+          const updatedFields = {};
+
+          if (isTenantInDB) {
+            if (registeredUser.role !== 'tenant') {
+              finalRole = 'tenant';
+              updatedFields.role = 'tenant';
+              finalPlan = 'none';
+              updatedFields.plan = 'none';
+              finalTrialEndsAt = null;
+              updatedFields.trialEndsAt = null;
+              needsUpdate = true;
+            }
+            if (registeredUser.room !== tenantRoom) {
+              updatedFields.room = tenantRoom;
+              needsUpdate = true;
+            }
+          }
+
+          if (registeredUser.ownerId !== finalOwnerId) {
+            updatedFields.ownerId = finalOwnerId;
+            needsUpdate = true;
+          }
+
+          if (needsUpdate) {
+            const docId = registeredUser.id || firebaseUser.email || `usr-${firebaseUser.uid}`;
+            setDoc(doc(db, 'users', docId), updatedFields, { merge: true })
+              .then(() => console.log("Đã tự động cập nhật tài khoản khách thuê."))
+              .catch(err => console.warn("Lỗi tự động cập nhật người dùng:", err));
+          }
         }
         
         if (firebaseUser.email === 'nguyentienducbmt123@gmail.com') {
@@ -78,15 +153,15 @@ export const AuthProvider = ({ children }) => {
         }
 
         setUser({
-          name: registeredUser?.name || firebaseUser.displayName || 'Người dùng',
+          name: tenantName || registeredUser?.name || firebaseUser.displayName || 'Người dùng',
           email: firebaseUser.email,
           photo: firebaseUser.photoURL,
           uid: firebaseUser.uid,
           role: finalRole,
-          room: registeredUser?.room || null,
-          allowedBuildings: registeredUser?.allowedBuildings || ['all'],
-          plan: finalPlan,
-          trialEndsAt: finalTrialEndsAt,
+          room: tenantRoom || registeredUser?.room || null,
+          allowedBuildings: finalRole === 'tenant' ? [] : (registeredUser?.allowedBuildings || ['all']),
+          plan: finalPlan || registeredUser?.plan,
+          trialEndsAt: finalTrialEndsAt || registeredUser?.trialEndsAt,
           ownerId: finalOwnerId
         });
       } else if (!firebaseUser && !storedUser) {
@@ -135,6 +210,7 @@ export const AuthProvider = ({ children }) => {
       let determinedRole = 'guest';
       let determinedRoom = null;
       let tenantName = name;
+      let landlordOwnerId = null;
 
       // Check if email already matches a tenant in the system
       try {
@@ -144,6 +220,7 @@ export const AuthProvider = ({ children }) => {
           const tenantDoc = tenantSnapshot.docs[0].data();
           determinedRole = 'tenant';
           determinedRoom = tenantDoc.room || null;
+          landlordOwnerId = tenantDoc.ownerId || null;
           if (tenantDoc.name) {
             tenantName = tenantDoc.name;
           }
@@ -155,6 +232,7 @@ export const AuthProvider = ({ children }) => {
         if (matchedTenant) {
           determinedRole = 'tenant';
           determinedRoom = matchedTenant.room || null;
+          landlordOwnerId = matchedTenant.ownerId || null;
           if (matchedTenant.name) {
             tenantName = matchedTenant.name;
           }
@@ -186,7 +264,8 @@ export const AuthProvider = ({ children }) => {
         room: determinedRoom,
         uid: firebaseUser.uid,
         plan: plan,
-        trialEndsAt: trialEndsAt
+        trialEndsAt: trialEndsAt,
+        ownerId: landlordOwnerId || firebaseUser.uid
       };
 
       // Save to Firestore
@@ -213,7 +292,8 @@ export const AuthProvider = ({ children }) => {
         role: newUser.role,
         room: newUser.room,
         plan: newUser.plan,
-        trialEndsAt: newUser.trialEndsAt
+        trialEndsAt: newUser.trialEndsAt,
+        ownerId: newUser.ownerId
       });
 
       return newUser;
