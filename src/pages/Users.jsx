@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function Users() {
-  const { users, addUser, updateUser, deleteUser, rooms } = useAppData();
+  const { users, addUser, updateUser, deleteUser, rooms, settings } = useAppData();
   const { user } = useAuth();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,7 +15,8 @@ export default function Users() {
     name: '',
     email: '',
     role: 'tenant',
-    room: ''
+    room: '',
+    allowedBuildings: ['all']
   });
 
   if (user?.role !== 'admin') {
@@ -35,11 +36,12 @@ export default function Users() {
         name: userToEdit.name || '',
         email: userToEdit.email || '',
         role: userToEdit.role || 'tenant',
-        room: userToEdit.room || ''
+        room: userToEdit.room || '',
+        allowedBuildings: userToEdit.allowedBuildings || ['all']
       });
     } else {
       setEditingUser(null);
-      setFormData({ name: '', email: '', role: 'tenant', room: '' });
+      setFormData({ name: '', email: '', role: 'tenant', room: '', allowedBuildings: ['all'] });
     }
     setIsModalOpen(true);
   };
@@ -74,7 +76,8 @@ export default function Users() {
   const roleText = {
     admin: 'Quản lý chính',
     staff: 'Nhân viên',
-    viewer: 'Người theo dõi',
+    investor: 'Nhà đầu tư',
+    tech: 'Kỹ thuật',
     tenant: 'Khách thuê',
     guest: 'Chưa phân quyền'
   };
@@ -82,7 +85,8 @@ export default function Users() {
   const roleColor = {
     admin: 'var(--status-overdue)',
     staff: 'var(--accent-primary)',
-    viewer: '#8b5cf6',
+    investor: '#8b5cf6',
+    tech: '#f59e0b',
     tenant: 'var(--status-occupied)',
     guest: 'var(--text-secondary)'
   };
@@ -149,7 +153,7 @@ export default function Users() {
       {isModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={() => setIsModalOpen(false)}></div>
-          <div style={{ position: 'relative', width: '100%', maxWidth: '500px', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '500px', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{editingUser ? 'Sửa Người Dùng' : 'Thêm Người Dùng'}</h2>
             </div>
@@ -185,11 +189,51 @@ export default function Users() {
                 >
                   <option value="admin">Quản lý chính (Toàn quyền)</option>
                   <option value="staff">Nhân viên (Vận hành, Không xóa)</option>
-                  <option value="viewer">Nhà đầu tư (Chỉ xem thống kê)</option>
+                  <option value="investor">Nhà đầu tư (Chỉ xem thống kê)</option>
+                  <option value="tech">Kỹ thuật (Xem bảo trì)</option>
                   <option value="tenant">Khách thuê (Chỉ xem phòng của mình)</option>
                   <option value="guest">Khách (Chưa duyệt)</option>
                 </select>
               </div>
+
+              {(formData.role === 'investor' || formData.role === 'tech') && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Nhà được phép truy cập</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '12px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={formData.allowedBuildings.includes('all')} 
+                        onChange={(e) => {
+                          if (e.target.checked) setFormData({...formData, allowedBuildings: ['all']});
+                          else setFormData({...formData, allowedBuildings: []});
+                        }} 
+                      />
+                      <span>Tất cả các nhà</span>
+                    </label>
+                    <hr style={{ borderTop: '1px dashed var(--border-glass)', borderBottom: 'none', margin: '4px 0' }} />
+                    {settings?.buildings?.map(b => (
+                      <label key={b} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          disabled={formData.allowedBuildings.includes('all')}
+                          checked={formData.allowedBuildings.includes('all') || formData.allowedBuildings.includes(b)} 
+                          onChange={(e) => {
+                            const newArr = [...formData.allowedBuildings].filter(i => i !== 'all');
+                            if (e.target.checked) newArr.push(b);
+                            else {
+                              const idx = newArr.indexOf(b);
+                              if (idx > -1) newArr.splice(idx, 1);
+                            }
+                            setFormData({...formData, allowedBuildings: newArr});
+                          }} 
+                        />
+                        <span>Nhà {b}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {formData.role === 'tenant' && (
                 <div>

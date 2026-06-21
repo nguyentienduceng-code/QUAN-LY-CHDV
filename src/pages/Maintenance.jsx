@@ -283,7 +283,7 @@ const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice, 
 );
 
 export default function Maintenance() {
-  const { tickets, updateTicket, addTicket, moveTicket, tenants, addInvoice } = useAppData();
+  const { tickets, updateTicket, addTicket, moveTicket, tenants, addInvoice, rooms } = useAppData();
   const { user } = useAuth();
   const prompt = useCustomPrompt();
   const [editingTicket, setEditingTicket] = useState(null);
@@ -358,6 +358,21 @@ export default function Maintenance() {
     { id: 'resolved', title: 'Đã hoàn thành (Resolved)' }
   ];
 
+  const getFilteredTickets = (colId) => {
+    let list = tickets[colId] || [];
+    if (user?.role === 'tenant') {
+      return list.filter(t => t.room === user?.room);
+    }
+    if (user?.role !== 'admin' && user?.role !== 'staff' && user?.allowedBuildings && !user.allowedBuildings.includes('all')) {
+      return list.filter(t => {
+        const roomInfo = rooms.find(r => r.name === t.room);
+        const bldg = roomInfo ? roomInfo.building : 'Khác';
+        return user.allowedBuildings.includes(bldg);
+      });
+    }
+    return list;
+  };
+
   return (
     <div style={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
       <div className="page-header">
@@ -379,7 +394,7 @@ export default function Maintenance() {
             <div key={col.id} className="kanban-column" style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', padding: '16px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{col.title}</h3>
-                <span style={{ background: 'var(--bg-secondary)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>{tickets[col.id].length}</span>
+                <span style={{ background: 'var(--bg-secondary)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>{getFilteredTickets(col.id).length}</span>
               </div>
               
               <Droppable droppableId={col.id}>
@@ -389,7 +404,7 @@ export default function Maintenance() {
                     {...provided.droppableProps}
                     style={{ flex: 1, overflowY: 'auto', minHeight: '100px' }}
                   >
-                    {(user?.role === 'tenant' ? tickets[col.id].filter(t => t.room === user?.room) : tickets[col.id]).map((t, i) => (
+                    {getFilteredTickets(col.id).map((t, i) => (
                       <TicketCard 
                         key={t.id} 
                         index={i} 

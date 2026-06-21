@@ -38,6 +38,11 @@ export default function Invoices() {
       const roomInfo = rooms.find(r => r.name === inv.room);
       const bldg = roomInfo ? roomInfo.building : 'Khác';
       
+      // Lọc theo allowedBuildings
+      if (user?.role !== 'admin' && user?.role !== 'staff' && user?.allowedBuildings && !user.allowedBuildings.includes('all')) {
+        if (!user.allowedBuildings.includes(bldg)) return;
+      }
+      
       if (!groupedData[bldg]) groupedData[bldg] = {};
       if (!groupedData[bldg][inv.room]) groupedData[bldg][inv.room] = [];
       groupedData[bldg][inv.room].push(inv);
@@ -78,9 +83,9 @@ export default function Invoices() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-header">
         <h1 className="page-title" style={{ margin: 0 }}>Tài chính & Hóa đơn</h1>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="page-header-actions">
           <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
             <Filter size={16} /> Lọc
           </button>
@@ -93,7 +98,7 @@ export default function Invoices() {
                 <Plus size={16} /> Tạo HĐ Định Kỳ
               </button>
               <button onClick={() => setIsCreateModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
-                <Plus size={16} /> Tạo Hóa Đơn
+                <Plus size={16} /> Tạo Hóa Đơn Lẻ
               </button>
             </>
           )}

@@ -25,9 +25,9 @@ export default function Contracts() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="page-header">
         <h1 className="page-title" style={{ margin: 0 }}>Quản Lý Hợp Đồng</h1>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="page-header-actions">
           <div className="search-bar" style={{ width: '300px' }}>
             <Search size={18} color="var(--text-secondary)" />
             <input type="text" placeholder="Tìm kiếm hợp đồng..." />

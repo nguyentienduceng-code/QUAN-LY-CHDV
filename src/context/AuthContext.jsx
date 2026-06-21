@@ -52,7 +52,8 @@ export const AuthProvider = ({ children }) => {
             role: finalRole,
             plan: finalPlan,
             trialEndsAt: finalTrialEndsAt,
-            uid: firebaseUser.uid
+            uid: firebaseUser.uid,
+            allowedBuildings: ['all']
           };
           const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
           if (!localUsers.find(u => u.email === firebaseUser.email)) {
@@ -75,6 +76,7 @@ export const AuthProvider = ({ children }) => {
           uid: firebaseUser.uid,
           role: finalRole,
           room: registeredUser?.room || null,
+          allowedBuildings: registeredUser?.allowedBuildings || ['all'],
           plan: finalPlan,
           trialEndsAt: finalTrialEndsAt
         });

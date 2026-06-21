@@ -14,7 +14,13 @@ export default function Rooms() {
   const { user } = useAuth();
   const { rooms, addRoom, removeRoom, settings, setSettings, renameBuilding, addNewBuilding, deleteBuilding } = useAppData();
   const customPrompt = useCustomPrompt();
-  const [activeBuilding, setActiveBuilding] = useState(settings.buildings[0] || 'A');
+  
+  const availableBuildings = settings.buildings.filter(b => {
+    if (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) return true;
+    return user.allowedBuildings.includes(b);
+  });
+  
+  const [activeBuilding, setActiveBuilding] = useState(availableBuildings[0] || settings.buildings[0] || 'A');
   const [activeFloor, setActiveFloor] = useState(settings.floors[0] || 1);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -149,7 +155,7 @@ export default function Rooms() {
               
               {isBuildingExpanded && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {settings.buildings.map(b => (
+                  {availableBuildings.map(b => (
                     <div key={b} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button 
                         onClick={() => setActiveBuilding(b)}
@@ -266,19 +272,25 @@ export default function Rooms() {
         </div>
       )}
 
-      {/* Grid View */}
       <div style={{ flex: 1 }}>
         <div className="page-header">
           <h1 className="page-title" style={{ margin: 0 }}>
             {(user?.role !== 'tenant' && user?.role !== 'guest') ? `Sơ Đồ Tòa ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}` : 'Phòng Trống Dành Cho Bạn'}
           </h1>
           <div className="page-header-actions">
-            {(user?.role === 'admin' || user?.role === 'staff') && (
-              <StatusBadge status="occupied" text={`Đang thuê: ${displayedRooms.filter(r => r.status === 'occupied' || r.status === 'expiring' || r.status === 'overdue').length}`} />
-            )}
-            <StatusBadge status="vacant" text={`Trống: ${displayedRooms.filter(r => r.status === 'vacant').length}`} />
-            {(user?.role === 'admin' || user?.role === 'staff') && (
-              <button onClick={handleAddRoom} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600', marginLeft: '12px', opacity: (user?.plan === 'basic' && rooms.length >= 15) ? 0.5 : 1 }}>
+            <div style={{ display: 'flex', gap: '8px', fontSize: '0.85rem' }}>
+              <span style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: 'var(--status-occupied-bg)', color: 'var(--status-occupied-text)', fontWeight: '600' }}>
+                Đang thuê: {displayedRooms.filter(r => r.status === 'occupied' || r.status === 'expiring' || r.status === 'overdue').length}
+              </span>
+              <span style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: 'var(--status-vacant-bg)', color: 'var(--status-vacant-text)', fontWeight: '600' }}>
+                Trống: {displayedRooms.filter(r => r.status === 'vacant').length}
+              </span>
+            </div>
+            {user?.role !== 'investor' && (
+              <button 
+                onClick={handleAddRoom} 
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}
+              >
                 <Plus size={16} /> Tạo Phòng Mới
               </button>
             )}

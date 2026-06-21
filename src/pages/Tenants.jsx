@@ -3,6 +3,7 @@ import { Plus, Search, Eye, Users, FileText, ChevronDown, ChevronRight, Home as 
 import toast from 'react-hot-toast';
 import TenantDetailDrawer from '../components/TenantDetailDrawer';
 import { exportAllDataToExcel } from '../utils/exportExcel';
+import { useAuth } from '../context/AuthContext';
 import { useState, useMemo } from 'react';
 import StatusBadge from '../components/StatusBadge';
 import { useCustomPrompt } from '../context/CustomPromptContext';
@@ -10,6 +11,7 @@ import CreateInvoiceModal from '../components/CreateInvoiceModal';
 import CreateContractModal from '../components/CreateContractModal';
 
 export default function Tenants() {
+  const { user } = useAuth();
   const appData = useAppData();
   const { tenants, rooms, contracts, invoices, addInvoice } = appData;
   const [selectedRoomName, setSelectedRoomName] = useState(null);
@@ -51,8 +53,13 @@ export default function Tenants() {
   const hierarchicalData = useMemo(() => {
     const buildingsMap = {};
 
+    const filteredRooms = rooms.filter(r => {
+      if (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) return true;
+      return user.allowedBuildings.includes(r.building || 'A');
+    });
+
     // Group rooms by building and floor
-    rooms.forEach(room => {
+    filteredRooms.forEach(room => {
       const isRoomVacant = room.status === 'vacant';
       
       // Filter by status selection
@@ -126,8 +133,8 @@ export default function Tenants() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {buildingsList.map(b => (
             <button
               key={b}
@@ -147,7 +154,7 @@ export default function Tenants() {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Status filter select */}
           <select 
             value={statusFilter} 
@@ -290,21 +297,25 @@ export default function Tenants() {
 
                             {/* Actions */}
                             <div className="tenant-actions-col" style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center', paddingLeft: '16px' }}>
-                              {room.status === 'vacant' && (
-                                <button 
-                                  onClick={() => handleCreateContract(room)}
-                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', transition: '0.2s' }}
-                                >
-                                  Tạo Hợp Đồng
-                                </button>
-                              )}
-                              {room.status !== 'vacant' && (
-                                <button 
-                                  onClick={() => handleOpenCreateInvoice(room.name)}
-                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: '0.2s' }}
-                                >
-                                  <Plus size={16} /> Tạo Hóa Đơn
-                                </button>
+                              {user?.role !== 'investor' && (
+                                <>
+                                  {room.status === 'vacant' && (
+                                    <button 
+                                      onClick={() => handleCreateContract(room)}
+                                      style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', transition: '0.2s' }}
+                                    >
+                                      Tạo Hợp Đồng
+                                    </button>
+                                  )}
+                                  {room.status !== 'vacant' && (
+                                    <button 
+                                      onClick={() => handleOpenCreateInvoice(room.name)}
+                                      style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: '0.2s' }}
+                                    >
+                                      <Plus size={16} /> Tạo Hóa Đơn
+                                    </button>
+                                  )}
+                                </>
                               )}
                               <button 
                                 onClick={() => {

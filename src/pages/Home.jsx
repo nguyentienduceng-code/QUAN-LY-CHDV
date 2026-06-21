@@ -7,36 +7,62 @@ import { exportAllDataToExcel } from '../utils/exportExcel';
 import Card from '../components/Card';
 import StatusBadge from '../components/StatusBadge';
 import ImportModal from '../components/ImportModal';
+import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
+  const { user } = useAuth();
   const [isImportOpen, setIsImportOpen] = useState(false);
   const appData = useAppData();
   const { rooms, invoices, tickets, settings } = appData;
 
-  const occupiedRooms = rooms.filter(r => r.status !== 'vacant').length;
-  const occupancyRate = rooms.length > 0 ? Math.round((occupiedRooms / rooms.length) * 100) : 0;
+  const allowedBuildingsSet = new Set(
+    (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
+    ? settings.buildings 
+    : settings.buildings.filter(b => user.allowedBuildings.includes(b))
+  );
+
+  const filteredRooms = rooms.filter(r => allowedBuildingsSet.has(r.building || 'A'));
   
-  const totalRevenue = invoices.reduce((acc, inv) => acc + (parseInt(inv.amount.replace(/\./g, '')) || 0), 0);
+  const filteredInvoices = invoices.filter(inv => {
+    const room = rooms.find(r => r.name === inv.room);
+    return room && allowedBuildingsSet.has(room.building || 'A');
+  });
+
+  const filterTickets = (ticketList) => ticketList.filter(t => {
+    const room = rooms.find(r => r.name === t.room);
+    return room && allowedBuildingsSet.has(room.building || 'A');
+  });
+
+  const filteredTickets = {
+    reported: filterTickets(tickets.reported),
+    inProgress: filterTickets(tickets.inProgress),
+    resolved: filterTickets(tickets.resolved)
+  };
+
+  const occupiedRooms = filteredRooms.filter(r => r.status !== 'vacant').length;
+  const occupancyRate = filteredRooms.length > 0 ? Math.round((occupiedRooms / filteredRooms.length) * 100) : 0;
+  
+  const totalRevenue = filteredInvoices.reduce((acc, inv) => acc + (parseInt(inv.amount.replace(/\./g, '')) || 0), 0);
   
   const maintenanceCost = ['reported', 'inProgress', 'resolved'].reduce((sum, col) => {
-    return sum + tickets[col].reduce((colSum, t) => colSum + (t.cost || 0), 0);
+    return sum + filteredTickets[col].reduce((colSum, t) => colSum + (t.cost || 0), 0);
   }, 0);
 
-  const uniqueInvoiceMonths = new Set(invoices.map(inv => {
+  const uniqueInvoiceMonths = new Set(filteredInvoices.map(inv => {
     const m = inv.id.match(/INV-(\d{2})-(\d{4})/);
     return m ? `${m[1]}-${m[2]}` : null;
   }).filter(Boolean));
 
   let totalBaseRent = 0;
   uniqueInvoiceMonths.forEach(() => {
-    settings.buildings.forEach(b => {
+    allowedBuildingsSet.forEach(b => {
       totalBaseRent += (settings.prices?.[b]?.baseRent || 0);
     });
   });
 
   let totalBaseUtilCost = 0;
-  invoices.forEach(inv => {
-    const room = rooms.find(r => r.name === inv.room);
+  filteredInvoices.forEach(inv => {
+    const room = filteredRooms.find(r => r.name === inv.room);
     const b = room?.building || 'A';
     const p = settings.prices?.[b] || {};
     inv.items?.forEach(item => {
@@ -50,8 +76,8 @@ export default function Home() {
   const revenueStr = (totalRevenue / 1000000).toFixed(1) + ' Tr';
   const expensesStr = (totalExpenses / 1000000).toFixed(1) + ' Tr';
 
-  const overdueInvoices = invoices.filter(i => i.status === 'unpaid').length;
-  const activeTickets = tickets.reported.length + tickets.inProgress.length;
+  const overdueInvoices = filteredInvoices.filter(i => i.status === 'unpaid').length;
+  const activeTickets = filteredTickets.reported.length + filteredTickets.inProgress.length;
 
   // Build per-month bar chart data: always show 6 months around now
   const now = new Date();
@@ -65,7 +91,7 @@ export default function Home() {
 
   const chartData = chartMonths.map(({ label, month, year }) => {
     // Sum revenue for this month/year
-    const rev = invoices.reduce((s, inv) => {
+    const rev = filteredInvoices.reduce((s, inv) => {
       const m = inv.id.match(/INV-(\d{2})-(\d{4})/);
       if (m && parseInt(m[1]) === month && parseInt(m[2]) === year) {
         return s + (parseInt(inv.amount.replace(/\./g, '')) || 0);
@@ -75,7 +101,7 @@ export default function Home() {
     
     // Sum expenses for this month/year
     const mCost = ['reported', 'inProgress', 'resolved'].reduce((s, col) => {
-      return s + tickets[col].reduce((cs, t) => {
+      return s + filteredTickets[col].reduce((cs, t) => {
         if (t.cost && t.date) {
           const parts = t.date.split('/');
           if (parseInt(parts[1]) === month) return cs + t.cost;
@@ -84,16 +110,19 @@ export default function Home() {
       }, 0);
     }, 0);
 
-    const bRent = settings.buildings.reduce((sum, b) => sum + (settings.prices?.[b]?.baseRent || 0), 0);
+    let bRent = 0;
+    allowedBuildingsSet.forEach(b => {
+      bRent += (settings.prices?.[b]?.baseRent || 0);
+    });
     
-    const monthInvoices = invoices.filter(inv => {
+    const monthInvoices = filteredInvoices.filter(inv => {
       const m = inv.id.match(/INV-(\d{2})-(\d{4})/);
       return m && parseInt(m[1]) === month && parseInt(m[2]) === year;
     });
 
     let bUtil = 0;
     monthInvoices.forEach(inv => {
-      const room = rooms.find(r => r.name === inv.room);
+      const room = filteredRooms.find(r => r.name === inv.room);
       const b = room?.building || 'A';
       const p = settings.prices?.[b] || {};
       inv.items?.forEach(item => {
