@@ -387,7 +387,6 @@ export const AppDataProvider = ({ children }) => {
     }
   };
 
-  // Add new invoice
   const addInvoice = async (invoice) => {
     const newInvoice = { ...invoice, id: invoice.id || `INV-2026-06-0${invoices.length + 1}`, status: invoice.status || 'unpaid', ownerId };
     if (isCloudMode) {
@@ -399,6 +398,7 @@ export const AppDataProvider = ({ children }) => {
     } else {
       setInvoices(prev => [newInvoice, ...prev]);
     }
+    return newInvoice;
   };
 
   const updateInvoice = async (id, updatedData) => {

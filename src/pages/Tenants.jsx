@@ -10,7 +10,7 @@ import { useCustomPrompt } from '../context/CustomPromptContext';
 import CreateInvoiceModal from '../components/CreateInvoiceModal';
 import CreateContractModal from '../components/CreateContractModal';
 
-export default function Tenants() {
+export default function Tenants({ onSwitchToInvoices }) {
   const { user } = useAuth();
   const appData = useAppData();
   const { tenants, rooms, contracts, invoices, addInvoice } = appData;
@@ -44,9 +44,12 @@ export default function Tenants() {
     setIsCreateModalOpen(true);
   };
 
-  const handleCreateSave = (invoiceData) => {
-    addInvoice(invoiceData);
+  const handleCreateSave = async (invoiceData) => {
+    const createdInvoice = await addInvoice(invoiceData);
     toast.success('Đã tạo hóa đơn nhanh thành công!');
+    if (onSwitchToInvoices && createdInvoice) {
+      onSwitchToInvoices(createdInvoice.id);
+    }
   };
 
   // Group data: Building -> Floor -> Room -> Tenants

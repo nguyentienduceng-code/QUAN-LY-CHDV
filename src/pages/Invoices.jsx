@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import { Plus, Eye, Download, Filter, ChevronDown, ChevronRight, Building, User, Trash2 } from 'lucide-react';
@@ -10,7 +10,7 @@ import CreateInvoiceModal from '../components/CreateInvoiceModal';
 import InvoiceReceiptModal from '../components/InvoiceReceiptModal';
 import UpdateIndexModal from '../components/UpdateIndexModal';
 
-export default function Invoices() {
+export default function Invoices({ initialInvoiceId }) {
   const { user } = useAuth();
   const { invoices, addInvoice, tenants, rooms, settings, updateInvoice, deleteInvoice } = useAppData();
   
@@ -21,6 +21,19 @@ export default function Invoices() {
   
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedInvoiceToUpdate, setSelectedInvoiceToUpdate] = useState(null);
+  
+  const [lastOpenedInitialId, setLastOpenedInitialId] = useState(null);
+
+  useEffect(() => {
+    if (initialInvoiceId && initialInvoiceId !== lastOpenedInitialId && invoices.length > 0) {
+      const inv = invoices.find(i => i.id === initialInvoiceId);
+      if (inv) {
+        setSelectedInvoice(inv);
+        setIsReceiptModalOpen(true);
+        setLastOpenedInitialId(initialInvoiceId);
+      }
+    }
+  }, [initialInvoiceId, invoices, lastOpenedInitialId]);
   
   // Accordion & Filter State for Manager
   const [activeBuilding, setActiveBuilding] = useState('All');

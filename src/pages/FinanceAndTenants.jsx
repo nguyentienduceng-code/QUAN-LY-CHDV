@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 
 export default function FinanceAndTenants() {
   const [activeTab, setActiveTab] = useState('tenants');
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { tenants, contracts, invoices, rooms } = useAppData();
@@ -35,8 +36,11 @@ export default function FinanceAndTenants() {
       </div>
 
       <div className="tab-content-wrapper">
-        {activeTab === 'tenants' && <Tenants />}
-        {activeTab === 'invoices' && <Invoices />}
+        {activeTab === 'tenants' && <Tenants onSwitchToInvoices={(id) => {
+          setSelectedInvoiceId(id);
+          setActiveTab('invoices');
+        }} />}
+        {activeTab === 'invoices' && <Invoices initialInvoiceId={selectedInvoiceId} />}
       </div>
 
       <TenantDetailDrawer 
