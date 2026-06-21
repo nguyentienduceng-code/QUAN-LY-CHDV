@@ -12,7 +12,7 @@ import { useCustomPrompt } from '../context/CustomPromptContext';
 
 export default function Rooms() {
   const { user } = useAuth();
-  const { rooms, addRoom, settings, setSettings, renameBuilding, addNewBuilding, deleteBuilding } = useAppData();
+  const { rooms, addRoom, removeRoom, settings, setSettings, renameBuilding, addNewBuilding, deleteBuilding } = useAppData();
   const customPrompt = useCustomPrompt();
   const [activeBuilding, setActiveBuilding] = useState(settings.buildings[0] || 'A');
   const [activeFloor, setActiveFloor] = useState(settings.floors[0] || 1);
@@ -364,6 +364,7 @@ export default function Rooms() {
                           onClick={() => handleRoomClick(room)}
                           title={`Phòng ${room.name} | ${room.area || '?'}m² | ${priceDisplay}`}
                           style={{
+                            position: 'relative',
                             aspectRatio: '1',
                             borderRadius: 'var(--radius-sm)',
                             background: style.bg,
@@ -394,6 +395,36 @@ export default function Rooms() {
                           )}
                           {user?.role === 'tenant' && (
                             <div style={{ fontSize: '0.7rem', opacity: 0.75 }}>Nhà {room.building}</div>
+                          )}
+
+                          {(user?.role === 'admin' || user?.role === 'staff') && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`CẢNH BÁO: Xóa phòng này sẽ mất dữ liệu liên quan. Bạn có chắc chắn muốn xóa phòng ${room.name}?`)) {
+                                  removeRoom(room.id);
+                                  toast.success(`Đã xóa phòng ${room.name}!`);
+                                }
+                              }}
+                              style={{
+                                position: 'absolute',
+                                top: '4px',
+                                right: '4px',
+                                background: 'rgba(0,0,0,0.2)',
+                                color: 'var(--status-overdue)',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '4px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                transition: '0.2s'
+                              }}
+                              title="Xóa phòng"
+                              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.5)'}
+                              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}
+                            >
+                              <Trash2 size={12} />
+                            </button>
                           )}
                         </div>
                       );
