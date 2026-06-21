@@ -90,10 +90,27 @@ export default function TenantPortal() {
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '2px' }}>0981 019 694</div>
               <div style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>NGUYỄN TIẾN ĐỨC</div>
               
-              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Nội dung chuyển khoản:<br/>
-                <strong style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>{selectedPlan === 'pro' ? 'PRO' : 'BASIC'} {user.email}</strong>
+              <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', display: 'inline-block', marginBottom: '16px' }}>
+                <img 
+                  src="/momo-qr.png" 
+                  alt="Momo QR Code" 
+                  style={{ width: '200px', height: '200px', objectFit: 'contain' }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg'; // Fallback
+                  }}
+                />
               </div>
+              
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Nội dung chuyển khoản bắt buộc:<br/>
+                <strong style={{ color: 'var(--text-primary)', fontSize: '1.1rem', letterSpacing: '1px' }}>{selectedPlan === 'pro' ? 'PRO' : 'BASIC'} {user.email}</strong>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '24px', color: 'var(--status-resolved-text)', fontSize: '0.85rem' }}>
+              <CheckCircle2 size={16} />
+              <span>Giao dịch an toàn & Bảo mật 100%</span>
             </div>
 
             <button 
