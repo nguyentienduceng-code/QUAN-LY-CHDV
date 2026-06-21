@@ -245,6 +245,49 @@ export default function Home() {
               </div>
             ))}
           </div>
+          
+          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px dashed var(--border-glass)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', marginBottom: '12px' }}>
+              <Bell size={18} /> Đăng thông báo nội bộ
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <input 
+                type="text" 
+                placeholder="Tiêu đề thông báo..." 
+                id="ann-title"
+                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem' }} 
+              />
+              <textarea 
+                placeholder="Nội dung thông báo (hiển thị trên app Khách thuê)..." 
+                id="ann-msg"
+                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', minHeight: '60px', resize: 'vertical' }} 
+              ></textarea>
+              <button 
+                onClick={() => {
+                  const titleInput = document.getElementById('ann-title');
+                  const msgInput = document.getElementById('ann-msg');
+                  if (!titleInput.value || !msgInput.value) {
+                    toast.error('Vui lòng nhập đủ tiêu đề và nội dung!');
+                    return;
+                  }
+                  const newAnn = {
+                    id: Date.now(),
+                    title: titleInput.value,
+                    message: msgInput.value,
+                    date: new Date().toLocaleDateString('vi-VN')
+                  };
+                  const currentAnns = appData.settings.announcements || [];
+                  appData.updateSettings({ announcements: [newAnn, ...currentAnns] });
+                  toast.success('Đã đăng thông báo cho tất cả khách thuê!');
+                  titleInput.value = '';
+                  msgInput.value = '';
+                }}
+                style={{ padding: '10px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Gửi thông báo ngay
+              </button>
+            </div>
+          </div>
         </Card>
       </div>
 

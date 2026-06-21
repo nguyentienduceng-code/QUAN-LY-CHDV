@@ -45,16 +45,16 @@ export default function Header({ toggleSidebar }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {trialRemaining !== null && (
-          <div className="hide-on-mobile" style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.5)', color: '#f59e0b', padding: '6px 12px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-             Dùng thử: Còn {trialRemaining} ngày
+          <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.5)', color: '#f59e0b', padding: '4px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+             Dùng thử: {trialRemaining} ngày
           </div>
         )}
         
         {subscriptionRemaining !== null && subscriptionRemaining <= 3 && (
-          <div className="hide-on-mobile" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#ef4444', padding: '6px 12px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap', animation: 'pulse 2s infinite' }}>
-             Sắp hết hạn gói: Còn {subscriptionRemaining} ngày
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#ef4444', padding: '4px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap', animation: 'pulse 2s infinite' }}>
+             Sắp hết hạn: {subscriptionRemaining} ngày
           </div>
         )}
         

@@ -59,7 +59,11 @@ const defaultSettings = {
     A: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000, bankName: 'MB', bankAccount: '0901234567', bankOwner: 'NGUYEN VAN A' },
     B: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000, bankName: 'VCB', bankAccount: '0987654321', bankOwner: 'NGUYEN VAN B' },
     C: { electricityPrice: 3500, waterPrice: 100000, serviceFee: 150000, baseRent: 30000000, baseElectricityPrice: 2500, baseWaterPrice: 50000, bankName: 'ACB', bankAccount: '0123456789', bankOwner: 'NGUYEN VAN C' }
-  }
+  },
+  announcements: [
+    { id: 1, title: 'Lịch vệ sinh hành lang Tòa A', message: 'Sáng Thứ 7 tuần này (16/06) từ 8h - 11h. Mong quý khách hạn chế để đồ ra ngoài.', date: '14/06/2026' },
+    { id: 2, title: 'Khuyến mãi Internet Gói Gia Đình', message: 'Đăng ký gói cước mới giảm 20% tháng đầu tiên. Vui lòng liên hệ BQL.', date: '10/06/2026' }
+  ]
 };
 
 export const AppDataProvider = ({ children }) => {

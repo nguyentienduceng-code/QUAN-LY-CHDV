@@ -371,14 +371,18 @@ export default function TenantPortal() {
           <Bell size={18} /> Thông báo từ BQL
         </div>
         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '14px', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-glass)' }}>
-            <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '0.9rem' }}>Lịch vệ sinh hành lang Tòa A</div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Sáng Thứ 7 tuần này (16/06) từ 8h - 11h. Mong quý khách hạn chế để đồ ra ngoài.</div>
-          </div>
-          <div style={{ padding: '14px 16px' }}>
-            <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '0.9rem' }}>Khuyến mãi Internet Gói Gia Đình</div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Đăng ký gói cước mới giảm 20% tháng đầu tiên. Vui lòng liên hệ BQL.</div>
-          </div>
+          {(appData.settings.announcements || []).map((ann, idx) => (
+            <div key={ann.id || idx} style={{ padding: '14px 16px', borderBottom: idx < (appData.settings.announcements?.length || 0) - 1 ? '1px solid var(--border-glass)' : 'none' }}>
+              <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span>{ann.title}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>{ann.date}</span>
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{ann.message}</div>
+            </div>
+          ))}
+          {(!appData.settings.announcements || appData.settings.announcements.length === 0) && (
+            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Chưa có thông báo nào</div>
+          )}
         </div>
       </div>
 
