@@ -10,6 +10,7 @@ export default function SuperAdmin() {
   
   // Lọc ra các user đang chờ duyệt
   const pendingUsers = users.filter(u => u.plan === 'pending_pro' || u.plan === 'pending_basic');
+  const activeUsers = users.filter(u => u.plan === 'pro' || u.plan === 'basic');
 
   if (user?.email !== 'nguyentienducbmt123@gmail.com') {
     return (
@@ -37,6 +38,24 @@ export default function SuperAdmin() {
     if (window.confirm('Từ chối yêu cầu này? Tài khoản sẽ bị khóa nâng cấp.')) {
       updateUser(userId, { plan: 'trial' }); // Đẩy về dùng thử hoặc khóa
       toast.success('Đã từ chối nâng cấp.');
+    }
+  };
+
+  const handleRevoke = (userId, name) => {
+    if (window.confirm(`Bạn có chắc chắn muốn THU HỒI gói cước của quản lý ${name}? (Đưa về gói dùng thử)`)) {
+      updateUser(userId, { plan: 'trial', role: 'manager' });
+      toast.success(`Đã thu hồi gói của ${name}`);
+    }
+  };
+
+  const handleExtend = (userId, name, currentEndsAt) => {
+    const promptDays = window.prompt(`Nhập số ngày muốn gia hạn thêm cho ${name}:`, '30');
+    if (promptDays && !isNaN(promptDays)) {
+      const days = parseInt(promptDays);
+      const baseDate = currentEndsAt && new Date(currentEndsAt) > new Date() ? new Date(currentEndsAt) : new Date();
+      const newEndsAt = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+      updateUser(userId, { subscriptionEndsAt: newEndsAt, gracePeriodEndsAt: null });
+      toast.success(`Đã gia hạn thêm ${days} ngày cho ${name}`);
     }
   };
 
@@ -79,6 +98,49 @@ export default function SuperAdmin() {
                     style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}
                   >
                     <XCircle size={18} /> Từ chối
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-glass)', overflow: 'hidden', padding: '24px', marginTop: '32px' }}>
+        <h3 style={{ marginTop: 0, color: 'var(--text-primary)', marginBottom: '16px' }}>Danh sách Quản lý Đang hoạt động (Pro/Basic)</h3>
+        
+        {activeUsers.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>
+            Chưa có khách hàng nào đang sử dụng gói trả phí.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '16px' }}>
+            {activeUsers.map(u => (
+              <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px' }}>
+                <div>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{u.name}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>Email: {u.email}</div>
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ background: u.plan === 'pro' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: u.plan === 'pro' ? '#f59e0b' : '#3b82f6', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                      {u.plan === 'pro' ? 'GÓI PRO' : 'GÓI BASIC'}
+                    </span>
+                    <span style={{ fontSize: '0.85rem', color: u.subscriptionEndsAt && new Date(u.subscriptionEndsAt) > new Date() ? '#10b981' : '#ef4444' }}>
+                      Hết hạn: {u.subscriptionEndsAt ? new Date(u.subscriptionEndsAt).toLocaleDateString('vi-VN') : 'Không rõ'}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button 
+                    onClick={() => handleExtend(u.id, u.name, u.subscriptionEndsAt)}
+                    style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    + Gia hạn
+                  </button>
+                  <button 
+                    onClick={() => handleRevoke(u.id, u.name)}
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Thu hồi gói
                   </button>
                 </div>
               </div>
