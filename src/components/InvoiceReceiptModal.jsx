@@ -17,9 +17,10 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
   const bankName = bConfig.bankName || 'MB';
   const bankAccount = bConfig.bankAccount || '0901234567';
   const bankOwner = bConfig.bankOwner || 'NGUYEN VAN A';
+  const customQrLink = bConfig.qrImageLink;
 
-  // Generate VietQR URL
-  const qrUrl = `https://img.vietqr.io/image/${bankName}-${bankAccount}-compact2.png?amount=${numericAmount}&addInfo=${encodeURIComponent(`Thanh toan ${invoice.id}`)}&accountName=${encodeURIComponent(bankOwner)}`;
+  // Generate VietQR URL (Without Amount to ensure safety)
+  const qrUrl = customQrLink || `https://img.vietqr.io/image/${bankName}-${bankAccount}-compact2.png?addInfo=${encodeURIComponent(`Thanh toan ${invoice.id}`)}&accountName=${encodeURIComponent(bankOwner)}`;
 
   const handlePrint = () => {
     import('react-hot-toast').then(toast => toast.default.success('Đang kết nối máy in...'));
@@ -182,6 +183,9 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
                 Chuyển khoản đến:<br/>
                 <strong style={{ color: '#0f172a' }}>{bankName} - {bankAccount}</strong><br/>
                 Chủ TK: <strong style={{ color: '#0f172a' }}>{bankOwner}</strong>
+              </div>
+              <div style={{ marginTop: '16px', padding: '12px', background: '#fffbeb', border: '1px dashed #f59e0b', borderRadius: '8px', fontSize: '0.8rem', color: '#b45309' }}>
+                <strong>Lưu ý an toàn:</strong> Vui lòng tự nhập số tiền <strong>{invoice.amount} đ</strong> và kiểm tra kỹ thông tin người nhận trước khi chuyển khoản.
               </div>
             </div>
           )}
