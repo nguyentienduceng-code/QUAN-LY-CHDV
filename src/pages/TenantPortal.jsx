@@ -372,8 +372,8 @@ export default function TenantPortal() {
           <Bell size={18} /> Thông báo từ BQL
         </div>
         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '14px', overflow: 'hidden' }}>
-          {(appData.settings.announcements || []).map((ann, idx) => (
-            <div key={ann.id || idx} style={{ padding: '14px 16px', borderBottom: idx < (appData.settings.announcements?.length || 0) - 1 ? '1px solid var(--border-glass)' : 'none' }}>
+          {(appData?.settings?.announcements || []).map((ann, idx) => (
+            <div key={ann.id || idx} style={{ padding: '14px 16px', borderBottom: idx < (appData?.settings?.announcements?.length || 0) - 1 ? '1px solid var(--border-glass)' : 'none' }}>
               <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px', fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <span>{ann.title}</span>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>{ann.date}</span>
@@ -381,7 +381,7 @@ export default function TenantPortal() {
               <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{ann.message}</div>
             </div>
           ))}
-          {(!appData.settings.announcements || appData.settings.announcements.length === 0) && (
+          {(!appData?.settings?.announcements || appData?.settings?.announcements?.length === 0) && (
             <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Chưa có thông báo nào</div>
           )}
         </div>

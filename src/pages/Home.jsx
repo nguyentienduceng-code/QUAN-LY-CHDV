@@ -276,8 +276,8 @@ export default function Home() {
                     message: msgInput.value,
                     date: new Date().toLocaleDateString('vi-VN')
                   };
-                  const currentAnns = appData.settings.announcements || [];
-                  appData.updateSettings({ announcements: [newAnn, ...currentAnns] });
+                  const currentAnns = appData?.settings?.announcements || [];
+                  appData.setSettings({ announcements: [newAnn, ...currentAnns] });
                   toast.success('Đã đăng thông báo cho tất cả khách thuê!');
                   titleInput.value = '';
                   msgInput.value = '';
