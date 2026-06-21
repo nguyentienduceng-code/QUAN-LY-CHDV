@@ -1,16 +1,144 @@
 import { useState } from 'react';
-import { CreditCard, FileText, Wrench, Eye, Bell, QrCode } from 'lucide-react';
+import { CreditCard, FileText, Wrench, Eye, Bell, QrCode, CheckCircle2, Crown, Home, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
+import { useNavigate } from 'react-router-dom';
 import InvoiceReceiptModal from '../components/InvoiceReceiptModal';
 import ReportIssueModal from '../components/ReportIssueModal';
 
 export default function TenantPortal() {
-  const { user } = useAuth();
+  const { user, logout, upgradeUserAccount } = useAuth();
   const { addTicket, invoices } = useAppData();
+  const navigate = useNavigate();
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  
+  // Nâng cấp tài khoản states
+  const [selectedPlan, setSelectedPlan] = useState(null); // 'basic' | 'pro'
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!selectedPlan) return;
+    setIsUpgrading(true);
+    
+    toast.loading(selectedPlan === 'pro' ? 'Đang chờ thanh toán 199.000đ...' : 'Đang thiết lập hệ thống...', { id: 'upgrade' });
+    
+    // Giả lập delay quét QR hoặc cài đặt dữ liệu
+    setTimeout(async () => {
+      try {
+        await upgradeUserAccount(selectedPlan);
+        toast.success(selectedPlan === 'pro' ? 'Thanh toán & Nâng cấp Gói PRO thành công!' : 'Tạo tài khoản quản lý Cơ bản thành công!', { id: 'upgrade' });
+        navigate('/'); // Chuyển hướng về Home của Manager
+      } catch (err) {
+        toast.error('Có lỗi xảy ra khi nâng cấp!', { id: 'upgrade' });
+      }
+      setIsUpgrading(false);
+    }, 2500);
+  };
+
+  if (user?.role === 'guest') {
+    return (
+      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '40px 16px 100px', fontFamily: 'var(--font-main)', textAlign: 'center' }}>
+        <div className="bg-animation">
+          <div className="bg-orb bg-orb-1"></div>
+          <div className="bg-orb bg-orb-2"></div>
+        </div>
+        <div style={{ position: 'relative', zIndex: 1, background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(16px)', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '32px 20px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>Nâng cấp Tài Khoản</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '24px' }}>
+            Chào <strong>{user.name}</strong>, chọn một gói để bắt đầu quản lý nhà trọ của bạn.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px', textAlign: 'left' }}>
+            {/* Gói Cơ Bản */}
+            <div 
+              onClick={() => setSelectedPlan('basic')}
+              style={{ padding: '20px', background: selectedPlan === 'basic' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255, 255, 255, 0.02)', border: '2px solid', borderColor: selectedPlan === 'basic' ? '#3b82f6' : 'var(--border-glass)', borderRadius: '16px', cursor: 'pointer', transition: 'var(--transition)', position: 'relative' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: selectedPlan === 'basic' ? '#3b82f6' : 'var(--text-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                  <Home size={20} /> Cơ Bản
+                </div>
+                <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '1.1rem' }}>Miễn phí</div>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}><CheckCircle2 size={14} color="#10b981" /> Quản lý tối đa 1 nhà (chi nhánh)</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}><CheckCircle2 size={14} color="#10b981" /> Tính tiền điện nước cơ bản</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={14} color="#10b981" /> Tối đa 15 phòng</li>
+              </ul>
+              {selectedPlan === 'basic' && <div style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#3b82f6', borderRadius: '50%', padding: '4px', color: '#fff' }}><CheckCircle2 size={16} /></div>}
+            </div>
+
+            {/* Gói Pro */}
+            <div 
+              onClick={() => setSelectedPlan('pro')}
+              style={{ padding: '20px', background: selectedPlan === 'pro' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255, 255, 255, 0.02)', border: '2px solid', borderColor: selectedPlan === 'pro' ? '#f59e0b' : 'var(--border-glass)', borderRadius: '16px', cursor: 'pointer', transition: 'var(--transition)', position: 'relative' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: selectedPlan === 'pro' ? '#f59e0b' : 'var(--text-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                  <Crown size={20} /> PRO <span style={{ background: '#f59e0b', color: '#fff', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '10px', marginLeft: '4px' }}>Khuyên dùng</span>
+                </div>
+                <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '1.1rem' }}>199k<span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>/tháng</span></div>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}><CheckCircle2 size={14} color="#f59e0b" /> Quản lý nhiều nhà (không giới hạn)</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}><CheckCircle2 size={14} color="#f59e0b" /> Không giới hạn số lượng phòng</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={14} color="#f59e0b" /> Báo cáo doanh thu chi tiết & Phân quyền n/v</li>
+              </ul>
+              {selectedPlan === 'pro' && <div style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#f59e0b', borderRadius: '50%', padding: '4px', color: '#fff' }}><CheckCircle2 size={16} /></div>}
+            </div>
+          </div>
+
+          <button 
+            onClick={handleUpgrade}
+            disabled={!selectedPlan || isUpgrading}
+            style={{ 
+              width: '100%', 
+              padding: '14px', 
+              background: !selectedPlan ? 'rgba(255,255,255,0.1)' : (selectedPlan === 'pro' ? 'var(--accent-gradient)' : '#3b82f6'), 
+              color: !selectedPlan ? 'var(--text-secondary)' : '#fff', 
+              border: 'none', 
+              borderRadius: '12px', 
+              cursor: (!selectedPlan || isUpgrading) ? 'not-allowed' : 'pointer', 
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'var(--transition)',
+              marginBottom: '16px'
+            }}
+          >
+            {isUpgrading ? 'Đang xử lý...' : (selectedPlan === 'pro' ? 'Thanh toán & Nâng Cấp' : 'Bắt đầu sử dụng')}
+            {!isUpgrading && selectedPlan && <ArrowRight size={18} />}
+          </button>
+
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.5' }}>
+            Hoặc nếu bạn là khách thuê, vui lòng báo Quản lý gán phòng để truy cập.
+          </p>
+          <button 
+            onClick={logout} 
+            style={{ 
+              marginTop: '12px', 
+              width: '100%', 
+              padding: '10px', 
+              background: 'transparent', 
+              border: '1px solid var(--border-glass)', 
+              color: 'var(--text-secondary)', 
+              borderRadius: '12px', 
+              cursor: 'pointer', 
+              fontSize: '0.9rem',
+              transition: 'var(--transition)'
+            }}
+          >
+            Đăng xuất tài khoản
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const tenantRoom = user?.room || 'P.101';
   const myInvoices = invoices.filter(inv => inv.room === tenantRoom);

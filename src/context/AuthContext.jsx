@@ -1,7 +1,7 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail, db } from '../firebase';
+import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail, firebaseSignUpWithEmail, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
 
 const AuthContext = createContext(null);
 
@@ -74,6 +74,100 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const signUpWithEmail = async (email, password, name) => {
+    try {
+      const result = await firebaseSignUpWithEmail(email, password);
+      const firebaseUser = result.user;
+
+      let determinedRole = 'guest';
+      let determinedRoom = null;
+      let tenantName = name;
+
+      // Check if email already matches a tenant in the system
+      try {
+        const tenantQuery = query(collection(db, 'tenants'), where('email', '==', email));
+        const tenantSnapshot = await getDocs(tenantQuery);
+        if (!tenantSnapshot.empty) {
+          const tenantDoc = tenantSnapshot.docs[0].data();
+          determinedRole = 'tenant';
+          determinedRoom = tenantDoc.room || null;
+          if (tenantDoc.name) {
+            tenantName = tenantDoc.name;
+          }
+        }
+      } catch (err) {
+        console.warn("Lỗi kiểm tra tenant trong Firestore, thử sử dụng local storage:", err);
+        const localTenants = JSON.parse(localStorage.getItem('rentflow_tenants')) || [];
+        const matchedTenant = localTenants.find(t => t.email === email);
+        if (matchedTenant) {
+          determinedRole = 'tenant';
+          determinedRoom = matchedTenant.room || null;
+          if (matchedTenant.name) {
+            tenantName = matchedTenant.name;
+          }
+        }
+      }
+
+      const newUser = {
+        id: `usr-${firebaseUser.uid}`,
+        email: email,
+        name: tenantName,
+        role: determinedRole,
+        room: determinedRoom,
+        uid: firebaseUser.uid
+      };
+
+      // Save to Firestore
+      try {
+        await setDoc(doc(db, 'users', newUser.id), newUser);
+      } catch (err) {
+        console.warn("Lỗi ghi thông tin người dùng vào Firestore, lưu local:", err);
+        const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+        localUsers.push(newUser);
+        localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
+      }
+
+      // Log in the user locally
+      login({
+        name: newUser.name,
+        email: newUser.email,
+        uid: newUser.uid,
+        role: newUser.role,
+        room: newUser.room
+      });
+
+      return newUser;
+    } catch (error) {
+      console.error("Lỗi đăng ký tài khoản Email Firebase:", error);
+      throw error;
+    }
+  };
+
+  const upgradeUserAccount = async (planId) => {
+    if (!user) return null;
+    
+    const newRole = planId === 'pro' ? 'admin' : 'manager';
+    
+    try {
+      const userRef = doc(db, 'users', `usr-${user.uid || user.email}`);
+      await setDoc(userRef, { role: newRole }, { merge: true });
+    } catch (err) {
+      console.warn("Lỗi cập nhật role trên Firestore, lưu local:", err);
+      const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+      const userIndex = localUsers.findIndex(u => (u.uid === user.uid || u.email === user.email));
+      if (userIndex !== -1) {
+        localUsers[userIndex].role = newRole;
+      } else {
+        localUsers.push({ ...user, role: newRole, id: `usr-${user.uid || user.email}` });
+      }
+      localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
+    }
+
+    const updatedUser = { ...user, role: newRole };
+    login(updatedUser);
+    return updatedUser;
+  };
+
   const logout = async () => {
     setUser(null);
     localStorage.removeItem('chdv_user');
@@ -81,7 +175,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithGoogle, loginWithEmail, logout }}>
+    <AuthContext.Provider value={{ user, login, loginWithGoogle, loginWithEmail, signUpWithEmail, upgradeUserAccount, logout }}>
       {children}
     </AuthContext.Provider>
   );

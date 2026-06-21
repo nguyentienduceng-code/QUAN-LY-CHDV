@@ -9,7 +9,15 @@ export default function Login() {
   const [role, setRole] = useState('manager'); // 'manager' | 'tenant'
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('password123');
-  const { login, loginWithGoogle, loginWithEmail } = useAuth();
+  
+  // Registration States
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+
+  const { login, loginWithGoogle, loginWithEmail, signUpWithEmail } = useAuth();
   const appData = useAppData();
   const { tenants, users } = appData;
   const navigate = useNavigate();
@@ -40,18 +48,25 @@ export default function Login() {
         const firebaseUser = await loginWithEmail(identifier, password);
         if (firebaseUser) {
           const registeredUser = users?.find(u => u.email === firebaseUser.email);
-          const mappedRole = registeredUser?.role || (role === 'manager' ? 'admin' : 'tenant');
+          const mappedRole = registeredUser?.role || 'guest';
           const mappedRoom = registeredUser?.room || null;
           const mappedName = registeredUser?.name || firebaseUser.displayName || firebaseUser.email.split('@')[0];
           
           login({ name: mappedName, role: mappedRole, email: firebaseUser.email, room: mappedRoom });
-          toast.success('Đăng nhập hệ thống (Firebase) thành công!');
+          toast.success('Đăng nhập hệ thống thành công!');
           navigate(mappedRole === 'tenant' || mappedRole === 'guest' ? '/tenant-portal' : '/');
           return;
         }
       } catch (fbError) {
-        console.warn("Firebase email auth failed, falling back to mock authentication:", fbError.message);
-        // If password is wrong or other Auth errors, let it fall through to mock login
+        console.warn("Firebase email auth failed:", fbError.message);
+        if (fbError.code === 'auth/configuration-not-found' || fbError.message.includes('CONFIGURATION_NOT_FOUND') || fbError.code === 'auth/invalid-api-key') {
+          // Firebase not configured, let it fall through to mock login
+          console.warn("Sử dụng Mock Authentication do Firebase chưa cấu hình.");
+        } else {
+          // Real Auth error (wrong password, user not found, invalid email, etc.)
+          toast.error('Đăng nhập thất bại: Vui lòng kiểm tra lại Email và Mật khẩu!');
+          return; // Chặn không cho rơi xuống mock login
+        }
       }
     }
 
@@ -84,6 +99,35 @@ export default function Login() {
     }
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!regName.trim()) {
+      toast.error('Vui lòng nhập họ và tên!');
+      return;
+    }
+    if (!regEmail.trim()) {
+      toast.error('Vui lòng nhập email!');
+      return;
+    }
+    if (regPassword.length < 6) {
+      toast.error('Mật khẩu phải từ 6 ký tự trở lên!');
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
+      toast.error('Mật khẩu xác nhận không khớp!');
+      return;
+    }
+
+    try {
+      const newUser = await signUpWithEmail(regEmail.trim(), regPassword, regName.trim());
+      toast.success('Đăng ký tài khoản mới thành công!');
+      navigate(newUser.role === 'tenant' || newUser.role === 'guest' ? '/tenant-portal' : '/');
+    } catch (error) {
+      console.error(error);
+      toast.error('Đăng ký thất bại: ' + (error.message || 'Lỗi không xác định'));
+    }
+  };
+
   return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', position: 'relative', zIndex: 1 }}>
       <div className="bg-animation">
@@ -104,134 +148,226 @@ export default function Login() {
       }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 style={{ margin: '0 0 8px', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Quản Lý CHDV
+            {isRegistering ? 'Đăng Ký CHDV' : 'Quản Lý CHDV'}
           </h1>
-          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Hệ thống Quản lý Bất động sản</p>
+          <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+            {isRegistering ? 'Tạo tài khoản quản lý & khách thuê' : 'Hệ thống Quản lý Bất động sản'}
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-          <button 
-            type="button"
-            onClick={() => setRole('manager')}
-            style={{ 
-              flex: 1, 
-              padding: '12px', 
-              background: role === 'manager' ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-              border: '1px solid',
-              borderColor: role === 'manager' ? 'var(--accent-primary)' : 'var(--border-glass)',
-              color: role === 'manager' ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              transition: 'var(--transition)'
-            }}
-          >
-            Quản Lý
-          </button>
-          <button 
-            type="button"
-            onClick={() => setRole('tenant')}
-            style={{ 
-              flex: 1, 
-              padding: '12px', 
-              background: role === 'tenant' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-              border: '1px solid',
-              borderColor: role === 'tenant' ? 'var(--status-occupied)' : 'var(--border-glass)',
-              color: role === 'tenant' ? 'var(--status-occupied)' : 'var(--text-secondary)',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              transition: 'var(--transition)'
-            }}
-          >
-            Khách Thuê
-          </button>
-        </div>
+        {!isRegistering ? (
+          <>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+              <button 
+                type="button"
+                onClick={() => setRole('manager')}
+                style={{ 
+                  flex: 1, 
+                  padding: '12px', 
+                  background: role === 'manager' ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                  border: '1px solid',
+                  borderColor: role === 'manager' ? 'var(--accent-primary)' : 'var(--border-glass)',
+                  color: role === 'manager' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  transition: 'var(--transition)'
+                }}
+              >
+                Quản Lý
+              </button>
+              <button 
+                type="button"
+                onClick={() => setRole('tenant')}
+                style={{ 
+                  flex: 1, 
+                  padding: '12px', 
+                  background: role === 'tenant' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+                  border: '1px solid',
+                  borderColor: role === 'tenant' ? 'var(--status-occupied)' : 'var(--border-glass)',
+                  color: role === 'tenant' ? 'var(--status-occupied)' : 'var(--text-secondary)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  transition: 'var(--transition)'
+                }}
+              >
+                Khách Thuê
+              </button>
+            </div>
 
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              {role === 'manager' ? 'Tài khoản' : 'Email đăng nhập'}
-            </label>
-            <div style={{ position: 'relative' }}>
-              {role === 'manager' ? (
-                <UserCircle size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
-              ) : (
-                <Mail size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                  {role === 'manager' ? 'Tài khoản' : 'Email đăng nhập'}
+                </label>
+                <div style={{ position: 'relative' }}>
+                  {role === 'manager' ? (
+                    <UserCircle size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                  ) : (
+                    <Mail size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                  )}
+                  <input 
+                    type="text" 
+                    placeholder={role === 'manager' ? 'admin@gmail.com' : 'khach1@gmail.com'}
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Mật khẩu</label>
+                <div style={{ position: 'relative' }}>
+                  <KeySquare size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+                <a href="#" style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', textDecoration: 'none' }}>Quên mật khẩu?</a>
+              </div>
+
+              <button 
+                type="submit" 
+                style={{ 
+                  width: '100%', 
+                  padding: '14px', 
+                  background: role === 'manager' ? 'var(--accent-primary)' : 'var(--status-occupied)', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  fontSize: '1rem', 
+                  fontWeight: 'bold', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '16px'
+                }}
+              >
+                Đăng Nhập <ChevronRight size={18} />
+              </button>
+              
+              {role === 'tenant' && (
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
+                    Hoặc đăng nhập bằng
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button type="button" onClick={handleGoogleLogin} style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: '18px' }} /> Google
+                    </button>
+                    <button type="button" style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                      <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" style={{ width: '18px' }} /> Facebook
+                    </button>
+                  </div>
+                </div>
               )}
-              <input 
-                type="text" 
-                placeholder={role === 'manager' ? 'admin@gmail.com' : 'khach1@gmail.com'}
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
-              />
-            </div>
-          </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Mật khẩu</label>
-            <div style={{ position: 'relative' }}>
-              <KeySquare size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
-            <a href="#" style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', textDecoration: 'none' }}>Quên mật khẩu?</a>
-          </div>
-
-          <button 
-            type="submit" 
-            style={{ 
-              width: '100%', 
-              padding: '14px', 
-              background: role === 'manager' ? 'var(--accent-primary)' : 'var(--status-occupied)', 
-              color: '#fff', 
-              border: 'none', 
-              borderRadius: '12px', 
-              fontSize: '1rem', 
-              fontWeight: 'bold', 
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '16px'
-            }}
-          >
-            Đăng Nhập <ChevronRight size={18} />
-          </button>
-          
-          {role === 'tenant' && (
-            <div style={{ textAlign: 'center', marginTop: '16px' }}>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
-                Hoặc đăng nhập bằng
-                <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
+              <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Chưa có tài khoản? <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(true); }} style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>Đăng ký ngay</a>
               </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="button" onClick={handleGoogleLogin} style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                  <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: '18px' }} /> Google
-                </button>
-                <button type="button" style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                  <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" style={{ width: '18px' }} /> Facebook
-                </button>
+            </form>
+          </>
+        ) : (
+          <form onSubmit={handleRegister}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Họ và tên</label>
+              <div style={{ position: 'relative' }}>
+                <UserCircle size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                <input 
+                  type="text" 
+                  placeholder="Nguyễn Văn A"
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
+                  required
+                />
               </div>
             </div>
-          )}
 
-          <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            Chưa có tài khoản? <a href="#" style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>Đăng ký ngay</a>
-          </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Email đăng ký</label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                <input 
+                  type="email" 
+                  placeholder="username@gmail.com"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
+                  required
+                />
+              </div>
+            </div>
 
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Mật khẩu</label>
+              <div style={{ position: 'relative' }}>
+                <KeySquare size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                <input 
+                  type="password" 
+                  placeholder="Tối thiểu 6 ký tự"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
+                  required
+                />
+              </div>
+            </div>
 
-        </form>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Xác nhận mật khẩu</label>
+              <div style={{ position: 'relative' }}>
+                <KeySquare size={20} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-secondary)' }} />
+                <input 
+                  type="password" 
+                  placeholder="Nhập lại mật khẩu"
+                  value={regConfirmPassword}
+                  onChange={(e) => setRegConfirmPassword(e.target.value)}
+                  style={{ width: '100%', padding: '12px 12px 12px 40px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '12px', color: '#fff', fontSize: '1rem', outline: 'none' }} 
+                  required
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              style={{ 
+                width: '100%', 
+                padding: '14px', 
+                background: 'var(--accent-primary)', 
+                color: '#fff', 
+                border: 'none', 
+                borderRadius: '12px', 
+                fontSize: '1rem', 
+                fontWeight: 'bold', 
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '16px'
+              }}
+            >
+              Đăng Ký Ngay <ChevronRight size={18} />
+            </button>
+
+            <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              Đã có tài khoản? <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(false); }} style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>Đăng nhập ngay</a>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
