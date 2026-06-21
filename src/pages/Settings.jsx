@@ -92,6 +92,7 @@ export default function Settings() {
     if (updated.prices) {
       Object.keys(updated.prices).forEach(b => {
         updated.prices[b] = {
+          ...updated.prices[b],
           electricityPrice: Number(updated.prices[b].electricityPrice || 0),
           waterPrice: Number(updated.prices[b].waterPrice || 0),
           serviceFee: Number(updated.prices[b].serviceFee || 0),
