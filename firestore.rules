@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Hàm lấy dữ liệu User đang đăng nhập (bằng Email)
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.token.email)).data;
+    }
+    
+    // Hàm kiểm tra Super Admin
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.email == 'nguyentienducbmt123@gmail.com';
+    }
+    
+    // Hàm kiểm tra xem User có quyền truy cập ownerId này không
+    function isOwner(targetOwnerId) {
+      return request.auth != null && 
+             (request.auth.uid == targetOwnerId || getUserData().ownerId == targetOwnerId);
+    }
+
+    // Bảng Users
+    match /users/{userId} {
+      // Cho phép đăng nhập lấy thông tin cá nhân
+      allow read: if request.auth != null && request.auth.token.email == userId;
+      // Admin/Manager quản lý nhân viên của mình VÀ SuperAdmin có toàn quyền
+      allow read, write: if isSuperAdmin() || (request.auth != null && 
+                            (isOwner(resource.data.ownerId) || isOwner(request.resource.data.ownerId)));
+    }
+
+    // Bảng Settings
+    match /settings/{docId} {
+      allow read, write: if isSuperAdmin() || (request.auth != null && (request.auth.uid == docId || getUserData().ownerId == docId));
+    }
+
+    // Áp dụng cho TẤT CẢ các bảng còn lại (rooms, tenants, contracts, invoices, tickets...)
+    match /{collection}/{document=**} {
+      allow read, write: if isSuperAdmin() || (request.auth != null && 
+                            (isOwner(resource.data.ownerId) || isOwner(request.resource.data.ownerId)));
+    }
+  }
+}

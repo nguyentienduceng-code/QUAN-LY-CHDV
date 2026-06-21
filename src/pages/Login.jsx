@@ -38,10 +38,10 @@ export default function Login() {
       if (error.code === 'auth/configuration-not-found' || error.message.includes('CONFIGURATION_NOT_FOUND') || error.code === 'auth/invalid-api-key') {
         toast.success('Đã vào Chế độ Demo: Đăng nhập Google thành công!');
         if (role === 'manager') {
-          login({ name: 'Quản Lý Demo Google', role: 'admin', email: 'admin.google@gmail.com' });
+          login({ name: 'Quản Lý Demo Google', role: 'admin', email: 'admin.google@gmail.com', ownerId: 'demo-google' });
           navigate('/');
         } else {
-          login({ name: 'Khách Demo Google', role: 'tenant', room: 'P.VIP', email: 'khach.google@gmail.com' });
+          login({ name: 'Khách Demo Google', role: 'tenant', room: 'P.VIP', email: 'khach.google@gmail.com', ownerId: 'demo-google' });
           navigate('/tenant-portal');
         }
       } else {
@@ -67,8 +67,9 @@ export default function Login() {
           const mappedRole = registeredUser?.role || 'guest';
           const mappedRoom = registeredUser?.room || null;
           const mappedName = registeredUser?.name || firebaseUser.displayName || firebaseUser.email.split('@')[0];
+          const mappedOwnerId = registeredUser?.ownerId || firebaseUser.uid;
           
-          login({ name: mappedName, role: mappedRole, email: firebaseUser.email, room: mappedRoom });
+          login({ name: mappedName, role: mappedRole, email: firebaseUser.email, room: mappedRoom, ownerId: mappedOwnerId });
           toast.success('Đăng nhập hệ thống thành công!');
           return;
         }
@@ -91,11 +92,11 @@ export default function Login() {
       const userToLogin = users?.find(u => u.email === emailToSearch || u.id === emailToSearch || u.id === `usr-${emailToSearch}`);
       
       if (userToLogin) {
-        login({ name: userToLogin.name, role: userToLogin.role, email: userToLogin.email });
+        login({ name: userToLogin.name, role: userToLogin.role, email: userToLogin.email, ownerId: userToLogin.ownerId || userToLogin.uid || 'demo-admin' });
         navigate('/');
       } else if (emailToSearch === 'admin') {
         // Fallback default admin
-        login({ name: 'Admin (Quản lý)', role: 'admin', email: 'admin@gmail.com' });
+        login({ name: 'Admin (Quản lý)', role: 'admin', email: 'admin@gmail.com', ownerId: 'demo-admin' });
         navigate('/');
       } else {
         toast.error('Tài khoản quản lý không tồn tại!');
@@ -106,7 +107,7 @@ export default function Login() {
       if (tenant) {
         // Find if this tenant has a mapped user role
         const mappedUser = users?.find(u => u.email === emailToSearch);
-        login({ name: tenant.name, role: mappedUser?.role || 'tenant', room: tenant.room, email: tenant.email });
+        login({ name: tenant.name, role: mappedUser?.role || 'tenant', room: tenant.room, email: tenant.email, ownerId: tenant.ownerId || mappedUser?.ownerId || 'demo-tenant' });
         navigate('/tenant-portal');
       } else {
         toast.error('Email khách thuê không tồn tại!');

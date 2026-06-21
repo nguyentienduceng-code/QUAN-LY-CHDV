@@ -24,7 +24,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
   }
   
-  if (user?.email === 'nguyentienducbmt123@gmail.com' || user?.email === 'admin@gmail.com') {
+  if (user?.email === 'nguyentienducbmt123@gmail.com') {
     managerNavItems.push({ path: '/super-admin', label: 'Phê duyệt (MoMo)', icon: <Shield size={20} /> });
   }
 

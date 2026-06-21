@@ -18,11 +18,10 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser && !storedUser) {
         let registeredUser = null;
         try {
-          // Try to query role from Firestore users collection
-          const q = query(collection(db, 'users'), where('email', '==', firebaseUser.email));
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-            registeredUser = querySnapshot.docs[0].data();
+          // Try to get role from Firestore users collection directly by email ID
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.email));
+          if (userDoc.exists()) {
+            registeredUser = userDoc.data();
           }
         } catch (err) {
           console.warn("Lỗi truy vấn vai trò người dùng từ Firestore, sử dụng offline fallback:", err);
@@ -47,7 +46,7 @@ export const AuthProvider = ({ children }) => {
           
           // Tự động lưu người dùng mới này vào local/firestore để lần sau đồng bộ
           const newUser = {
-            id: `usr-${firebaseUser.uid}`,
+            id: firebaseUser.email,
             email: firebaseUser.email,
             name: firebaseUser.displayName || 'Người dùng Google',
             role: finalRole,
@@ -65,7 +64,7 @@ export const AuthProvider = ({ children }) => {
           setDoc(doc(db, 'users', newUser.id), newUser).catch(() => {});
         }
         
-        if (firebaseUser.email === 'nguyentienducbmt123@gmail.com' || firebaseUser.email === 'admin@gmail.com') {
+        if (firebaseUser.email === 'nguyentienducbmt123@gmail.com') {
           finalRole = 'admin';
           finalPlan = 'pro';
           finalTrialEndsAt = null;
@@ -92,7 +91,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     const dataToSave = { ...userData };
-    if (dataToSave.email === 'nguyentienducbmt123@gmail.com' || dataToSave.email === 'admin@gmail.com') {
+    if (dataToSave.email === 'nguyentienducbmt123@gmail.com') {
       dataToSave.role = 'admin';
       dataToSave.plan = 'pro';
       dataToSave.trialEndsAt = null;
@@ -166,7 +165,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Force super admin permissions
-      if (email === 'nguyentienducbmt123@gmail.com' || email === 'admin@gmail.com') {
+      if (email === 'nguyentienducbmt123@gmail.com') {
         determinedRole = 'admin';
         plan = 'pro';
         trialEndsAt = null;
@@ -193,7 +192,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
       }
 
-      if (email === 'nguyentienducbmt123@gmail.com' || email === 'admin@gmail.com') {
+      if (email === 'nguyentienducbmt123@gmail.com') {
         newUser.role = 'admin';
         newUser.plan = 'pro';
         newUser.trialEndsAt = null;

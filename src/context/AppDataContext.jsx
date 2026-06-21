@@ -174,7 +174,8 @@ export const AppDataProvider = ({ children }) => {
         }
         
         for (const u of users) {
-          await setDoc(doc(db, 'users', String(u.id)), { ...u, ownerId });
+          const newUserId = u.email || String(u.id);
+          await setDoc(doc(db, 'users', newUserId), { ...u, id: newUserId, ownerId });
         }
         console.log("Di cư dữ liệu lên Firestore hoàn tất!");
       } catch (e) {
@@ -224,7 +225,11 @@ export const AppDataProvider = ({ children }) => {
         setTickets(data);
       }));
       
-      unsubs.push(onSnapshot(query(collection(db, 'users'), where('ownerId', '==', ownerId)), (querySnap) => {
+      const usersQuery = user?.email === 'nguyentienducbmt123@gmail.com' 
+        ? collection(db, 'users') 
+        : query(collection(db, 'users'), where('ownerId', '==', ownerId));
+        
+      unsubs.push(onSnapshot(usersQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setUsers(list);
@@ -755,7 +760,7 @@ export const AppDataProvider = ({ children }) => {
   };
 
   const addUser = async (userData) => {
-    const newUser = { ...userData, id: `usr-${Date.now()}`, ownerId };
+    const newUser = { ...userData, id: userData.email || `usr-${Date.now()}`, ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'users', String(newUser.id)), newUser);

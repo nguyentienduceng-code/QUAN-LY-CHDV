@@ -11,7 +11,7 @@ export default function SuperAdmin() {
   // Lọc ra các user đang chờ duyệt
   const pendingUsers = users.filter(u => u.plan === 'pending_pro' || u.plan === 'pending_basic');
 
-  if (user?.email !== 'nguyentienducbmt123@gmail.com' && user?.email !== 'admin@gmail.com') {
+  if (user?.email !== 'nguyentienducbmt123@gmail.com') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--text-secondary)' }}>
         <Shield size={64} style={{ marginBottom: '16px', color: 'var(--status-overdue)' }} />
