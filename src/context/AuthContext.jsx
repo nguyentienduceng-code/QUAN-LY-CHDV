@@ -274,6 +274,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('rentflow_settings');
     localStorage.removeItem('rentflow_users');
     await firebaseSignOut().catch(() => {});
+    window.location.reload();
   };
 
   return (
