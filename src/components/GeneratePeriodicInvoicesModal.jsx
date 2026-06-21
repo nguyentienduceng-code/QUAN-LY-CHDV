@@ -247,7 +247,7 @@ export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
                             type="number" 
                             value={indices.elecOld || ''} 
                             onChange={e => handleMeterChange(t.id, 'elecOld', e.target.value)}
-                            style={{ width: '80px', padding: '6px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)' }}
+                            style={{ width: '80px', padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
                           />
                         </td>
                         <td style={{ padding: '12px' }}>
@@ -255,7 +255,7 @@ export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
                             type="number" 
                             value={indices.elecNew || ''} 
                             onChange={e => handleMeterChange(t.id, 'elecNew', e.target.value)}
-                            style={{ width: '80px', padding: '6px', background: 'var(--bg-card)', border: '1px solid var(--accent-primary)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
+                            style={{ width: '80px', padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--accent-primary)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
                           />
                         </td>
                         <td style={{ padding: '12px' }}>
@@ -263,7 +263,7 @@ export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
                             type="number" 
                             value={indices.waterOld || ''} 
                             onChange={e => handleMeterChange(t.id, 'waterOld', e.target.value)}
-                            style={{ width: '80px', padding: '6px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)' }}
+                            style={{ width: '80px', padding: '8px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
                           />
                         </td>
                         <td style={{ padding: '12px' }}>
@@ -271,7 +271,7 @@ export default function GeneratePeriodicInvoicesModal({ isOpen, onClose }) {
                             type="number" 
                             value={indices.waterNew || ''} 
                             onChange={e => handleMeterChange(t.id, 'waterNew', e.target.value)}
-                            style={{ width: '80px', padding: '6px', background: 'var(--bg-card)', border: '1px solid #3b82f6', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
+                            style={{ width: '80px', padding: '8px', background: 'var(--bg-card)', border: '1px solid #3b82f6', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none' }}
                           />
                         </td>
                       </tr>

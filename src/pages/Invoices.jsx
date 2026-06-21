@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
-import { Plus, Eye, Download, Filter, ChevronDown, ChevronRight, Building, User } from 'lucide-react';
+import { Plus, Eye, Download, Filter, ChevronDown, ChevronRight, Building, User, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import GeneratePeriodicInvoicesModal from '../components/GeneratePeriodicInvoicesModal';
 
@@ -223,7 +223,7 @@ export default function Invoices() {
                                 <tr key={inv.id} style={{ borderBottom: idx === roomInvoices.length - 1 ? 'none' : '1px solid var(--border-glass)' }}>
                                   <td data-label="Mã HĐ" style={{ padding: '12px 16px', fontWeight: '500' }}>{inv.id}</td>
                                   <td data-label="Số Tiền" style={{ padding: '12px 16px', fontWeight: '600', color: 'var(--accent-primary)' }}>{inv.amount}</td>
-                                  <td data-label="Ngày Tạo" style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>{inv.createdAt || 'N/A'}</td>
+                                  <td data-label="Ngày Tạo" style={{ padding: '12px 16px' }}>{inv.createdAt || 'N/A'}</td>
                                   <td data-label="Hạn Chót" style={{ padding: '12px 16px' }}>{inv.due}</td>
                                   <td data-label="Trạng Thái" style={{ padding: '12px 16px' }}>
                                     <StatusBadge status={inv.status} text={inv.status === 'paid' ? 'Đã thu' : inv.status === 'partial' ? 'Thu 1 phần' : 'Chưa thu'} />
@@ -274,9 +274,9 @@ export default function Invoices() {
                                               toast.success('Đã xóa hóa đơn');
                                             }
                                           }} 
-                                          style={{ padding: '4px 8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                                          style={{ padding: '4px 8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
                                         >
-                                          Xóa
+                                          <Trash2 size={12} /> Xóa
                                         </button>
                                       )}
                                     </div>

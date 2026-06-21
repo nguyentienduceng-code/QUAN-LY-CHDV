@@ -332,7 +332,7 @@ export default function Tenants() {
                               {room.status === 'vacant' && (
                                 <button 
                                   onClick={() => handleCreateContract(room)}
-                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
+                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', transition: '0.2s' }}
                                 >
                                   Tạo Hợp Đồng
                                 </button>
@@ -340,7 +340,7 @@ export default function Tenants() {
                               {room.status !== 'vacant' && (
                                 <button 
                                   onClick={() => handleOpenCreateInvoice(room.name)}
-                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: '0.2s' }}
                                 >
                                   <Plus size={16} /> Tạo Hóa Đơn
                                 </button>
