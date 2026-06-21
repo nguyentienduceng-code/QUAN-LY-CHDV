@@ -34,9 +34,33 @@ export const AuthProvider = ({ children }) => {
           registeredUser = allUsers.find(u => u.email === firebaseUser.email);
         }
         
-        let finalRole = registeredUser?.role || 'guest';
-        let finalPlan = registeredUser?.plan || 'none';
-        let finalTrialEndsAt = registeredUser?.trialEndsAt || null;
+        let finalRole = registeredUser?.role;
+        let finalPlan = registeredUser?.plan;
+        let finalTrialEndsAt = registeredUser?.trialEndsAt;
+        
+        // Nếu là người dùng mới tinh (đăng nhập Google lần đầu)
+        if (!registeredUser) {
+          finalRole = 'admin';
+          finalPlan = 'trial';
+          finalTrialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          
+          // Tự động lưu người dùng mới này vào local/firestore để lần sau đồng bộ
+          const newUser = {
+            id: `usr-${firebaseUser.uid}`,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || 'Người dùng Google',
+            role: finalRole,
+            plan: finalPlan,
+            trialEndsAt: finalTrialEndsAt,
+            uid: firebaseUser.uid
+          };
+          const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+          if (!localUsers.find(u => u.email === firebaseUser.email)) {
+            localUsers.push(newUser);
+            localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
+          }
+          setDoc(doc(db, 'users', newUser.id), newUser).catch(() => {});
+        }
         
         if (firebaseUser.email === 'nguyentienducbmt123@gmail.com' || firebaseUser.email === 'admin@gmail.com') {
           finalRole = 'admin';
