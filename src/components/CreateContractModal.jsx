@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, User, Calendar, DollarSign, FileText, UploadCloud, File, Trash2, Hash } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppData } from '../context/AppDataContext';
 
-export default function CreateContractModal({ isOpen, onClose, room, onSuccess }) {
-  const { addContract, addTenant, updateRoom } = useAppData();
+export default function CreateContractModal({ isOpen, onClose, room, existingContract, onSuccess }) {
+  const { addContract, updateContract, addTenant, updateRoom } = useAppData();
   
   const [tenantName, setTenantName] = useState('');
   const [contractId, setContractId] = useState(`CTR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
@@ -20,6 +20,37 @@ export default function CreateContractModal({ isOpen, onClose, room, onSuccess }
   const [isDragging, setIsDragging] = useState(false);
   
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (existingContract && isOpen) {
+      setTenantName(existingContract.tenantName || existingContract.tenant || '');
+      setContractId(existingContract.id || '');
+      
+      const parseDate = (dString) => {
+        if (!dString) return '';
+        const parts = dString.split('/');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return dString;
+      };
+      
+      setStartDate(parseDate(existingContract.startDate));
+      setEndDate(parseDate(existingContract.endDate));
+      
+      const parsedDeposit = existingContract.deposit 
+        ? parseInt(String(existingContract.deposit).replace(/\D/g, ''), 10) 
+        : 0;
+      setDeposit(parsedDeposit);
+      
+      setFiles(existingContract.attachedFiles || []);
+    } else if (isOpen) {
+      setTenantName('');
+      setContractId(`CTR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setEndDate(defaultEndDate.toISOString().split('T')[0]);
+      setDeposit((room?.price || 0) * 1);
+      setFiles([]);
+    }
+  }, [existingContract, isOpen, room]);
 
   if (!isOpen || !room) return null;
 
@@ -60,37 +91,49 @@ export default function CreateContractModal({ isOpen, onClose, room, onSuccess }
       toast.error('Vui lòng nhập Tên khách thuê!');
       return;
     }
-    
-    // Create primary tenant
-    addTenant({
-      name: tenantName,
-      room: room.name,
-      building: room.building || 'A',
-      status: 'active',
-      isRepresentative: true,
-      note: 'Người đại diện hợp đồng'
-    });
+    if (existingContract) {
+      updateContract(existingContract.id, {
+        id: contractId,
+        tenant: tenantName,
+        tenantName: tenantName,
+        startDate: new Date(startDate).toLocaleDateString('vi-VN'),
+        endDate: new Date(endDate).toLocaleDateString('vi-VN'),
+        deposit: deposit.toLocaleString('vi-VN'),
+        attachedFiles: files
+      });
+      toast.success(`Đã cập nhật hợp đồng ${contractId}!`);
+    } else {
+      // Create primary tenant
+      addTenant({
+        name: tenantName,
+        room: room.name,
+        building: room.building || 'A',
+        status: 'active',
+        isRepresentative: true,
+        note: 'Người đại diện hợp đồng'
+      });
 
-    // Create contract with extra data
-    addContract({
-      id: contractId,
-      tenant: tenantName,
-      tenantName: tenantName,
-      room: room.name,
-      startDate: new Date(startDate).toLocaleDateString('vi-VN'),
-      endDate: new Date(endDate).toLocaleDateString('vi-VN'),
-      deposit: deposit.toLocaleString('vi-VN'),
-      status: 'active',
-      attachedFiles: files
-    });
+      // Create contract with extra data
+      addContract({
+        id: contractId,
+        tenant: tenantName,
+        tenantName: tenantName,
+        room: room.name,
+        startDate: new Date(startDate).toLocaleDateString('vi-VN'),
+        endDate: new Date(endDate).toLocaleDateString('vi-VN'),
+        deposit: deposit.toLocaleString('vi-VN'),
+        status: 'active',
+        attachedFiles: files
+      });
 
-    // Update room status
-    updateRoom(room.id, {
-      status: 'occupied',
-      tenant: { name: tenantName }
-    });
-    
-    toast.success(`Đã tạo hợp đồng ${contractId} thành công!`);
+      // Update room status
+      updateRoom(room.id, {
+        status: 'occupied',
+        tenant: { name: tenantName }
+      });
+      
+      toast.success(`Đã tạo hợp đồng ${contractId} thành công!`);
+    }
     
     // Reset
     setTenantName('');
@@ -107,7 +150,7 @@ export default function CreateContractModal({ isOpen, onClose, room, onSuccess }
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--border-glass)' }}>
           <div>
-            <h2 style={{ margin: '0 0 4px', fontSize: '1.25rem' }}>Lập Hợp Đồng Mới</h2>
+            <h2 style={{ margin: '0 0 4px', fontSize: '1.25rem' }}>{existingContract ? 'Cập Nhật Hợp Đồng' : 'Lập Hợp Đồng Mới'}</h2>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Phòng {room.name}</div>
           </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
@@ -236,7 +279,7 @@ export default function CreateContractModal({ isOpen, onClose, room, onSuccess }
             Hủy
           </button>
           <button type="submit" onClick={handleSubmit} style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-            Tạo Hợp Đồng
+            {existingContract ? 'Cập Nhật Hợp Đồng' : 'Tạo Hợp Đồng'}
           </button>
         </div>
       </div>

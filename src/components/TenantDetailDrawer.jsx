@@ -1,17 +1,20 @@
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useState } from 'react';
-import { X, Users, FileText, FileSpreadsheet, Trash2, Plus, File } from 'lucide-react';
+import { X, Users, FileText, FileSpreadsheet, Trash2, Plus, File, Edit3 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { useAppData } from '../context/AppDataContext';
 import toast from 'react-hot-toast';
 import AddTenantModal from './AddTenantModal';
+import CreateContractModal from './CreateContractModal';
 
 export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
-  const { tenants, contracts, invoices, deleteTenant } = useAppData();
+  const { tenants, contracts, invoices, deleteTenant, rooms } = useAppData();
   const [isAddTenantOpen, setIsAddTenantOpen] = useState(false);
+  const [isEditContractOpen, setIsEditContractOpen] = useState(false);
   
   if (!isOpen || !roomName) return null;
 
+  const roomObj = rooms?.find(r => r.name === roomName);
   const roomTenants = tenants.filter(t => t.room === roomName);
   const contract = contracts.find(c => c.room.includes(roomName));
   const roomInvoices = invoices.filter(i => i.room === roomName);
@@ -46,9 +49,19 @@ export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
           
           {/* Hợp đồng */}
           <div style={{ marginBottom: '32px' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
-              <FileText size={18} /> Hợp đồng Thuê
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <FileText size={18} /> Hợp đồng Thuê
+              </h3>
+              {contract && (
+                <button 
+                  onClick={() => setIsEditContractOpen(true)} 
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '500', fontSize: '0.85rem' }}
+                >
+                  <Edit3 size={16} /> Sửa
+                </button>
+              )}
+            </div>
             {contract ? (
               <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -146,6 +159,12 @@ export default function TenantDetailDrawer({ isOpen, onClose, roomName }) {
         isOpen={isAddTenantOpen} 
         onClose={() => setIsAddTenantOpen(false)} 
         roomName={roomName}
+      />
+      <CreateContractModal 
+        isOpen={isEditContractOpen} 
+        onClose={() => setIsEditContractOpen(false)} 
+        room={roomObj}
+        existingContract={contract}
       />
     </>
   );

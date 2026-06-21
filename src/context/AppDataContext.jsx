@@ -361,6 +361,18 @@ export const AppDataProvider = ({ children }) => {
     }
   };
 
+  const updateContract = async (id, updatedData) => {
+    if (isCloudMode) {
+      try {
+        await setDoc(doc(db, 'contracts', String(id)), updatedData, { merge: true });
+      } catch (err) {
+        console.error("Lỗi khi cập nhật hợp đồng trên Cloud:", err);
+      }
+    } else {
+      setContracts(prev => prev.map(ctr => ctr.id === id ? { ...ctr, ...updatedData } : ctr));
+    }
+  };
+
   // Add new invoice
   const addInvoice = async (invoice) => {
     const newInvoice = { ...invoice, id: invoice.id || `INV-2026-06-0${invoices.length + 1}`, status: invoice.status || 'unpaid' };
@@ -822,7 +834,7 @@ export const AppDataProvider = ({ children }) => {
     <AppDataContext.Provider value={{ 
       rooms, setRooms, addRoom, removeRoom, updateRoom,
       tenants, setTenants, addTenant, updateTenant, deleteTenant,
-      contracts, setContracts, addContract,
+      contracts, setContracts, addContract, updateContract,
       invoices, setInvoices, addInvoice, updateInvoice, deleteInvoice,
       tickets, addTicket, updateTicket, moveTicket,
       users, setUsers, addUser, updateUser, deleteUser,
