@@ -42,6 +42,11 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     
+    if (!identifier.trim()) {
+      toast.error('Vui lòng nhập Email đăng nhập!');
+      return;
+    }
+    
     // Try Firebase Email/Password Sign-in if credentials provided
     if (identifier) {
       try {
