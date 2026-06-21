@@ -1,12 +1,37 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Shield, Plus, Edit, Trash2, Key } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function Users() {
-  const { users, addUser, updateUser, deleteUser, rooms, settings } = useAppData();
+  const { users, addUser, updateUser, deleteUser, rooms, settings, tenants } = useAppData();
   const { user } = useAuth();
+  
+  const displayUsers = useMemo(() => {
+    const merged = [...users];
+    
+    if (tenants && Array.isArray(tenants)) {
+      tenants.forEach(t => {
+        if (t.email && t.email.trim() !== '') {
+          // Chỉ thêm nếu email chưa tồn tại trong danh sách users cứng
+          const exists = merged.find(u => u.email.toLowerCase() === t.email.toLowerCase());
+          if (!exists) {
+            merged.push({
+              id: `auto-${t.id || Math.random()}`,
+              email: t.email,
+              name: t.name || 'Khách thuê',
+              role: 'tenant',
+              room: t.room,
+              isAutoSynced: true
+            });
+          }
+        }
+      });
+    }
+    
+    return merged;
+  }, [users, tenants]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -57,8 +82,13 @@ export default function Users() {
     }
 
     if (editingUser) {
-      updateUser(editingUser.id, formData);
-      toast.success('Cập nhật người dùng thành công!');
+      if (editingUser.isAutoSynced) {
+        addUser(formData);
+        toast.success('Đã cấp quyền chính thức cho khách thuê!');
+      } else {
+        updateUser(editingUser.id, formData);
+        toast.success('Cập nhật người dùng thành công!');
+      }
     } else {
       addUser(formData);
       toast.success('Thêm người dùng mới thành công!');
@@ -66,7 +96,11 @@ export default function Users() {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id, isAutoSynced) => {
+    if (isAutoSynced) {
+      toast.error('Tài khoản này được đồng bộ tự động. Vui lòng xóa email trong tab "Khách & Hóa Đơn" để gỡ bỏ.');
+      return;
+    }
     if (window.confirm('Bạn có chắc muốn xóa người dùng này?')) {
       deleteUser(id);
       toast.success('Đã xóa người dùng!');
@@ -121,9 +155,12 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u, index) => (
-                <tr key={u.id} style={{ borderBottom: index === users.length - 1 ? 'none' : '1px solid var(--border-glass)', transition: 'background 0.2s' }}>
-                  <td data-label="Email" style={{ padding: '16px', fontWeight: '500', color: 'var(--accent-primary)' }}>{u.email}</td>
+              {displayUsers.map((u, index) => (
+                <tr key={u.id} style={{ borderBottom: index === displayUsers.length - 1 ? 'none' : '1px solid var(--border-glass)', transition: 'background 0.2s' }}>
+                  <td data-label="Email" style={{ padding: '16px', fontWeight: '500', color: 'var(--accent-primary)' }}>
+                    {u.email}
+                    {u.isAutoSynced && <span style={{ marginLeft: '8px', fontSize: '0.7rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '2px 6px', borderRadius: '4px' }}>Tự động</span>}
+                  </td>
                   <td data-label="Họ Tên" style={{ padding: '16px', fontWeight: '600' }}>{u.name}</td>
                   <td data-label="Vai Trò" style={{ padding: '16px' }}>
                     <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)', color: roleColor[u.role] || 'var(--text-secondary)', border: `1px solid ${roleColor[u.role]}` }}>
@@ -138,7 +175,7 @@ export default function Users() {
                       <button onClick={() => handleOpenModal(u)} style={{ padding: '6px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer' }}>
                         <Edit size={16} />
                       </button>
-                      <button onClick={() => handleDelete(u.id)} style={{ padding: '6px', background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--status-overdue)', borderRadius: '4px', cursor: 'pointer' }}>
+                      <button onClick={() => handleDelete(u.id, u.isAutoSynced)} style={{ padding: '6px', background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--status-overdue)', borderRadius: '4px', cursor: 'pointer' }}>
                         <Trash2 size={16} />
                       </button>
                     </div>
