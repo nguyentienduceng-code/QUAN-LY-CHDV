@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Users, DollarSign, AlertCircle, AlertTriangle, Download, Upload } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, AlertCircle, AlertTriangle, Download, Upload, Bell } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { useAppData } from '../context/AppDataContext';
