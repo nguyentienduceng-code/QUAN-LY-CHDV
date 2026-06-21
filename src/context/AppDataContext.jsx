@@ -3,9 +3,10 @@ import { createContext, useState, useContext, useEffect } from 'react';
 import { generateMockData } from '../utils/mockData';
 import { db } from '../firebase';
 import { 
-  collection, doc, getDoc, getDocs, setDoc, deleteDoc, onSnapshot 
+  collection, doc, getDoc, getDocs, setDoc, deleteDoc, onSnapshot, query, where 
 } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import { useAuth } from './AuthContext';
 
 const AppDataContext = createContext(null);
 
@@ -67,6 +68,9 @@ const defaultSettings = {
 };
 
 export const AppDataProvider = ({ children }) => {
+  const { user } = useAuth();
+  const ownerId = user?.ownerId;
+  
   const [rooms, setRooms] = useState(() => JSON.parse(localStorage.getItem('rentflow_rooms')) || initialRooms);
   const [tenants, setTenants] = useState(() => {
     const stored = JSON.parse(localStorage.getItem('rentflow_tenants'));
@@ -135,37 +139,42 @@ export const AppDataProvider = ({ children }) => {
 
   // Firestore Sync & Auto Migration
   useEffect(() => {
+    if (!user || !user.ownerId) {
+      setLoading(false);
+      return;
+    }
+    const ownerId = user.ownerId;
     let unsubscribes = [];
     
     const migrateLocalStorageToFirestore = async () => {
       try {
         console.log("Di cư dữ liệu: Khởi chạy...");
-        await setDoc(doc(db, 'settings', 'global'), settings);
+        await setDoc(doc(db, 'settings', ownerId), settings);
         
         for (const r of rooms) {
-          await setDoc(doc(db, 'rooms', String(r.id)), r);
+          await setDoc(doc(db, 'rooms', String(r.id)), { ...r, ownerId });
         }
         for (const t of tenants) {
-          await setDoc(doc(db, 'tenants', String(t.id)), t);
+          await setDoc(doc(db, 'tenants', String(t.id)), { ...t, ownerId });
         }
         for (const c of contracts) {
-          await setDoc(doc(db, 'contracts', String(c.id)), c);
+          await setDoc(doc(db, 'contracts', String(c.id)), { ...c, ownerId });
         }
         for (const inv of invoices) {
-          await setDoc(doc(db, 'invoices', String(inv.id)), inv);
+          await setDoc(doc(db, 'invoices', String(inv.id)), { ...inv, ownerId });
         }
         
         const allTickets = [
-          ...tickets.reported.map(t => ({ ...t, status: 'reported' })),
-          ...tickets.inProgress.map(t => ({ ...t, status: 'inProgress' })),
-          ...tickets.resolved.map(t => ({ ...t, status: 'resolved' }))
+          ...tickets.reported.map(t => ({ ...t, status: 'reported', ownerId })),
+          ...tickets.inProgress.map(t => ({ ...t, status: 'inProgress', ownerId })),
+          ...tickets.resolved.map(t => ({ ...t, status: 'resolved', ownerId }))
         ];
         for (const t of allTickets) {
           await setDoc(doc(db, 'tickets', String(t.id)), t);
         }
         
         for (const u of users) {
-          await setDoc(doc(db, 'users', String(u.id)), u);
+          await setDoc(doc(db, 'users', String(u.id)), { ...u, ownerId });
         }
         console.log("Di cư dữ liệu lên Firestore hoàn tất!");
       } catch (e) {
@@ -176,35 +185,35 @@ export const AppDataProvider = ({ children }) => {
     const setupFirestoreListeners = () => {
       const unsubs = [];
       
-      unsubs.push(onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
+      unsubs.push(onSnapshot(doc(db, 'settings', ownerId), (docSnap) => {
         if (docSnap.exists()) setSettings(docSnap.data());
       }));
       
-      unsubs.push(onSnapshot(collection(db, 'rooms'), (querySnap) => {
+      unsubs.push(onSnapshot(query(collection(db, 'rooms'), where('ownerId', '==', ownerId)), (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setRooms(list);
       }));
       
-      unsubs.push(onSnapshot(collection(db, 'tenants'), (querySnap) => {
+      unsubs.push(onSnapshot(query(collection(db, 'tenants'), where('ownerId', '==', ownerId)), (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setTenants(list);
       }));
       
-      unsubs.push(onSnapshot(collection(db, 'contracts'), (querySnap) => {
+      unsubs.push(onSnapshot(query(collection(db, 'contracts'), where('ownerId', '==', ownerId)), (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setContracts(list);
       }));
       
-      unsubs.push(onSnapshot(collection(db, 'invoices'), (querySnap) => {
+      unsubs.push(onSnapshot(query(collection(db, 'invoices'), where('ownerId', '==', ownerId)), (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setInvoices(list);
       }));
       
-      unsubs.push(onSnapshot(collection(db, 'tickets'), (querySnap) => {
+      unsubs.push(onSnapshot(query(collection(db, 'tickets'), where('ownerId', '==', ownerId)), (querySnap) => {
         const data = { reported: [], inProgress: [], resolved: [] };
         querySnap.forEach(d => {
           const item = d.data();
@@ -215,7 +224,7 @@ export const AppDataProvider = ({ children }) => {
         setTickets(data);
       }));
       
-      unsubs.push(onSnapshot(collection(db, 'users'), (querySnap) => {
+      unsubs.push(onSnapshot(query(collection(db, 'users'), where('ownerId', '==', ownerId)), (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setUsers(list);
@@ -226,7 +235,7 @@ export const AppDataProvider = ({ children }) => {
 
     const initApp = async () => {
       try {
-        const testDocRef = doc(db, 'settings', 'global');
+        const testDocRef = doc(db, 'settings', ownerId);
         const testDoc = await getDoc(testDocRef);
         
         setIsCloudMode(true);
@@ -247,13 +256,13 @@ export const AppDataProvider = ({ children }) => {
           ticketsSnap,
           usersSnap
         ] = await Promise.all([
-          getDoc(doc(db, 'settings', 'global')),
-          getDocs(collection(db, 'rooms')),
-          getDocs(collection(db, 'tenants')),
-          getDocs(collection(db, 'contracts')),
-          getDocs(collection(db, 'invoices')),
-          getDocs(collection(db, 'tickets')),
-          getDocs(collection(db, 'users'))
+          getDoc(doc(db, 'settings', ownerId)),
+          getDocs(query(collection(db, 'rooms'), where('ownerId', '==', ownerId))),
+          getDocs(query(collection(db, 'tenants'), where('ownerId', '==', ownerId))),
+          getDocs(query(collection(db, 'contracts'), where('ownerId', '==', ownerId))),
+          getDocs(query(collection(db, 'invoices'), where('ownerId', '==', ownerId))),
+          getDocs(query(collection(db, 'tickets'), where('ownerId', '==', ownerId))),
+          getDocs(query(collection(db, 'users'), where('ownerId', '==', ownerId)))
         ]);
         
         if (settingsSnap.exists()) setSettings(settingsSnap.data());
@@ -311,7 +320,7 @@ export const AppDataProvider = ({ children }) => {
 
   // Add new tenant
   const addTenant = async (tenant) => {
-    const newTenant = { ...tenant, id: tenant.id || `TEN-${1000 + tenants.length + 1}`, status: 'active' };
+    const newTenant = { ...tenant, id: tenant.id || `TEN-${1000 + tenants.length + 1}`, status: 'active', ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'tenants', String(newTenant.id)), newTenant);
@@ -349,7 +358,7 @@ export const AppDataProvider = ({ children }) => {
 
   // Add new contract
   const addContract = async (contract) => {
-    const newContract = { ...contract, id: contract.id || `CTR-2026-${100 + contracts.length + 1}`, status: 'active' };
+    const newContract = { ...contract, id: contract.id || `CTR-2026-${100 + contracts.length + 1}`, status: 'active', ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'contracts', String(newContract.id)), newContract);
@@ -375,7 +384,7 @@ export const AppDataProvider = ({ children }) => {
 
   // Add new invoice
   const addInvoice = async (invoice) => {
-    const newInvoice = { ...invoice, id: invoice.id || `INV-2026-06-0${invoices.length + 1}`, status: invoice.status || 'unpaid' };
+    const newInvoice = { ...invoice, id: invoice.id || `INV-2026-06-0${invoices.length + 1}`, status: invoice.status || 'unpaid', ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'invoices', String(newInvoice.id)), newInvoice);
@@ -417,7 +426,8 @@ export const AppDataProvider = ({ children }) => {
       ...ticket, 
       id: ticket.id || `TKT-${Math.floor(Math.random() * 1000)}`, 
       date: ticket.date || new Date().toLocaleDateString('vi-VN'),
-      status: 'reported'
+      status: 'reported',
+      ownerId
     };
     
     if (isCloudMode) {
@@ -504,7 +514,7 @@ export const AppDataProvider = ({ children }) => {
 
   // Room Management
   const addRoom = async (roomData) => {
-    const newRoom = { ...roomData, id: Date.now(), status: 'vacant', tenant: null };
+    const newRoom = { ...roomData, id: Date.now(), status: 'vacant', tenant: null, ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'rooms', String(newRoom.id)), newRoom);
@@ -552,7 +562,7 @@ export const AppDataProvider = ({ children }) => {
           newPrices[newName] = newPrices[oldName];
           delete newPrices[oldName];
         }
-        await setDoc(doc(db, 'settings', 'global'), { buildings: newBuildings, prices: newPrices }, { merge: true });
+        await setDoc(doc(db, 'settings', ownerId), { buildings: newBuildings, prices: newPrices }, { merge: true });
         
         for (const r of rooms) {
           if (r.building === oldName) {
@@ -605,7 +615,7 @@ export const AppDataProvider = ({ children }) => {
         const newBuildings = [...settings.buildings, name];
         const templatePrices = settings.prices[settings.buildings[0]] || defaultSettings.prices['A'];
         const newPrices = { ...settings.prices, [name]: { ...templatePrices } };
-        await setDoc(doc(db, 'settings', 'global'), { buildings: newBuildings, prices: newPrices }, { merge: true });
+        await setDoc(doc(db, 'settings', ownerId), { buildings: newBuildings, prices: newPrices }, { merge: true });
         return true;
       } catch (err) {
         console.error("Lỗi thêm nhà mới trên Cloud:", err);
@@ -638,7 +648,7 @@ export const AppDataProvider = ({ children }) => {
         const newBuildings = settings.buildings.filter(b => b !== name);
         const newPrices = { ...settings.prices };
         delete newPrices[name];
-        await setDoc(doc(db, 'settings', 'global'), { buildings: newBuildings, prices: newPrices }, { merge: true });
+        await setDoc(doc(db, 'settings', ownerId), { buildings: newBuildings, prices: newPrices }, { merge: true });
         
         for (const r of roomsToDelete) await deleteDoc(doc(db, 'rooms', String(r.id)));
         for (const t of tenantsToDelete) await deleteDoc(doc(db, 'tenants', String(t.id)));
@@ -673,21 +683,21 @@ export const AppDataProvider = ({ children }) => {
     if (isCloudMode) {
       try {
         for (const r of data.rooms) {
-          await setDoc(doc(db, 'rooms', String(r.id)), r);
+          await setDoc(doc(db, 'rooms', String(r.id)), { ...r, ownerId });
         }
         for (const t of data.tenants) {
-          await setDoc(doc(db, 'tenants', String(t.id)), t);
+          await setDoc(doc(db, 'tenants', String(t.id)), { ...t, ownerId });
         }
         for (const c of data.contracts) {
-          await setDoc(doc(db, 'contracts', String(c.id)), c);
+          await setDoc(doc(db, 'contracts', String(c.id)), { ...c, ownerId });
         }
         for (const inv of data.invoices) {
-          await setDoc(doc(db, 'invoices', String(inv.id)), inv);
+          await setDoc(doc(db, 'invoices', String(inv.id)), { ...inv, ownerId });
         }
         const allTickets = [
-          ...data.tickets.reported.map(t => ({ ...t, status: 'reported' })),
-          ...data.tickets.inProgress.map(t => ({ ...t, status: 'inProgress' })),
-          ...data.tickets.resolved.map(t => ({ ...t, status: 'resolved' }))
+          ...data.tickets.reported.map(t => ({ ...t, status: 'reported', ownerId })),
+          ...data.tickets.inProgress.map(t => ({ ...t, status: 'inProgress', ownerId })),
+          ...data.tickets.resolved.map(t => ({ ...t, status: 'resolved', ownerId }))
         ];
         for (const t of allTickets) {
           await setDoc(doc(db, 'tickets', String(t.id)), t);
@@ -712,7 +722,7 @@ export const AppDataProvider = ({ children }) => {
       try {
         const collectionsToDelete = ['rooms', 'tenants', 'contracts', 'invoices', 'tickets', 'users'];
         for (const colName of collectionsToDelete) {
-          const snap = await getDocs(collection(db, colName));
+          const snap = await getDocs(query(collection(db, colName), where('ownerId', '==', ownerId)));
           for (const docSnap of snap.docs) {
             await deleteDoc(doc(db, colName, docSnap.id));
           }
@@ -735,7 +745,7 @@ export const AppDataProvider = ({ children }) => {
   const handleUpdateSettings = async (newSettings) => {
     if (isCloudMode) {
       try {
-        await setDoc(doc(db, 'settings', 'global'), newSettings);
+        await setDoc(doc(db, 'settings', ownerId), newSettings);
       } catch (err) {
         console.error("Lỗi khi lưu cài đặt trên Cloud:", err);
       }
@@ -745,7 +755,7 @@ export const AppDataProvider = ({ children }) => {
   };
 
   const addUser = async (userData) => {
-    const newUser = { ...userData, id: `usr-${Date.now()}` };
+    const newUser = { ...userData, id: `usr-${Date.now()}`, ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'users', String(newUser.id)), newUser);
@@ -787,7 +797,7 @@ export const AppDataProvider = ({ children }) => {
         try {
           for (const r of parsedData.rooms) {
             const docId = r.id || `R${Date.now()}-${Math.random()}`;
-            await setDoc(doc(db, 'rooms', String(docId)), { ...r, id: docId }, { merge: true });
+            await setDoc(doc(db, 'rooms', String(docId)), { ...r, id: docId, ownerId }, { merge: true });
           }
         } catch (err) {
           console.error("Lỗi import phòng lên Cloud:", err);
@@ -810,7 +820,7 @@ export const AppDataProvider = ({ children }) => {
         try {
           for (const t of parsedData.tenants) {
             const docId = t.id || `KH${Date.now()}-${Math.random()}`;
-            await setDoc(doc(db, 'tenants', String(docId)), { ...t, id: docId }, { merge: true });
+            await setDoc(doc(db, 'tenants', String(docId)), { ...t, id: docId, ownerId }, { merge: true });
           }
         } catch (err) {
           console.error("Lỗi import khách thuê lên Cloud:", err);

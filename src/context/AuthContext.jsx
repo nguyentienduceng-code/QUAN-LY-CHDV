@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
         let finalRole = registeredUser?.role;
         let finalPlan = registeredUser?.plan;
         let finalTrialEndsAt = registeredUser?.trialEndsAt;
+        let finalOwnerId = registeredUser?.ownerId || firebaseUser.uid;
         
         // Nếu là người dùng mới tinh (đăng nhập Google lần đầu)
         if (!registeredUser) {
@@ -53,7 +54,8 @@ export const AuthProvider = ({ children }) => {
             plan: finalPlan,
             trialEndsAt: finalTrialEndsAt,
             uid: firebaseUser.uid,
-            allowedBuildings: ['all']
+            allowedBuildings: ['all'],
+            ownerId: finalOwnerId
           };
           const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
           if (!localUsers.find(u => u.email === firebaseUser.email)) {
@@ -78,7 +80,8 @@ export const AuthProvider = ({ children }) => {
           room: registeredUser?.room || null,
           allowedBuildings: registeredUser?.allowedBuildings || ['all'],
           plan: finalPlan,
-          trialEndsAt: finalTrialEndsAt
+          trialEndsAt: finalTrialEndsAt,
+          ownerId: finalOwnerId
         });
       } else if (!firebaseUser && !storedUser) {
         setUser(null);
