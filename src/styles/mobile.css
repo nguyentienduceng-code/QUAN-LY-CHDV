@@ -1,0 +1,38 @@
+/* Mobile Card Table Styling */
+@media (max-width: 768px) {
+  .mobile-card-table, .mobile-card-table tbody, .mobile-card-table tr, .mobile-card-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .mobile-card-table thead {
+    display: none; /* Hide table headers on mobile */
+  }
+
+  .mobile-card-table tr {
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass) !important;
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+
+  .mobile-card-table td {
+    text-align: right !important;
+    padding: 8px 0 !important;
+    position: relative;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mobile-card-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+    margin-right: auto;
+    padding-right: 16px;
+  }
+}
