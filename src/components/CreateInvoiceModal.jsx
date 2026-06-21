@@ -3,7 +3,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
 import toast from 'react-hot-toast';
 
-export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
+export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoomName }) {
   const { tenants, rooms, settings } = useAppData();
   
   const currentMonthInput = new Date().toISOString().slice(0, 7); // yyyy-MM
@@ -18,6 +18,19 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
   const [elecNew, setElecNew] = useState(0);
   const [waterOld, setWaterOld] = useState(0);
   const [waterNew, setWaterNew] = useState(0);
+
+  // Pre-fill from initialRoomName
+  useEffect(() => {
+    if (isOpen && initialRoomName) {
+      const roomInfo = rooms.find(r => r.name === initialRoomName);
+      if (roomInfo) {
+        setSelectedBuilding(roomInfo.building || settings.buildings[0] || 'A');
+        const match = roomInfo.name.match(/\.?(\d+)\d{2}/);
+        setSelectedFloor(match ? parseInt(match[1]) : 1);
+        setSelectedRoom(initialRoomName);
+      }
+    }
+  }, [isOpen, initialRoomName, rooms, settings.buildings]);
 
   // Filter logic
   const availableRoomsInBuilding = useMemo(() => {
@@ -130,8 +143,9 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave }) {
 
     const tenantInfo = tenants.find(t => t.room === selectedRoom);
     const tenantName = tenantInfo?.name || 'Khách Thuê';
+    const createdAt = new Date().toLocaleString('vi-VN');
 
-    onSave({ id: invoiceId, tenant: tenantName, room: selectedRoom, amount, items: finalItems, due: dueDate });
+    onSave({ id: invoiceId, tenant: tenantName, room: selectedRoom, amount, items: finalItems, due: dueDate, createdAt });
     onClose();
   };
 

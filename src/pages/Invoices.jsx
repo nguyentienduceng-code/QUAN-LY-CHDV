@@ -12,7 +12,7 @@ import UpdateIndexModal from '../components/UpdateIndexModal';
 
 export default function Invoices() {
   const { user } = useAuth();
-  const { invoices, addInvoice, tenants, rooms, settings, updateInvoice } = useAppData();
+  const { invoices, addInvoice, tenants, rooms, settings, updateInvoice, deleteInvoice } = useAppData();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
@@ -212,6 +212,7 @@ export default function Invoices() {
                               <tr>
                                 <th style={{ padding: '8px 16px', fontWeight: '600' }}>Mã HĐ</th>
                                 <th style={{ padding: '8px 16px', fontWeight: '600' }}>Số Tiền</th>
+                                <th style={{ padding: '8px 16px', fontWeight: '600' }}>Ngày Tạo</th>
                                 <th style={{ padding: '8px 16px', fontWeight: '600' }}>Hạn Chót</th>
                                 <th style={{ padding: '8px 16px', fontWeight: '600' }}>Trạng Thái</th>
                                 <th style={{ padding: '8px 16px', textAlign: 'right', fontWeight: '600' }}>Thao Tác</th>
@@ -222,6 +223,7 @@ export default function Invoices() {
                                 <tr key={inv.id} style={{ borderBottom: idx === roomInvoices.length - 1 ? 'none' : '1px solid var(--border-glass)' }}>
                                   <td data-label="Mã HĐ" style={{ padding: '12px 16px', fontWeight: '500' }}>{inv.id}</td>
                                   <td data-label="Số Tiền" style={{ padding: '12px 16px', fontWeight: '600', color: 'var(--accent-primary)' }}>{inv.amount}</td>
+                                  <td data-label="Ngày Tạo" style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>{inv.createdAt || 'N/A'}</td>
                                   <td data-label="Hạn Chót" style={{ padding: '12px 16px' }}>{inv.due}</td>
                                   <td data-label="Trạng Thái" style={{ padding: '12px 16px' }}>
                                     <StatusBadge status={inv.status} text={inv.status === 'paid' ? 'Đã thu' : inv.status === 'partial' ? 'Thu 1 phần' : 'Chưa thu'} />
@@ -263,6 +265,19 @@ export default function Invoices() {
                                             Hoàn tiền
                                           </button>
                                         )
+                                      )}
+                                      {(user?.role === 'admin' || user?.role === 'staff') && (
+                                        <button 
+                                          onClick={() => {
+                                            if(window.confirm(`Bạn có chắc muốn xóa hóa đơn ${inv.id}?`)) {
+                                              deleteInvoice(inv.id);
+                                              toast.success('Đã xóa hóa đơn');
+                                            }
+                                          }} 
+                                          style={{ padding: '4px 8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                                        >
+                                          Xóa
+                                        </button>
                                       )}
                                     </div>
                                   </td>

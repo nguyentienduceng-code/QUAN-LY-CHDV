@@ -4,35 +4,35 @@ export default function StatusBadge({ status, text }) {
   switch (status) {
     case 'occupied':
     case 'paid':
-      bgColor = 'var(--status-occupied-bg)';
-      textColor = 'var(--status-occupied-text)';
-      borderColor = 'var(--status-occupied-text)';
+      bgColor = '#10b981'; // Nền xanh lá đậm
+      textColor = '#ffffff';
+      borderColor = '#059669';
       break;
     case 'vacant':
-      bgColor = 'var(--status-vacant-bg)';
-      textColor = 'var(--status-vacant-text)';
-      borderColor = 'var(--status-vacant-text)';
+      bgColor = '#64748b'; // Nền xám
+      textColor = '#ffffff';
+      borderColor = '#475569';
       break;
     case 'expiring':
     case 'partial':
     case 'in-progress':
-      bgColor = 'var(--status-expiring-bg)';
-      textColor = 'var(--status-expiring-text)';
-      borderColor = 'var(--status-expiring-text)';
+      bgColor = '#f59e0b'; // Nền cam
+      textColor = '#ffffff';
+      borderColor = '#d97706';
       break;
     case 'overdue':
     case 'unpaid':
     case 'high-priority':
     case 'reported':
-      bgColor = 'var(--status-overdue-bg)';
-      textColor = 'var(--status-overdue-text)';
-      borderColor = 'var(--status-overdue-text)';
+      bgColor = '#ef4444'; // Nền đỏ
+      textColor = '#ffffff';
+      borderColor = '#dc2626';
       break;
     case 'maintenance':
     case 'resolved':
-      bgColor = 'var(--status-maintenance-bg)';
-      textColor = 'var(--status-maintenance-text)';
-      borderColor = 'var(--status-maintenance-text)';
+      bgColor = '#3b82f6'; // Nền xanh dương
+      textColor = '#ffffff';
+      borderColor = '#2563eb';
       break;
     default:
       bgColor = 'var(--bg-secondary)';

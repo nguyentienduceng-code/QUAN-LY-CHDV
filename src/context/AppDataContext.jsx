@@ -387,6 +387,18 @@ export const AppDataProvider = ({ children }) => {
     }
   };
 
+  const deleteInvoice = async (id) => {
+    if (isCloudMode) {
+      try {
+        await deleteDoc(doc(db, 'invoices', String(id)));
+      } catch (err) {
+        console.error("Lỗi khi xóa hóa đơn trên Cloud:", err);
+      }
+    } else {
+      setInvoices(prev => prev.filter(inv => inv.id !== id));
+    }
+  };
+
   // Add a new ticket from Tenant Portal
   const addTicket = async (ticket) => {
     const newTicket = { 
@@ -767,7 +779,7 @@ export const AppDataProvider = ({ children }) => {
       rooms, setRooms, addRoom, removeRoom, updateRoom,
       tenants, setTenants, addTenant, updateTenant, deleteTenant,
       contracts, setContracts, addContract,
-      invoices, setInvoices, addInvoice, updateInvoice,
+      invoices, setInvoices, addInvoice, updateInvoice, deleteInvoice,
       tickets, addTicket, updateTicket, moveTicket,
       users, setUsers, addUser, updateUser, deleteUser,
       notifications, markNotificationAsRead,

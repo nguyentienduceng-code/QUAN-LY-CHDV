@@ -6,13 +6,16 @@ import { exportAllDataToExcel } from '../utils/exportExcel';
 import { useState, useMemo } from 'react';
 import StatusBadge from '../components/StatusBadge';
 import { useCustomPrompt } from '../context/CustomPromptContext';
+import CreateInvoiceModal from '../components/CreateInvoiceModal';
 
 export default function Tenants() {
   const appData = useAppData();
   const customPrompt = useCustomPrompt();
-  const { tenants, rooms, contracts, invoices } = appData;
+  const { tenants, rooms, contracts, invoices, addInvoice } = appData;
   const [selectedRoomName, setSelectedRoomName] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [invoiceRoomName, setInvoiceRoomName] = useState(null);
   const [activeBuilding, setActiveBuilding] = useState('All');
   const [expandedFloors, setExpandedFloors] = useState({});
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'occupied' | 'vacant'
@@ -71,6 +74,16 @@ export default function Tenants() {
     });
 
     toast.success(`Đã tạo hợp đồng và khách thuê thành công cho phòng ${room.name}!`);
+  };
+
+  const handleOpenCreateInvoice = (roomName) => {
+    setInvoiceRoomName(roomName);
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateSave = (invoiceData) => {
+    addInvoice(invoiceData);
+    toast.success('Đã tạo hóa đơn nhanh thành công!');
   };
 
   // Group data: Building -> Floor -> Room -> Tenants
@@ -319,13 +332,22 @@ export default function Tenants() {
                               {room.status === 'vacant' && (
                                 <button 
                                   onClick={() => handleCreateContract(room)}
-                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', transition: '0.2s' }}
+                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
                                 >
-                                  <Plus size={16} /> Tạo HĐ
+                                  Tạo Hợp Đồng
+                                </button>
+                              )}
+                              {room.status !== 'vacant' && (
+                                <button 
+                                  onClick={() => handleOpenCreateInvoice(room.name)}
+                                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                >
+                                  <Plus size={16} /> Tạo Hóa Đơn
                                 </button>
                               )}
                               <button 
-                                onClick={() => { setSelectedRoomName(room.name); setIsDrawerOpen(true); }}
+                                onClick={() => {
+                                  setSelectedRoomName(room.name); setIsDrawerOpen(true); }}
                                 style={{ padding: '8px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500', transition: '0.2s' }}
                               >
                                 <Eye size={16} /> Chi tiết
@@ -354,6 +376,15 @@ export default function Tenants() {
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
         roomName={selectedRoomName} 
+        tenants={tenants}
+        contracts={contracts}
+      />
+
+      <CreateInvoiceModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onSave={handleCreateSave}
+        initialRoomName={invoiceRoomName}
       />
     </div>
   );
