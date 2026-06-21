@@ -4,7 +4,7 @@ import { useAppData } from '../context/AppDataContext';
 
 export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
   const { user } = useAuth();
-  const { settings, rooms, updateInvoice } = useAppData();
+  const { settings, rooms, updateInvoice, tenants } = useAppData();
   if (!isOpen || !invoice) return null;
 
   // Extract raw number from amount string (e.g. "4.500.000" -> 4500000)
@@ -28,7 +28,29 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
   };
 
   const handleSend = () => {
-    import('react-hot-toast').then(toast => toast.default.success(`Đã gửi Phiếu Thu qua Zalo cho khách hàng ${invoice.tenant} thành công!`));
+    const tenantInfo = tenants?.find(t => t.name === invoice.tenant);
+    if (!tenantInfo || !tenantInfo.phone) {
+      import('react-hot-toast').then(toast => toast.default.error('Hồ sơ khách thuê này chưa cập nhật Số điện thoại!'));
+      return;
+    }
+    
+    let msg = `[RentFlow] Thông báo cước phòng ${invoice.room}\n`;
+    msg += `- Mã HĐ: ${invoice.id}\n`;
+    msg += `- Tổng tiền: ${invoice.amount} VNĐ\n`;
+    msg += `- Hạn thanh toán: ${invoice.due}\n\n`;
+    if (invoice.status !== 'paid') {
+      msg += `💳 THÔNG TIN CHUYỂN KHOẢN:\n`;
+      msg += `• Ngân hàng: ${bankName}\n`;
+      msg += `• Số TK: ${bankAccount}\n`;
+      msg += `• Chủ TK: ${bankOwner}\n\n`;
+      msg += `(Vui lòng ghi chú mã HĐ: ${invoice.id})\nCảm ơn bạn!`;
+    } else {
+      msg += `✅ Hóa đơn này đã được xác nhận thanh toán. Cảm ơn bạn!`;
+    }
+
+    const url = `https://zalo.me/${tenantInfo.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+    import('react-hot-toast').then(toast => toast.default.success('Đang mở Zalo...'));
   };
 
   const handleMarkAsPaid = () => {
@@ -46,6 +68,14 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
       <style>
         {`
           @media print {
+            @page {
+              margin: 5mm;
+              size: portrait;
+            }
+            body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
             body * {
               visibility: hidden;
             }
@@ -56,9 +86,16 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
               position: absolute;
               left: 0;
               top: 0;
-              width: 100%;
+              width: 100% !important;
+              max-width: 100% !important;
+              max-height: none !important;
+              overflow: visible !important;
               box-shadow: none !important;
               border: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              transform: scale(0.95);
+              transform-origin: top center;
             }
             .no-print {
               display: none !important;
@@ -68,7 +105,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
       </style>
       <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose} className="no-print"></div>
-        <div id="invoice-print-area" style={{ position: 'relative', width: '450px', background: '#fff', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+        <div id="invoice-print-area" style={{ position: 'relative', width: '450px', maxWidth: '100vw', background: '#fff', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
         
         {/* Header - Receipt Style */}
         <div style={{ padding: '24px 24px 16px', textAlign: 'center', borderBottom: '2px dashed #cbd5e1', position: 'relative' }}>
