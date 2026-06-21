@@ -17,27 +17,101 @@ export default function TenantPortal() {
   // Nâng cấp tài khoản states
   const [selectedPlan, setSelectedPlan] = useState(null); // 'basic' | 'pro'
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   const handleUpgrade = async () => {
     if (!selectedPlan) return;
-    setIsUpgrading(true);
     
-    toast.loading(selectedPlan === 'pro' ? 'Đang chờ thanh toán 199.000đ...' : 'Đang thiết lập hệ thống...', { id: 'upgrade' });
-    
-    // Giả lập delay quét QR hoặc cài đặt dữ liệu
-    setTimeout(async () => {
-      try {
-        await upgradeUserAccount(selectedPlan);
-        toast.success(selectedPlan === 'pro' ? 'Thanh toán & Nâng cấp Gói PRO thành công!' : 'Tạo tài khoản quản lý Cơ bản thành công!', { id: 'upgrade' });
-        navigate('/'); // Chuyển hướng về Home của Manager
-      } catch (err) {
-        toast.error('Có lỗi xảy ra khi nâng cấp!', { id: 'upgrade' });
-      }
-      setIsUpgrading(false);
-    }, 2500);
+    if (selectedPlan === 'pro' || selectedPlan === 'basic') {
+      setShowPayment(true);
+      return;
+    }
   };
 
-  if (user?.role === 'guest') {
+  const handleConfirmPayment = async () => {
+    setIsUpgrading(true);
+    toast.loading('Đang gửi thông tin xác nhận...', { id: 'upgrade' });
+    setTimeout(async () => {
+      try {
+        await upgradeUserAccount(selectedPlan === 'pro' ? 'pending_pro' : 'pending_basic');
+        toast.success('Đã gửi yêu cầu! Vui lòng chờ BQL duyệt.', { id: 'upgrade' });
+      } catch (err) {
+        toast.error('Lỗi gửi yêu cầu!', { id: 'upgrade' });
+      }
+      setIsUpgrading(false);
+    }, 2000);
+  };
+
+  const isTrialExpired = user?.plan === 'trial' && new Date() > new Date(user?.trialEndsAt);
+
+  if (user?.role === 'guest' || isTrialExpired) {
+    if (user?.plan === 'pending_pro' || user?.plan === 'pending_basic') {
+      return (
+        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '40px 16px 100px', fontFamily: 'var(--font-main)', textAlign: 'center' }}>
+          <div className="bg-animation">
+            <div className="bg-orb bg-orb-1"></div>
+            <div className="bg-orb bg-orb-2"></div>
+          </div>
+          <div style={{ position: 'relative', zIndex: 1, background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(16px)', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '32px 20px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'inline-flex', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '16px', borderRadius: '50%', marginBottom: '24px' }}>
+              <Bell size={40} style={{ animation: 'pulse 2s infinite' }} />
+            </div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '12px' }}>Đang chờ duyệt thanh toán</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '24px' }}>
+              Cảm ơn <strong>{user.name}</strong>. Yêu cầu nâng cấp của bạn đang được Quản trị viên kiểm tra và phê duyệt.
+            </p>
+            <button onClick={logout} style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '12px', cursor: 'pointer', fontWeight: '600' }}>
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (showPayment) {
+      return (
+        <div style={{ maxWidth: '480px', margin: '0 auto', padding: '40px 16px 100px', fontFamily: 'var(--font-main)', textAlign: 'center' }}>
+          <div className="bg-animation">
+            <div className="bg-orb bg-orb-1"></div>
+          </div>
+          <div style={{ position: 'relative', zIndex: 1, background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(16px)', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '32px 20px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>Thanh toán Gói {selectedPlan === 'pro' ? 'PRO' : 'CƠ BẢN'}</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '24px' }}>
+              Vui lòng chuyển khoản số tiền <strong>{selectedPlan === 'pro' ? '199.000đ' : '69.000đ'}</strong> vào tài khoản MoMo bên dưới để kích hoạt gói cước.
+            </p>
+
+            <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '24px', marginBottom: '24px', textAlign: 'center' }}>
+              <div style={{ background: '#A50064', color: '#fff', display: 'inline-flex', padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', marginBottom: '16px', fontSize: '1.2rem' }}>
+                Ví MoMo
+              </div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '2px' }}>0981 019 694</div>
+              <div style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>NGUYỄN TIẾN ĐỨC</div>
+              
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Nội dung chuyển khoản:<br/>
+                <strong style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>{selectedPlan === 'pro' ? 'PRO' : 'BASIC'} {user.email}</strong>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleConfirmPayment}
+              disabled={isUpgrading}
+              style={{ width: '100%', padding: '14px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '12px', cursor: isUpgrading ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '1rem', marginBottom: '12px' }}
+            >
+              {isUpgrading ? 'Đang xử lý...' : 'Tôi đã chuyển khoản'}
+            </button>
+            <button 
+              onClick={() => setShowPayment(false)}
+              disabled={isUpgrading}
+              style={{ width: '100%', padding: '14px', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-glass)', borderRadius: '12px', cursor: 'pointer', fontWeight: '600' }}
+            >
+              Quay lại chọn gói
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div style={{ maxWidth: '480px', margin: '0 auto', padding: '40px 16px 100px', fontFamily: 'var(--font-main)', textAlign: 'center' }}>
         <div className="bg-animation">
@@ -45,9 +119,13 @@ export default function TenantPortal() {
           <div className="bg-orb bg-orb-2"></div>
         </div>
         <div style={{ position: 'relative', zIndex: 1, background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(16px)', border: '1px solid var(--border-glass)', borderRadius: '24px', padding: '32px 20px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>Nâng cấp Tài Khoản</h2>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>
+            {isTrialExpired ? 'Hết hạn Dùng thử' : 'Nâng cấp Tài Khoản'}
+          </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '24px' }}>
-            Chào <strong>{user.name}</strong>, chọn một gói để bắt đầu quản lý nhà trọ của bạn.
+            {isTrialExpired 
+              ? `Thời gian dùng thử 30 ngày của bạn đã kết thúc. Vui lòng nâng cấp gói để tiếp tục quản lý nhà trọ.`
+              : `Chào ${user.name}, chọn một gói để bắt đầu quản lý nhà trọ của bạn.`}
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px', textAlign: 'left' }}>
@@ -60,7 +138,7 @@ export default function TenantPortal() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: selectedPlan === 'basic' ? '#3b82f6' : 'var(--text-primary)', fontWeight: 'bold', fontSize: '1.1rem' }}>
                   <Home size={20} /> Cơ Bản
                 </div>
-                <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '1.1rem' }}>Miễn phí</div>
+                <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '1.1rem' }}>69k<span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>/tháng</span></div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}><CheckCircle2 size={14} color="#10b981" /> Quản lý tối đa 1 nhà (chi nhánh)</li>
@@ -111,7 +189,7 @@ export default function TenantPortal() {
               marginBottom: '16px'
             }}
           >
-            {isUpgrading ? 'Đang xử lý...' : (selectedPlan === 'pro' ? 'Thanh toán & Nâng Cấp' : 'Bắt đầu sử dụng')}
+            {isUpgrading ? 'Đang xử lý...' : (selectedPlan === 'pro' ? 'Tiếp tục Thanh Toán' : 'Bắt đầu sử dụng')}
             {!isUpgrading && selectedPlan && <ArrowRight size={18} />}
           </button>
 

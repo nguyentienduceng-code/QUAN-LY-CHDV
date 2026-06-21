@@ -17,6 +17,13 @@ export default function Header({ toggleSidebar }) {
 
   const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
+  // Tính số ngày dùng thử còn lại
+  let trialRemaining = null;
+  if (user?.plan === 'trial' && user?.trialEndsAt) {
+    const remainingMs = new Date(user.trialEndsAt) - new Date();
+    trialRemaining = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+  }
+
   return (
     <header className="header" style={{ color: 'var(--sidebar-text)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -32,6 +39,12 @@ export default function Header({ toggleSidebar }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        {trialRemaining !== null && (
+          <div className="hide-on-mobile" style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.5)', color: '#f59e0b', padding: '6px 12px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+             Dùng thử: Còn {trialRemaining} ngày
+          </div>
+        )}
+        
         {/* Notifications Dropdown */}
         <div style={{ position: 'relative' }}>
           <div style={{ cursor: 'pointer', position: 'relative' }} onClick={() => setShowNotifications(!showNotifications)}>

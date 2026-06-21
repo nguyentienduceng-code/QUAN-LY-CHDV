@@ -16,6 +16,7 @@ import TenantPortal from './pages/TenantPortal';
 import FinanceAndTenants from './pages/FinanceAndTenants';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
+import SuperAdmin from './pages/SuperAdmin';
 import BottomTabBar from './components/BottomTabBar';
 import { useAppData } from './context/AppDataContext';
 import DevBackdoor from './components/DevBackdoor';
@@ -40,6 +41,8 @@ function MainLayout() {
   const { user } = useAuth();
   const { loading } = useAppData();
 
+  const isTrialExpired = user?.plan === 'trial' && new Date() > new Date(user?.trialEndsAt);
+
   if (loading) {
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
@@ -58,6 +61,24 @@ function MainLayout() {
           <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px' }}>Vui lòng chờ trong giây lát</div>
         </div>
       </div>
+    );
+  }
+
+  if (isTrialExpired) {
+    return (
+      <>
+        <div className="bg-animation">
+          <div className="bg-orb bg-orb-1"></div>
+          <div className="bg-orb bg-orb-2"></div>
+        </div>
+        <div className="app-container" style={{ padding: 0 }}>
+          <main className="main-content" style={{ marginLeft: 0, paddingLeft: 0, width: '100vw' }}>
+            <div className="page-content" style={{ paddingTop: '40px' }}>
+              <TenantPortal />
+            </div>
+          </main>
+        </div>
+      </>
     );
   }
 
@@ -89,6 +110,7 @@ function MainLayout() {
               <Route path="/maintenance" element={<Maintenance />} />
               <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><Users /></ProtectedRoute>} />
+              <Route path="/super-admin" element={<SuperAdmin />} />
               
               {/* Tenant Routes */}
               <Route path="/tenant-portal" element={<TenantPortal />} />

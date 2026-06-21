@@ -49,6 +49,11 @@ export default function Rooms() {
   };
 
   const handleAddRoom = async () => {
+    if (user?.plan === 'basic' && rooms.length >= 15) {
+      toast.error('Gói Cơ Bản chỉ cho phép tạo tối đa 15 phòng. Vui lòng nâng cấp Gói PRO để thêm phòng!');
+      return;
+    }
+
     const name = await customPrompt(`Nhập Tên Phòng Mới cho Tòa ${activeBuilding} (Ví dụ: P.109):`);
     if (!name) return;
 
@@ -189,6 +194,10 @@ export default function Rooms() {
                   {(user?.role === 'admin' || user?.role === 'staff') && (
                     <button 
                       onClick={async () => {
+                        if (user?.plan === 'basic') {
+                          toast.error('Gói Cơ Bản chỉ cho phép quản lý 1 tòa nhà. Vui lòng nâng cấp Gói PRO để thêm nhà!');
+                          return;
+                        }
                         const newName = await customPrompt('Nhập tên tòa nhà mới:');
                         if (newName && newName.trim()) {
                           if (addNewBuilding(newName.trim())) {
@@ -253,7 +262,7 @@ export default function Rooms() {
             )}
             <StatusBadge status="vacant" text={`Trống: ${displayedRooms.filter(r => r.status === 'vacant').length}`} />
             {(user?.role === 'admin' || user?.role === 'staff') && (
-              <button onClick={handleAddRoom} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600', marginLeft: '12px' }}>
+              <button onClick={handleAddRoom} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600', marginLeft: '12px', opacity: (user?.plan === 'basic' && rooms.length >= 15) ? 0.5 : 1 }}>
                 <Plus size={16} /> Tạo Phòng Mới
               </button>
             )}

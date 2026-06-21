@@ -107,6 +107,16 @@ export const AuthProvider = ({ children }) => {
           }
         }
       }
+      
+      // Mặc định đăng ký mới sẽ nhận gói dùng thử 30 ngày (nếu không phải là khách thuê)
+      let trialEndsAt = null;
+      let plan = 'none';
+      
+      if (determinedRole === 'guest') {
+        determinedRole = 'admin'; // Cấp thẳng quyền admin để trải nghiệm thả ga
+        plan = 'trial';
+        trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
 
       const newUser = {
         id: `usr-${firebaseUser.uid}`,
@@ -114,7 +124,9 @@ export const AuthProvider = ({ children }) => {
         name: tenantName,
         role: determinedRole,
         room: determinedRoom,
-        uid: firebaseUser.uid
+        uid: firebaseUser.uid,
+        plan: plan,
+        trialEndsAt: trialEndsAt
       };
 
       // Save to Firestore
@@ -133,7 +145,9 @@ export const AuthProvider = ({ children }) => {
         email: newUser.email,
         uid: newUser.uid,
         role: newUser.role,
-        room: newUser.room
+        room: newUser.room,
+        plan: newUser.plan,
+        trialEndsAt: newUser.trialEndsAt
       });
 
       return newUser;
@@ -146,24 +160,37 @@ export const AuthProvider = ({ children }) => {
   const upgradeUserAccount = async (planId) => {
     if (!user) return null;
     
-    const newRole = planId === 'pro' ? 'admin' : 'manager';
+    let newRole = 'manager';
+    let newPlan = planId; // 'basic', 'pro', or 'pending_pro'
+    
+    if (planId === 'pro') {
+      newRole = 'admin'; // Cấp thẳng admin nếu nâng cấp tự động (hoặc qua Super Admin)
+    } else if (planId === 'pending_pro') {
+      newRole = 'guest'; // Chờ duyệt, chưa được vào hệ thống
+    }
+
+    const updatedData = { 
+      role: newRole, 
+      plan: newPlan,
+      ownerId: user.uid || user.email // Chủ của workspace
+    };
     
     try {
       const userRef = doc(db, 'users', `usr-${user.uid || user.email}`);
-      await setDoc(userRef, { role: newRole }, { merge: true });
+      await setDoc(userRef, updatedData, { merge: true });
     } catch (err) {
       console.warn("Lỗi cập nhật role trên Firestore, lưu local:", err);
       const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
       const userIndex = localUsers.findIndex(u => (u.uid === user.uid || u.email === user.email));
       if (userIndex !== -1) {
-        localUsers[userIndex].role = newRole;
+        localUsers[userIndex] = { ...localUsers[userIndex], ...updatedData };
       } else {
-        localUsers.push({ ...user, role: newRole, id: `usr-${user.uid || user.email}` });
+        localUsers.push({ ...user, ...updatedData, id: `usr-${user.uid || user.email}` });
       }
       localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
     }
 
-    const updatedUser = { ...user, role: newRole };
+    const updatedUser = { ...user, ...updatedData };
     login(updatedUser);
     return updatedUser;
   };

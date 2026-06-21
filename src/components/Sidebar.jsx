@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home as HomeIcon, Grid, Users, FileSpreadsheet, Wrench, Moon, Sun, Settings, Key } from 'lucide-react';
+import { Home as HomeIcon, Grid, Users, FileSpreadsheet, Wrench, Moon, Sun, Settings, Key, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -22,6 +22,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   if (user?.role === 'admin') {
     managerNavItems.push({ path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> });
     managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
+  }
+  
+  if (user?.email === 'nguyentienducbmt123@gmail.com' || user?.email === 'admin@gmail.com') {
+    managerNavItems.push({ path: '/super-admin', label: 'Phê duyệt (MoMo)', icon: <Shield size={20} /> });
   }
 
   const tenantNavItems = [
