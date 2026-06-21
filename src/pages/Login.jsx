@@ -32,13 +32,18 @@ export default function Login() {
     try {
       await loginWithGoogle();
       toast.success('Đăng nhập qua Google thành công!');
-      navigate('/');
+      // Navigation is handled by the useEffect watching user state
     } catch (error) {
       console.error(error);
       if (error.code === 'auth/configuration-not-found' || error.message.includes('CONFIGURATION_NOT_FOUND') || error.code === 'auth/invalid-api-key') {
-        toast.success('Đã vào Chế độ Demo: Đăng nhập Google thành công (Do Firebase chưa cấu hình)!');
-        login({ name: 'Khách Demo Google', role: 'tenant', room: 'P.VIP', email: 'khach.google@gmail.com' });
-        navigate('/tenant-portal');
+        toast.success('Đã vào Chế độ Demo: Đăng nhập Google thành công!');
+        if (role === 'manager') {
+          login({ name: 'Quản Lý Demo Google', role: 'admin', email: 'admin.google@gmail.com' });
+          navigate('/');
+        } else {
+          login({ name: 'Khách Demo Google', role: 'tenant', room: 'P.VIP', email: 'khach.google@gmail.com' });
+          navigate('/tenant-portal');
+        }
       } else {
         toast.error('Lỗi: ' + error.message);
       }
