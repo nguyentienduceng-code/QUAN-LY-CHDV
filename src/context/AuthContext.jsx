@@ -33,6 +33,13 @@ export const AuthProvider = ({ children }) => {
           registeredUser = allUsers.find(u => u.email === firebaseUser.email);
         }
         
+        if (registeredUser?.status === 'blocked') {
+          import('react-hot-toast').then(m => m.default.error('Tài khoản của bạn đã bị khóa truy cập.'));
+          firebaseSignOut();
+          setUser(null);
+          return;
+        }
+
         let finalRole = registeredUser?.role;
         let finalPlan = registeredUser?.plan;
         let finalTrialEndsAt = registeredUser?.trialEndsAt;
