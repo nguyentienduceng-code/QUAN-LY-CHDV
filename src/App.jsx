@@ -105,12 +105,12 @@ function MainLayout() {
               
               {/* Manager/Staff Routes */}
               <Route path="/rooms" element={<Rooms />} />
-              <Route path="/finance" element={<ProtectedRoute allowedRoles={['admin', 'staff', 'viewer']}><FinanceAndTenants /></ProtectedRoute>} />
-              <Route path="/tenants" element={<ProtectedRoute allowedRoles={['admin', 'staff', 'viewer']}><Tenants /></ProtectedRoute>} />
-              <Route path="/contracts" element={<ProtectedRoute allowedRoles={['admin', 'staff', 'viewer']}><Contracts /></ProtectedRoute>} />
+              <Route path="/finance" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><FinanceAndTenants /></ProtectedRoute>} />
+              <Route path="/tenants" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><Tenants /></ProtectedRoute>} />
+              <Route path="/contracts" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><Contracts /></ProtectedRoute>} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><Settings /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><Users /></ProtectedRoute>} />
               <Route path="/super-admin" element={<SuperAdmin />} />
               

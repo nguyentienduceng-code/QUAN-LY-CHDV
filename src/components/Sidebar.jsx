@@ -19,8 +19,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { path: '/maintenance', label: 'Bảo trì (Kanban)', icon: <Wrench size={20} /> },
   ];
 
-  if (user?.role === 'admin') {
+  if (user?.role === 'admin' || user?.role === 'manager') {
     managerNavItems.push({ path: '/settings', label: 'Cấu hình', icon: <Settings size={20} /> });
+  }
+  if (user?.role === 'admin') {
     managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
   }
   
