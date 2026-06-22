@@ -2,44 +2,76 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Hàm lấy dữ liệu User đang đăng nhập (bằng Email)
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.token.email)).data;
-    }
-    
-    // Hàm kiểm tra Super Admin
+    // Helper: Is Super Admin
+    // TODO: Transition to Custom Claims `request.auth.token.isSuperAdmin == true`
     function isSuperAdmin() {
       return request.auth != null && request.auth.token.email == 'nguyentienducbmt123@gmail.com';
     }
-    
-    // Hàm kiểm tra xem User có quyền truy cập ownerId này không
-    function isOwner(targetOwnerId) {
-      return request.auth != null && 
-             (request.auth.uid == targetOwnerId || getUserData().ownerId == targetOwnerId);
+
+    // Helper: Is Workspace Owner
+    function isOwner(oid) {
+      return request.auth != null && request.auth.uid == oid;
     }
 
-    // Bảng Users
-    match /users/{userId} {
-      // Cho phép đăng nhập lấy thông tin cá nhân
-      allow read: if request.auth != null && request.auth.token.email == userId;
-      // Cho phép tài khoản mới tạo hồ sơ
-      allow create: if request.auth != null && request.auth.token.email == userId && request.resource.data.ownerId == request.auth.uid;
-      // Admin/Manager quản lý nhân viên của mình VÀ SuperAdmin có toàn quyền
-      allow read, update, delete: if isSuperAdmin() || (request.auth != null && 
-                            (isOwner(resource.data.ownerId) || isOwner(request.resource.data.ownerId)));
+    // Helper: Is Workspace Staff/Tenant
+    function isOwnerOrStaff(oid) {
+      return request.auth != null && (
+        request.auth.uid == oid || 
+        get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.ownerId == oid
+      );
     }
 
-    // Bảng Settings
+    // Users Collection
+    match /users/{email} {
+      // Allow user to read their own data
+      allow read: if isSuperAdmin() || (request.auth != null && request.auth.token.email == email);
+      // Allow creating profile
+      allow create: if request.auth != null && request.auth.token.email == email;
+      // Allow workspace owner/manager to update their staff/tenants
+      allow update, delete: if isSuperAdmin() || (
+        request.auth != null && isOwnerOrStaff(resource.data.ownerId)
+      );
+    }
+
+    // Settings Collection
     match /settings/{docId} {
-      allow create: if isSuperAdmin() || (request.auth != null && request.auth.uid == docId);
-      allow read, update, delete: if isSuperAdmin() || (request.auth != null && (request.auth.uid == docId || getUserData().ownerId == docId));
+      // docId is the ownerId
+      allow read, write: if isSuperAdmin() || isOwnerOrStaff(docId);
     }
 
-    // Áp dụng cho TẤT CẢ các bảng còn lại (rooms, tenants, contracts, invoices, tickets...)
-    match /{collection}/{document=**} {
-      allow create: if isSuperAdmin() || (request.auth != null && isOwner(request.resource.data.ownerId));
-      allow read, update, delete: if isSuperAdmin() || (request.auth != null && 
-                            (isOwner(resource.data.ownerId) || isOwner(request.resource.data.ownerId)));
+    // Rooms Collection
+    match /rooms/{docId} {
+      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+    }
+
+    // Tenants Collection
+    match /tenants/{docId} {
+      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+    }
+
+    // Contracts Collection
+    match /contracts/{docId} {
+      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+    }
+
+    // Invoices Collection
+    match /invoices/{docId} {
+      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+    }
+
+    // Tickets Collection
+    match /tickets/{docId} {
+      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
     }
   }
 }

@@ -325,7 +325,8 @@ export const AppDataProvider = ({ children }) => {
 
   // Add new tenant
   const addTenant = async (tenant) => {
-    const newTenant = { ...tenant, id: tenant.id || `TEN-${1000 + tenants.length + 1}`, status: 'active', ownerId };
+    const newId = tenant.id || `${ownerId}_TEN_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const newTenant = { ...tenant, id: newId, status: 'active', ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'tenants', String(newTenant.id)), newTenant);
@@ -363,7 +364,8 @@ export const AppDataProvider = ({ children }) => {
 
   // Add new contract
   const addContract = async (contract) => {
-    const newContract = { ...contract, id: contract.id || `CTR-2026-${100 + contracts.length + 1}`, status: 'active', ownerId };
+    const newId = contract.id || `${ownerId}_CTR_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const newContract = { ...contract, id: newId, status: 'active', ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'contracts', String(newContract.id)), newContract);
@@ -388,7 +390,9 @@ export const AppDataProvider = ({ children }) => {
   };
 
   const addInvoice = async (invoice) => {
-    const newInvoice = { ...invoice, id: invoice.id || `INV-2026-06-0${invoices.length + 1}`, status: invoice.status || 'unpaid', ownerId };
+    const monthStr = invoice.month || new Date().toISOString().slice(0, 7).replace('-', '');
+    const newId = invoice.id || `${ownerId}_INV_${monthStr}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const newInvoice = { ...invoice, id: newId, status: invoice.status || 'unpaid', ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'invoices', String(newInvoice.id)), newInvoice);
@@ -427,9 +431,10 @@ export const AppDataProvider = ({ children }) => {
 
   // Add a new ticket from Tenant Portal
   const addTicket = async (ticket) => {
+    const newId = ticket.id || `${ownerId}_TKT_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const newTicket = { 
       ...ticket, 
-      id: ticket.id || `TKT-${Math.floor(Math.random() * 1000)}`, 
+      id: newId, 
       date: ticket.date || new Date().toLocaleDateString('vi-VN'),
       status: 'reported',
       ownerId
@@ -519,7 +524,8 @@ export const AppDataProvider = ({ children }) => {
 
   // Room Management
   const addRoom = async (roomData) => {
-    const newRoom = { ...roomData, id: Date.now(), status: 'vacant', tenant: null, ownerId };
+    const newId = `${ownerId}_R_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const newRoom = { ...roomData, id: newId, status: 'vacant', tenant: null, ownerId };
     if (isCloudMode) {
       try {
         await setDoc(doc(db, 'rooms', String(newRoom.id)), newRoom);

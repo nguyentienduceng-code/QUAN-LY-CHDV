@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }) => {
           }
 
           if (needsUpdate) {
-            const docId = registeredUser.id || firebaseUser.email || `usr-${firebaseUser.uid}`;
+            const docId = registeredUser.email || firebaseUser.email;
             setDoc(doc(db, 'users', docId), updatedFields, { merge: true })
               .then(() => console.log("Đã tự động cập nhật tài khoản khách thuê."))
               .catch(err => console.warn("Lỗi tự động cập nhật người dùng:", err));
@@ -257,7 +257,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const newUser = {
-        id: `usr-${firebaseUser.uid}`,
+        id: email,
         email: email,
         name: tenantName,
         role: determinedRole,
@@ -331,7 +331,7 @@ export const AuthProvider = ({ children }) => {
     }
     
     try {
-      const userRef = doc(db, 'users', `usr-${user.uid || user.email}`);
+      const userRef = doc(db, 'users', user.email);
       await setDoc(userRef, updatedData, { merge: true });
     } catch (err) {
       console.warn("Lỗi cập nhật role trên Firestore, lưu local:", err);
@@ -340,7 +340,7 @@ export const AuthProvider = ({ children }) => {
       if (userIndex !== -1) {
         localUsers[userIndex] = { ...localUsers[userIndex], ...updatedData };
       } else {
-        localUsers.push({ ...user, ...updatedData, id: `usr-${user.uid || user.email}` });
+        localUsers.push({ ...user, ...updatedData, id: user.email });
       }
       localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
     }
