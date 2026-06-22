@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreditCard, FileText, Wrench, Eye, Bell, QrCode, CheckCircle2, Crown, Home, ArrowRight } from 'lucide-react';
+import { CreditCard, FileText, Wrench, Eye, Bell, QrCode, CheckCircle2, Crown, Home, ArrowRight, Grid } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
@@ -371,14 +371,18 @@ export default function TenantPortal() {
       {/* Services Grid */}
       <div style={{ padding: '0 16px', marginBottom: '16px' }}>
         <div style={{ fontWeight: '700', fontSize: '1rem', marginBottom: '12px', color: 'var(--text-primary)' }}>Dịch vụ của bạn</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <button style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '14px', padding: '18px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <div style={{ background: 'rgba(59,130,246,0.1)', padding: '12px', borderRadius: '50%', color: '#3b82f6' }}><FileText size={24} /></div>
-            <span style={{ fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-primary)' }}>Hợp đồng</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+          <button style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '14px', padding: '16px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <div style={{ background: 'rgba(59,130,246,0.1)', padding: '12px', borderRadius: '50%', color: '#3b82f6' }}><FileText size={22} /></div>
+            <span style={{ fontWeight: '600', fontSize: '0.78rem', color: 'var(--text-primary)', textAlign: 'center' }}>Hợp đồng</span>
           </button>
-          <button onClick={() => setIsReportModalOpen(true)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '14px', padding: '18px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <div style={{ background: 'rgba(239,68,68,0.1)', padding: '12px', borderRadius: '50%', color: '#ef4444' }}><Wrench size={24} /></div>
-            <span style={{ fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-primary)' }}>Báo hỏng</span>
+          <button onClick={() => setIsReportModalOpen(true)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '14px', padding: '16px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <div style={{ background: 'rgba(239,68,68,0.1)', padding: '12px', borderRadius: '50%', color: '#ef4444' }}><Wrench size={22} /></div>
+            <span style={{ fontWeight: '600', fontSize: '0.78rem', color: 'var(--text-primary)', textAlign: 'center' }}>Báo hỏng</span>
+          </button>
+          <button onClick={() => navigate('/rooms')} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '14px', padding: '16px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <div style={{ background: 'rgba(16,185,129,0.1)', padding: '12px', borderRadius: '50%', color: '#10b981' }}><Grid size={22} /></div>
+            <span style={{ fontWeight: '600', fontSize: '0.78rem', color: 'var(--text-primary)', textAlign: 'center' }}>Phòng trống</span>
           </button>
         </div>
       </div>
