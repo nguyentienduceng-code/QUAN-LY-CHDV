@@ -167,7 +167,7 @@ export default function Settings() {
           {formData.buildings.map(b => (
             <button
               key={b}
-              onClick={() => setSelectedBuilding(b)}
+              onClick={() => { setSelectedBuilding(b); setUtilityElec(''); setUtilityWater(''); }}
               style={{
                 padding: '10px 24px',
                 borderRadius: '8px',
