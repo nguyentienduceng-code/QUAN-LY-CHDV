@@ -7,12 +7,6 @@ service cloud.firestore {
     function isSuperAdmin() {
       return request.auth != null && request.auth.token.email == 'nguyentienducbmt123@gmail.com';
     }
-
-    // Helper: Is Workspace Owner
-    function isOwner(oid) {
-      return request.auth != null && request.auth.uid == oid;
-    }
-
     // Helper: Is Workspace Staff/Tenant
     function isOwnerOrStaff(oid) {
       return request.auth != null && (
@@ -23,10 +17,16 @@ service cloud.firestore {
 
     // Users Collection
     match /users/{email} {
-      // Allow user to read their own data
-      allow read: if isSuperAdmin() || (request.auth != null && request.auth.token.email == email);
-      // Allow creating profile
-      allow create: if request.auth != null && request.auth.token.email == email;
+      // Allow user to read their own data, or workspace owner/staff to read member data
+      allow read: if isSuperAdmin() || (request.auth != null && (
+        request.auth.token.email == email || 
+        isOwnerOrStaff(resource.data.ownerId)
+      ));
+      // Allow creating profile or workspace owner/staff to create member profile
+      allow create: if request.auth != null && (
+        request.auth.token.email == email || 
+        isOwnerOrStaff(request.resource.data.ownerId)
+      );
       // Allow workspace owner/manager to update their staff/tenants
       allow update, delete: if isSuperAdmin() || (
         request.auth != null && isOwnerOrStaff(resource.data.ownerId)
@@ -48,7 +48,9 @@ service cloud.firestore {
 
     // Tenants Collection
     match /tenants/{docId} {
-      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow read: if isSuperAdmin() || 
+                  isOwnerOrStaff(resource.data.ownerId) || 
+                  (request.auth != null && request.auth.token.email == resource.data.email);
       allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
       allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
     }

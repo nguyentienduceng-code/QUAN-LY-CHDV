@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAppData } from '../context/AppDataContext';
-import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
@@ -9,6 +9,51 @@ export default function Settings() {
   const [selectedBuilding, setSelectedBuilding] = useState(settings.buildings[0] || 'A');
   const [isDragging, setIsDragging] = useState(false);
   const qrInputRef = useRef(null);
+
+  // Monthly utility entry state
+  const now = new Date();
+  const defaultMonth = `${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+  const [utilityMonth, setUtilityMonth] = useState(defaultMonth);
+  const [utilityElec, setUtilityElec] = useState('');
+  const [utilityWater, setUtilityWater] = useState('');
+
+  const currentMode = formData.prices?.[selectedBuilding]?.utilityCalcMode || 'tenant_only';
+  const monthlyUtility = formData.prices?.[selectedBuilding]?.monthlyUtility || {};
+
+  const handleAddMonthlyUtility = () => {
+    if (!utilityMonth) { toast.error('Vui lòng chọn tháng!'); return; }
+    if (currentMode === 'tenant_only') { toast.error('Chế độ hiện tại không cần nhập chỉ số dịch vụ!'); return; }
+    const elec = Number(utilityElec) || 0;
+    const water = Number(utilityWater) || 0;
+    setFormData(prev => ({
+      ...prev,
+      prices: {
+        ...prev.prices,
+        [selectedBuilding]: {
+          ...(prev.prices[selectedBuilding] || {}),
+          monthlyUtility: {
+            ...(prev.prices[selectedBuilding]?.monthlyUtility || {}),
+            [utilityMonth]: { elec, water }
+          }
+        }
+      }
+    }));
+    toast.success(`Đã lưu chỉ số tháng ${utilityMonth} vào bộ nhớ tạm. Nhấn "Lưu Thay Đổi" để xác nhận.`);
+  };
+
+  const handleDeleteMonthlyUtility = (monthKey) => {
+    setFormData(prev => {
+      const newMonthly = { ...(prev.prices[selectedBuilding]?.monthlyUtility || {}) };
+      delete newMonthly[monthKey];
+      return {
+        ...prev,
+        prices: {
+          ...prev.prices,
+          [selectedBuilding]: { ...(prev.prices[selectedBuilding] || {}), monthlyUtility: newMonthly }
+        }
+      };
+    });
+  };
 
   const handleImageUpload = (file) => {
     if (!file) return;
@@ -85,10 +130,7 @@ export default function Settings() {
   };
 
   const handleSave = () => {
-    // Convert string inputs to numbers where appropriate
     const updated = { ...formData };
-    
-    // Ensure all prices are numbers
     if (updated.prices) {
       Object.keys(updated.prices).forEach(b => {
         updated.prices[b] = {
@@ -99,10 +141,11 @@ export default function Settings() {
           baseRent: Number(updated.prices[b].baseRent || 0),
           baseElectricityPrice: Number(updated.prices[b].baseElectricityPrice || 0),
           baseWaterPrice: Number(updated.prices[b].baseWaterPrice || 0),
+          utilityCalcMode: updated.prices[b].utilityCalcMode || 'tenant_only',
+          monthlyUtility: updated.prices[b].monthlyUtility || {},
         };
       });
     }
-
     setSettings(updated);
     toast.success('Đã lưu cấu hình chung thành công!');
   };
@@ -181,7 +224,7 @@ export default function Settings() {
               
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  <Droplets size={16} /> Giá Nước Gốc (VNĐ/người/tháng)
+                  <Droplets size={16} /> Giá Nước Gốc (VNĐ/khối)
                 </label>
                 <input 
                   type="number" 
@@ -190,6 +233,126 @@ export default function Settings() {
                   onChange={handlePriceChange} 
                   style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }} 
                 />
+              </div>
+
+              {/* Monthly Utility Section */}
+              <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-glass)', marginTop: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                  <Zap size={16} /> Phương thức tính Điện/Nước Gốc
+                </label>
+
+                <select
+                  name="utilityCalcMode"
+                  value={currentMode}
+                  onChange={handlePriceChange}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', appearance: 'auto', marginBottom: '12px', fontFamily: 'inherit' }}
+                >
+                  <option value="tenant_only" style={{ background: '#1e293b' }}>Chỉ theo hóa đơn khách thuê</option>
+                  <option value="add_service" style={{ background: '#1e293b' }}>Cộng thêm điện/nước dịch vụ chung</option>
+                  <option value="total_building" style={{ background: '#1e293b' }}>Nhập tổng toàn nhà (đồng hồ tổng)</option>
+                </select>
+
+                {currentMode !== 'tenant_only' && (
+                  <div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '10px', padding: '8px', background: 'rgba(212,184,149,0.05)', borderRadius: '6px', borderLeft: '3px solid var(--accent-primary)' }}>
+                      {currentMode === 'add_service'
+                        ? 'Nhập số điện/nước dùng cho hành lang, giặt ủi, dịch vụ chung... mỗi tháng riêng biệt.'
+                        : 'Nhập tổng số điện/nước trên đồng hồ tổng của toàn tòa nhà mỗi tháng.'}
+                    </div>
+
+                    {/* Monthly entry form */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '8px', alignItems: 'end', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>Tháng</label>
+                        <input
+                          type="text"
+                          placeholder="MM-YYYY"
+                          value={utilityMonth}
+                          onChange={e => setUtilityMonth(e.target.value)}
+                          style={{ width: '100%', padding: '8px 10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '6px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.9rem' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
+                          {currentMode === 'add_service' ? 'Điện DV (kWh)' : 'Tổng Điện (kWh)'}
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={utilityElec}
+                          onChange={e => setUtilityElec(e.target.value)}
+                          style={{ width: '100%', padding: '8px 10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '6px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.9rem' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
+                          {currentMode === 'add_service' ? 'Nước DV (m³)' : 'Tổng Nước (m³)'}
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={utilityWater}
+                          onChange={e => setUtilityWater(e.target.value)}
+                          style={{ width: '100%', padding: '8px 10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '6px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.9rem' }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddMonthlyUtility}
+                        style={{ padding: '8px 12px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600', whiteSpace: 'nowrap' }}
+                      >
+                        <Plus size={16} /> Thêm
+                      </button>
+                    </div>
+
+                    {/* Monthly history table */}
+                    {Object.keys(monthlyUtility).length > 0 && (
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                          <thead>
+                            <tr style={{ background: 'rgba(255,255,255,0.04)' }}>
+                              <th style={{ padding: '8px 10px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '600', borderBottom: '1px solid var(--border-glass)' }}>Tháng</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)', fontWeight: '600', borderBottom: '1px solid var(--border-glass)' }}>Điện (kWh)</th>
+                              <th style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-secondary)', fontWeight: '600', borderBottom: '1px solid var(--border-glass)' }}>Nước (m³)</th>
+                              <th style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-glass)' }}></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(monthlyUtility)
+                              .sort(([a], [b]) => {
+                                const [am, ay] = a.split('-').map(Number);
+                                const [bm, by] = b.split('-').map(Number);
+                                return by !== ay ? by - ay : bm - am;
+                              })
+                              .map(([monthKey, vals]) => (
+                                <tr key={monthKey} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                  <td style={{ padding: '8px 10px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                                    {(() => { const [m, y] = monthKey.split('-'); return `T${m}/${y}`; })()}
+                                  </td>
+                                  <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--status-occupied-text)' }}>{vals.elec?.toLocaleString('vi-VN')}</td>
+                                  <td style={{ padding: '8px 10px', textAlign: 'right', color: '#60a5fa' }}>{vals.water?.toLocaleString('vi-VN')}</td>
+                                  <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteMonthlyUtility(monthKey)}
+                                      style={{ background: 'transparent', border: 'none', color: 'var(--status-overdue)', cursor: 'pointer', padding: '4px' }}
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    {Object.keys(monthlyUtility).length === 0 && (
+                      <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', padding: '12px', background: 'rgba(0,0,0,0.1)', borderRadius: '6px' }}>
+                        Chưa có dữ liệu. Hãy nhập chỉ số tháng đầu tiên ở trên.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

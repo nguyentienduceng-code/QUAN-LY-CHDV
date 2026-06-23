@@ -53,6 +53,29 @@ export default function Tenants({ onSwitchToInvoices }) {
     }
   };
 
+  const statsRooms = useMemo(() => {
+    return rooms.filter(r => {
+      const isAllowed = (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
+        ? true 
+        : user.allowedBuildings.includes(r.building || 'A');
+      return isAllowed && (activeBuilding === 'All' || (r.building || 'A') === activeBuilding);
+    });
+  }, [rooms, activeBuilding, user]);
+
+  const statsOccupiedCount = useMemo(() => statsRooms.filter(r => r.status !== 'vacant').length, [statsRooms]);
+  const statsVacantCount = useMemo(() => statsRooms.length - statsOccupiedCount, [statsRooms, statsOccupiedCount]);
+
+  const statsTenantsCount = useMemo(() => {
+    return tenants.filter(t => {
+      const room = rooms.find(r => r.name === t.room);
+      if (!room) return false;
+      const isAllowed = (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
+        ? true 
+        : user.allowedBuildings.includes(room.building || 'A');
+      return isAllowed && (activeBuilding === 'All' || (room.building || 'A') === activeBuilding);
+    }).length;
+  }, [tenants, rooms, activeBuilding, user]);
+
   // Group data: Building -> Floor -> Room -> Tenants
   const hierarchicalData = useMemo(() => {
     const buildingsMap = {};
@@ -135,15 +158,15 @@ export default function Tenants({ onSwitchToInvoices }) {
       <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '150px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tổng Số Khách Thuê</span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{tenants.length} người</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{statsTenantsCount} người</span>
         </div>
         <div style={{ flex: 1, minWidth: '150px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Phòng Đang Thuê</span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--status-occupied-text)' }}>{rooms.filter(r => r.status !== 'vacant').length} / {rooms.length} phòng</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--status-occupied-text)' }}>{statsOccupiedCount} / {statsRooms.length} phòng</span>
         </div>
         <div style={{ flex: 1, minWidth: '150px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Phòng Trống</span>
-          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--status-vacant-text)' }}>{rooms.filter(r => r.status === 'vacant').length} / {rooms.length} phòng</span>
+          <span style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--status-vacant-text)' }}>{statsVacantCount} / {statsRooms.length} phòng</span>
         </div>
       </div>
 
