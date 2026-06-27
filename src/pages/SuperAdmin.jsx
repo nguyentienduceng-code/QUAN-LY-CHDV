@@ -169,7 +169,28 @@ export default function SuperAdmin() {
       
       setNewEmail(''); setNewPassword(''); setNewName('');
     } catch (err) {
-      toast.error('Lỗi: ' + err.message);
+      if (err.code === 'auth/email-already-in-use') {
+        if (window.confirm('Tài khoản này ĐÃ TỒN TẠI trên Firebase Auth nhưng bị mất hồ sơ hiển thị. Bạn có muốn PHỤC HỒI hồ sơ cho tài khoản này (Khách giữ nguyên mật khẩu cũ) không?')) {
+          const newAcc = {
+            id: newEmail,
+            email: newEmail,
+            name: newName,
+            role: newRole,
+            plan: newPlan,
+            ownerId: newEmail, // Fallback temporary ownerId
+            trialEndsAt: newPlan === 'trial' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null,
+            status: 'active'
+          };
+          setDoc(doc(db, 'users', newEmail), newAcc).then(() => {
+            setGlobalUsers([...globalUsers, newAcc]);
+            setShowCreateModal(false);
+            toast.success('Đã phục hồi hồ sơ thành công! Khách hàng có thể đăng nhập bằng mật khẩu cũ của họ.');
+            setNewEmail(''); setNewPassword(''); setNewName('');
+          }).catch(e => toast.error('Lỗi phục hồi: ' + e.message));
+        }
+      } else {
+        toast.error('Lỗi: ' + (err.message || 'Không thể tạo tài khoản'));
+      }
     }
   };
 
