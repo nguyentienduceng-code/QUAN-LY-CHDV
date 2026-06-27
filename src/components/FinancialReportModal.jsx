@@ -182,33 +182,33 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
             
             {/* Header Báo Cáo */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '2px solid #C4A47C', paddingBottom: '20px' }}>
-              <div>
-                <h1 style={{ margin: 0, fontSize: '2rem', color: '#5A4D41', fontWeight: 'bold' }}>
+              <div style={{ flex: 1 }}>
+                <h1 style={{ margin: 0, fontSize: '1.75rem', color: '#5A4D41', fontWeight: 'bold' }}>
                   BÁO CÁO KINH DOANH • {selectedMonthObj?.label.toUpperCase()}
                 </h1>
-                <p style={{ margin: '8px 0 0 0', color: '#666666', fontSize: '1.1rem' }}>
-                  Phân tích hiệu suất khách sạn • Giai đoạn cao điểm mùa hè.
+                <p style={{ margin: '8px 0 0 0', color: '#666666', fontSize: '1.05rem' }}>
+                  Phân tích hiệu suất Khách sạn • Giai đoạn cao điểm mùa hè.
                 </p>
               </div>
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '20px' }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#C4A47C' }}>RentFlow Premier</div>
-                <div style={{ color: '#666666', fontSize: '0.9rem' }}>Quản lý khách sạn / MICE</div>
+                <div style={{ color: '#666666', fontSize: '0.9rem' }}>Quản lý Khách sạn / MICE</div>
               </div>
             </div>
 
             {/* KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px' }}>
               <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ color: '#5A4D41', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><TrendingUp size={16} color="#C4A47C" /> Tổng Doanh Thu</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#7BB087' }}>{formatVND(stats?.revenue || 0)}</div>
+                <div style={{ color: '#5A4D41', fontSize: '0.85rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase', whiteSpace: 'nowrap' }}><TrendingUp size={16} color="#C4A47C" /> Tổng Doanh Thu</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#7BB087', whiteSpace: 'nowrap' }}>{formatVND(stats?.revenue || 0)}</div>
               </div>
               <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ color: '#5A4D41', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><Activity size={16} color="#C4A47C" /> Tổng Chi Phí Vận Hành</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#C4A47C' }}>{formatVND(stats?.expenses || 0)}</div>
+                <div style={{ color: '#5A4D41', fontSize: '0.85rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase', whiteSpace: 'nowrap' }}><Activity size={16} color="#C4A47C" /> Tổng Chi Phí</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#C4A47C', whiteSpace: 'nowrap' }}>{formatVND(stats?.expenses || 0)}</div>
               </div>
               <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ color: '#5A4D41', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><DollarSign size={16} color="#C4A47C" /> Lợi Nhuận Ròng</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#ef4444' }}>{formatVND(stats?.netProfit || 0)}</div>
+                <div style={{ color: '#5A4D41', fontSize: '0.85rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase', whiteSpace: 'nowrap' }}><DollarSign size={16} color="#C4A47C" /> Lợi Nhuận Ròng</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#ef4444', whiteSpace: 'nowrap' }}>{formatVND(stats?.netProfit || 0)}</div>
               </div>
             </div>
 
@@ -220,36 +220,48 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
                 <h3 style={{ margin: '0 0 20px 0', color: '#5A4D41', fontSize: '1.1rem', fontWeight: 'bold' }}>Phân bổ Chi phí Vận hành (Hàng ngang)</h3>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '30px' }}>
-                  {/* Bar 1 */}
-                  <div>
-                    <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pRent}%`, height: '100%', background: '#7BB087' }}></div>
+                  {pRent > 0 && (
+                    <div>
+                      <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pRent}%`, height: '100%', background: '#7BB087' }}></div>
+                      </div>
                     </div>
-                  </div>
-                  {/* Bar 2 */}
-                  <div style={{ width: '80%' }}>
-                    <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pUtil}%`, height: '100%', background: '#C4A47C' }}></div>
+                  )}
+                  {pUtil > 0 && (
+                    <div style={{ width: '80%' }}>
+                      <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pUtil}%`, height: '100%', background: '#C4A47C' }}></div>
+                      </div>
                     </div>
-                  </div>
-                  {/* Bar 3 */}
-                  <div style={{ width: '40%' }}>
-                    <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pMaint}%`, height: '100%', background: '#EADDCB' }}></div>
+                  )}
+                  {pMaint > 0 && (
+                    <div style={{ width: '40%' }}>
+                      <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pMaint}%`, height: '100%', background: '#EADDCB' }}></div>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  {pRent == 0 && pUtil == 0 && pMaint == 0 && (
+                     <div style={{ color: '#666666', fontSize: '0.9rem', fontStyle: 'italic' }}>Không có phát sinh chi phí</div>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', gap: '16px', marginTop: '24px', fontSize: '0.85rem', color: '#666666', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '12px', height: '12px', background: '#7BB087', borderRadius: '2px' }}></span> Mặt bằng ({pRent}%)
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '12px', height: '12px', background: '#C4A47C', borderRadius: '2px' }}></span> Điện nước ({pUtil}%)
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '12px', height: '12px', background: '#EADDCB', borderRadius: '2px' }}></span> Bảo trì ({pMaint}%)
-                  </div>
+                  {pRent > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '12px', height: '12px', background: '#7BB087', borderRadius: '2px' }}></span> Mặt bằng ({pRent}%)
+                    </div>
+                  )}
+                  {pUtil > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '12px', height: '12px', background: '#C4A47C', borderRadius: '2px' }}></span> Điện nước ({pUtil}%)
+                    </div>
+                  )}
+                  {pMaint > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '12px', height: '12px', background: '#EADDCB', borderRadius: '2px' }}></span> Bảo trì ({pMaint}%)
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -259,20 +271,20 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem', color: '#5A4D41' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Tổng Doanh Thu (A)</span>
-                    <span style={{ fontWeight: 'bold' }}>{formatVND(stats?.revenue || 0)}</span>
+                    <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap', marginLeft: '10px' }}>{formatVND(stats?.revenue || 0)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Tổng Chi Phí (B)</span>
-                    <span style={{ fontWeight: 'bold' }}>{formatVND(stats?.expenses || 0)}</span>
+                    <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap', marginLeft: '10px' }}>{formatVND(stats?.expenses || 0)}</span>
                   </div>
                   <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Lợi Nhuận Gộp (C=A-B)</span>
-                    <span style={{ fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#5A4D41' }}>{stats?.netProfit >= 0 ? '+' : ''}{formatVND(stats?.netProfit || 0)}</span>
+                    <span style={{ fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#5A4D41', whiteSpace: 'nowrap', marginLeft: '10px' }}>{stats?.netProfit >= 0 ? '+' : ''}{formatVND(stats?.netProfit || 0)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#C4A47C', fontWeight: 'bold', fontSize: '1.05rem', marginTop: '4px' }}>
                     <span>LỢI NHUẬN THỰC TẾ</span>
-                    <span>{stats?.netProfit >= 0 ? '+' : ''}{formatVND(stats?.netProfit || 0)}</span>
+                    <span style={{ whiteSpace: 'nowrap', marginLeft: '10px' }}>{stats?.netProfit >= 0 ? '+' : ''}{formatVND(stats?.netProfit || 0)}</span>
                   </div>
                   <div style={{ color: '#666666', fontSize: '0.9rem', marginTop: '4px' }}>
                     Công suất khả dụng: 98%
