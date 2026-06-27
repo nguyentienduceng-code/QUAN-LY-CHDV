@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, Users, DollarSign, AlertCircle, AlertTriangle, Download, Upload, Bell } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, AlertCircle, AlertTriangle, Download, Upload, Bell, Image } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { useAppData } from '../context/AppDataContext';
@@ -7,11 +7,13 @@ import { exportAllDataToExcel } from '../utils/exportExcel';
 import Card from '../components/Card';
 import StatusBadge from '../components/StatusBadge';
 import ImportModal from '../components/ImportModal';
+import FinancialReportModal from '../components/FinancialReportModal';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
   const { user } = useAuth();
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isFinancialReportOpen, setIsFinancialReportOpen] = useState(false);
   const appData = useAppData();
   const { rooms, tenants, invoices, tickets, settings } = appData;
 
@@ -249,6 +251,9 @@ export default function Home() {
       <div className="page-header">
         <h1 className="page-title" style={{ margin: 0 }}>Tổng quan hệ thống</h1>
         <div className="page-header-actions">
+          <button onClick={() => setIsFinancialReportOpen(true)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
+            <Image size={16} /> Xuất Báo Cáo Tài Chính
+          </button>
           <button onClick={() => setIsImportOpen(true)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
             <Upload size={16} /> Nhập Dữ Liệu
           </button>
@@ -460,6 +465,13 @@ export default function Home() {
       </div>
 
       <ImportModal isOpen={isImportOpen} onClose={() => setIsImportOpen(false)} />
+      
+      <FinancialReportModal 
+        isOpen={isFinancialReportOpen} 
+        onClose={() => setIsFinancialReportOpen(false)} 
+        appData={appData} 
+        allowedBuildings={allowedBuildingsSet} 
+      />
     </div>
   );
 }
