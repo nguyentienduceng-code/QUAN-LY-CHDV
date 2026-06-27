@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, CheckCircle, XCircle, Lock, Unlock, Users, Plus, Eye, Key } from 'lucide-react';
+import { Shield, CheckCircle, XCircle, Lock, Unlock, Users, Plus, Eye, Key, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { collection, getDocs, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db, firebaseSignUpWithEmail } from '../firebase';
 
 const getUsageStatus = (u) => {
@@ -141,6 +141,22 @@ export default function SuperAdmin() {
     if (window.confirm(`Bạn có chắc chắn muốn ${action} đối với tài khoản ${name}?`)) {
       updateUserGlobal(userId, { status: isBlocked ? 'active' : 'blocked' });
       toast.success(`Đã ${action.toLowerCase()} tài khoản ${name}`);
+    }
+  };
+
+  const handleDeleteAccount = async (userId, name) => {
+    if (userId === 'nguyentienducbmt123@gmail.com') {
+      toast.error('Không thể xóa tài khoản hệ thống (Chủ sở hữu)!');
+      return;
+    }
+    if (window.confirm(`CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản ${name} (${userId}) không?\nHành động này không thể hoàn tác!`)) {
+      try {
+        await deleteDoc(doc(db, 'users', userId));
+        setGlobalUsers(globalUsers.filter(u => u.id !== userId));
+        toast.success(`Đã xóa tài khoản ${name} thành công`);
+      } catch (err) {
+        toast.error('Lỗi khi xóa tài khoản: ' + err.message);
+      }
     }
   };
 
@@ -367,6 +383,14 @@ export default function SuperAdmin() {
                         style={{ background: u.status === 'blocked' ? '#10b981' : 'rgba(239, 68, 68, 0.1)', color: u.status === 'blocked' ? '#fff' : '#ef4444', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }}
                       >
                         {u.status === 'blocked' ? <Unlock size={16} /> : <Lock size={16} />}
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleDeleteAccount(u.id, u.name)}
+                        title="Xóa tài khoản"
+                        style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
