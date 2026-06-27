@@ -78,7 +78,12 @@ export const AuthProvider = ({ children }) => {
         let finalRole = registeredUser?.role;
         let finalPlan = registeredUser?.plan;
         let finalTrialEndsAt = registeredUser?.trialEndsAt;
-        let finalOwnerId = landlordOwnerId || registeredUser?.ownerId || firebaseUser.uid;
+        let fallbackOwnerId = registeredUser?.ownerId;
+        // Auto-heal: If ownerId was temporarily set to email during a Super Admin profile restoration, reconnect it to their actual UID so they don't lose access to their old data.
+        if (fallbackOwnerId === registeredUser?.email || fallbackOwnerId === registeredUser?.id) {
+          fallbackOwnerId = firebaseUser.uid;
+        }
+        let finalOwnerId = landlordOwnerId || fallbackOwnerId || firebaseUser.uid;
         
         // Nếu là người dùng mới tinh (đăng nhập Google lần đầu)
         if (!registeredUser) {
