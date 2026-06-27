@@ -55,7 +55,7 @@ export default function Tenants({ onSwitchToInvoices }) {
 
   const statsRooms = useMemo(() => {
     return rooms.filter(r => {
-      const isAllowed = (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
+      const isAllowed = (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
         ? true 
         : user.allowedBuildings.includes(r.building || 'A');
       return isAllowed && (activeBuilding === 'All' || (r.building || 'A') === activeBuilding);
@@ -69,7 +69,7 @@ export default function Tenants({ onSwitchToInvoices }) {
     return tenants.filter(t => {
       const room = rooms.find(r => r.name === t.room);
       if (!room) return false;
-      const isAllowed = (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
+      const isAllowed = (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
         ? true 
         : user.allowedBuildings.includes(room.building || 'A');
       return isAllowed && (activeBuilding === 'All' || (room.building || 'A') === activeBuilding);
@@ -81,7 +81,7 @@ export default function Tenants({ onSwitchToInvoices }) {
     const buildingsMap = {};
 
     const filteredRooms = rooms.filter(r => {
-      if (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) return true;
+      if (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) return true;
       return user.allowedBuildings.includes(r.building || 'A');
     });
 

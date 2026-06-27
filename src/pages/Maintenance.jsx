@@ -120,7 +120,7 @@ const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice, 
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ticket.id}</span>
-          {(user?.role === 'admin' || user?.role === 'staff') && (
+          {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
             <button onClick={() => onEdit(ticket)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0 }}><MoreHorizontal size={16} /></button>
           )}
         </div>
@@ -164,7 +164,7 @@ const TicketCard = ({ ticket, index, columnId, onEdit, onMove, onCreateInvoice, 
         </div>
 
         {/* Transition Buttons */}
-        {(user?.role === 'admin' || user?.role === 'staff') && (
+        {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
           <div style={{ marginTop: '14px', borderTop: '1px dashed var(--border-glass)', paddingTop: '12px' }}>
           {columnId === 'reported' && (
             <button 
@@ -363,7 +363,7 @@ export default function Maintenance() {
     if (user?.role === 'tenant') {
       return list.filter(t => t.room === user?.room);
     }
-    if (user?.role !== 'admin' && user?.role !== 'staff' && user?.allowedBuildings && !user.allowedBuildings.includes('all')) {
+    if (user?.role !== 'admin' && user?.role !== 'manager' && user?.role !== 'staff' && user?.allowedBuildings && !user.allowedBuildings.includes('all')) {
       return list.filter(t => {
         const roomInfo = rooms.find(r => r.name === t.room);
         const bldg = roomInfo ? roomInfo.building : 'Khác';
@@ -379,7 +379,7 @@ export default function Maintenance() {
         <h1 className="page-title" style={{ margin: 0 }}>
           {(user?.role === 'tenant' || user?.role === 'guest') ? 'Báo Hỏng / Yêu Cầu Bảo Trì' : 'Quản Lý Bảo Trì (Kanban)'}
         </h1>
-        {(user?.role === 'admin' || user?.role === 'staff' || user?.role === 'tenant') && (
+        {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff' || user?.role === 'tenant') && (
           <div className="page-header-actions">
             <button onClick={handleAddTicket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
               <Plus size={16} /> Tạo Yêu Cầu

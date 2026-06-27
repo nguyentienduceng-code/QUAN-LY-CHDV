@@ -5,6 +5,42 @@ import toast from 'react-hot-toast';
 import { collection, getDocs, doc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, firebaseSignUpWithEmail } from '../firebase';
 
+const getUsageStatus = (u) => {
+  if (u.email === 'nguyentienducbmt123@gmail.com') {
+    return { text: 'Không giới hạn', color: '#10b981', badge: 'rgba(16, 185, 129, 0.15)' };
+  }
+  
+  const now = new Date();
+  
+  if (u.plan === 'pro' || u.plan === 'basic') {
+    if (!u.subscriptionEndsAt) {
+      return { text: 'Hoạt động (Vô hạn)', color: '#10b981', badge: 'rgba(16, 185, 129, 0.15)' };
+    }
+    const ends = new Date(u.subscriptionEndsAt);
+    const diffTime = ends - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      return { text: `Hoạt động (Còn ${diffDays} ngày)`, color: '#10b981', badge: 'rgba(16, 185, 129, 0.15)' };
+    } else {
+      return { text: 'Đã hết hạn cước', color: '#ef4444', badge: 'rgba(239, 68, 68, 0.15)' };
+    }
+  }
+  
+  // Trial plan
+  if (u.trialEndsAt) {
+    const ends = new Date(u.trialEndsAt);
+    const diffTime = ends - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      return { text: `Dùng thử (Còn ${diffDays} ngày)`, color: '#f59e0b', badge: 'rgba(245, 158, 11, 0.15)' };
+    } else {
+      return { text: 'Hết hạn dùng thử', color: '#ef4444', badge: 'rgba(239, 68, 68, 0.15)' };
+    }
+  }
+  
+  return { text: 'Hết hạn dùng thử', color: '#ef4444', badge: 'rgba(239, 68, 68, 0.15)' };
+};
+
 export default function SuperAdmin() {
   const { user } = useAuth();
   const [globalUsers, setGlobalUsers] = useState([]);
@@ -18,23 +54,26 @@ export default function SuperAdmin() {
   const [newPlan, setNewPlan] = useState('trial');
 
   useEffect(() => {
+    let active = true;
+    async function fetchGlobalUsers() {
+      try {
+        const snap = await getDocs(collection(db, 'users'));
+        if (!active) return;
+        const uList = [];
+        snap.forEach(document => {
+          uList.push({ id: document.id, ...document.data() });
+        });
+        setGlobalUsers(uList);
+      } catch (err) {
+        console.error("Fetch global users error:", err);
+      }
+    }
+
     if (user?.email === 'nguyentienducbmt123@gmail.com') {
       fetchGlobalUsers();
     }
+    return () => { active = false; };
   }, [user]);
-
-  const fetchGlobalUsers = async () => {
-    try {
-      const snap = await getDocs(collection(db, 'users'));
-      const uList = [];
-      snap.forEach(document => {
-        uList.push({ id: document.id, ...document.data() });
-      });
-      setGlobalUsers(uList);
-    } catch (err) {
-      console.error("Fetch global users error:", err);
-    }
-  };
 
   const updateUserGlobal = async (userId, data) => {
     try {
@@ -215,13 +254,14 @@ export default function SuperAdmin() {
         {globalUsers.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-secondary)' }}>Chưa có tài khoản nào.</div>
         ) : (
-          <table className="data-table" style={{ width: '100%', minWidth: '900px' }}>
+          <table className="data-table" style={{ width: '100%', minWidth: '1000px' }}>
             <thead>
               <tr>
                 <th>Tên & Email</th>
                 <th>Vai trò</th>
                 <th>Gói (Plan)</th>
-                <th>Trạng thái</th>
+                <th>Trạng thái sử dụng</th>
+                <th>Đăng nhập cuối</th>
                 <th>Owner ID (Workspace)</th>
                 <th style={{ textAlign: 'right' }}>Hành động</th>
               </tr>
@@ -250,9 +290,35 @@ export default function SuperAdmin() {
                   </td>
                   <td>
                     {u.status === 'blocked' ? (
-                      <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.85rem' }}>BỊ KHÓA</span>
+                      <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', padding: '4px 8px', borderRadius: '4px' }}>BỊ KHÓA</span>
+                    ) : (() => {
+                      const usage = getUsageStatus(u);
+                      return (
+                        <span style={{ 
+                          color: usage.color, 
+                          fontWeight: 'bold', 
+                          fontSize: '0.85rem',
+                          background: usage.badge,
+                          padding: '4px 8px',
+                          borderRadius: '4px'
+                        }}>
+                          {usage.text.toUpperCase()}
+                        </span>
+                      );
+                    })()}
+                  </td>
+                  <td>
+                    {u.lastLoginAt ? (
+                      <div>
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                          {new Date(u.lastLoginAt).toLocaleDateString('vi-VN')}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                          {new Date(u.lastLoginAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
                     ) : (
-                      <span style={{ color: '#10b981', fontWeight: 'bold', fontSize: '0.85rem' }}>HOẠT ĐỘNG</span>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Chưa đăng nhập</span>
                     )}
                   </td>
                   <td style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>

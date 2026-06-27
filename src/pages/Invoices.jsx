@@ -52,7 +52,7 @@ export default function Invoices({ initialInvoiceId }) {
       const bldg = roomInfo ? roomInfo.building : 'Khác';
       
       // Lọc theo allowedBuildings
-      if (user?.role !== 'admin' && user?.role !== 'staff' && user?.allowedBuildings && !user.allowedBuildings.includes('all')) {
+      if (user?.role !== 'admin' && user?.role !== 'manager' && user?.role !== 'staff' && user?.allowedBuildings && !user.allowedBuildings.includes('all')) {
         if (!user.allowedBuildings.includes(bldg)) return;
       }
       
@@ -105,7 +105,7 @@ export default function Invoices({ initialInvoiceId }) {
           <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
             <Download size={16} /> Xuất Excel
           </button>
-          {(user?.role === 'admin' || user?.role === 'staff') && (
+          {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
             <>
               <button onClick={() => setIsGenerateModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
                 <Plus size={16} /> Tạo HĐ Định Kỳ
@@ -251,14 +251,14 @@ export default function Invoices({ initialInvoiceId }) {
                                       <button onClick={() => handleViewInvoice(inv)} style={{ padding: '4px 8px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <Eye size={12} /> Xem
                                       </button>
-                                      {(user?.role === 'admin' || user?.role === 'staff') && (
+                                      {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                                         <button onClick={() => handleOpenUpdateModal(inv)} style={{ padding: '4px 8px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
                                           Chốt số
                                         </button>
                                       )}
                                       {inv.status === 'unpaid' ? (
                                         <>
-                                          {(user?.role === 'admin' || user?.role === 'staff') && (
+                                          {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                                             <button 
                                               onClick={() => {
                                                 updateInvoice(inv.id, { status: 'paid' });
@@ -272,7 +272,7 @@ export default function Invoices({ initialInvoiceId }) {
                                           <button onClick={() => handleZaloDebt(inv)} style={{ padding: '4px 8px', background: 'var(--status-overdue)', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Đòi nợ</button>
                                         </>
                                       ) : (
-                                        (user?.role === 'admin' || user?.role === 'staff') && (
+                                        (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                                           <button 
                                             onClick={() => {
                                               updateInvoice(inv.id, { status: 'unpaid' });
@@ -284,7 +284,7 @@ export default function Invoices({ initialInvoiceId }) {
                                           </button>
                                         )
                                       )}
-                                      {(user?.role === 'admin' || user?.role === 'staff') && (
+                                      {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                                         <button 
                                           onClick={() => {
                                             if(window.confirm(`Bạn có chắc muốn xóa hóa đơn ${inv.id}?`)) {

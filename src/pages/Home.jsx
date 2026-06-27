@@ -17,7 +17,7 @@ export default function Home() {
 
   const allowedBuildingsSet = useMemo(() => {
     return new Set(
-      (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
+      (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) 
       ? settings.buildings 
       : settings.buildings.filter(b => user.allowedBuildings.includes(b))
     );

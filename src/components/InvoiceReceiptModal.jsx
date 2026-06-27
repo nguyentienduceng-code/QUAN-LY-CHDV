@@ -302,7 +302,7 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
         </div>
 
         {/* Footer Actions */}
-        {(user?.role === 'admin' || user?.role === 'staff') ? (
+        {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') ? (
           <div className="no-print" style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {invoice.status !== 'paid' ? (
               <button 

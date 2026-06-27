@@ -158,7 +158,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room, onCreateContra
               <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                 <DollarSign size={18} /> Thông Tin Phòng
               </h3>
-              {(user?.role === 'admin' || user?.role === 'staff') && !isEditingInfo && (
+              {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && !isEditingInfo && (
                 <button
                   onClick={startEditing}
                   style={{ background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--accent-primary)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -321,7 +321,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room, onCreateContra
           <div style={{ marginBottom: '28px' }}>
             <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', marginBottom: '16px' }}>
               <ImageIcon size={18} /> Ảnh Phòng
-              {(user?.role === 'admin' || user?.role === 'staff') && (
+              {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                 <>
                   <input
                     type="file"
@@ -370,7 +370,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room, onCreateContra
                         alt={`Phòng ${room.name} - ${i + 1}`}
                         style={{ width: '110px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-glass)' }}
                       />
-                      {(user?.role === 'admin' || user?.role === 'staff') && (
+                      {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                         <button
                           onClick={() => handleDeleteImage(i)}
                           style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239,68,68,0.85)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}
@@ -383,12 +383,12 @@ export default function RoomDetailDrawer({ isOpen, onClose, room, onCreateContra
                 </div>
               ) : (
                 <div
-                  onClick={() => (user?.role === 'admin' || user?.role === 'staff') && fileInputRef.current?.click()}
-                  style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center', padding: '28px 16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px dashed var(--border-glass)', cursor: (user?.role === 'admin' || user?.role === 'staff') ? 'pointer' : 'default' }}
+                  onClick={() => (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && fileInputRef.current?.click()}
+                  style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic', textAlign: 'center', padding: '28px 16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px dashed var(--border-glass)', cursor: (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') ? 'pointer' : 'default' }}
                 >
                   <UploadCloud size={28} style={{ marginBottom: '8px', opacity: 0.4, display: 'block', margin: '0 auto 8px' }} />
                   Chưa có ảnh nào.{' '}
-                  {(user?.role === 'admin' || user?.role === 'staff') && <span style={{ color: 'var(--accent-primary)' }}>Nhấp để tải ảnh lên</span>}
+                  {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && <span style={{ color: 'var(--accent-primary)' }}>Nhấp để tải ảnh lên</span>}
                 </div>
               )}
             </div>
@@ -417,7 +417,7 @@ export default function RoomDetailDrawer({ isOpen, onClose, room, onCreateContra
         </div>
 
         {/* Footer Actions */}
-        {(user?.role === 'admin' || user?.role === 'staff') && (
+        {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
           <div className="drawer-footer">
             {room.status === 'vacant' ? (
               <>

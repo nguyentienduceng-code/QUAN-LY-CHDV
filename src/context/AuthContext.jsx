@@ -103,7 +103,9 @@ export const AuthProvider = ({ children }) => {
             uid: firebaseUser.uid,
             room: tenantRoom || null,
             allowedBuildings: finalRole === 'tenant' ? [] : ['all'],
-            ownerId: finalOwnerId
+            ownerId: finalOwnerId,
+            lastLoginAt: new Date().toISOString(),
+            lastActiveAt: new Date().toISOString()
           };
           const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
           if (!localUsers.find(u => u.email === firebaseUser.email)) {
@@ -113,6 +115,14 @@ export const AuthProvider = ({ children }) => {
           setDoc(doc(db, 'users', newUser.id), newUser).catch(() => {});
           registeredUser = newUser;
         } else {
+          // Update last login time
+          const docId = registeredUser.email || firebaseUser.email;
+          const loginTime = new Date().toISOString();
+          setDoc(doc(db, 'users', docId), {
+            lastLoginAt: loginTime,
+            lastActiveAt: loginTime
+          }, { merge: true }).catch(() => {});
+
           // Auto-heal existing user if they are registered as admin/guest but are actually a tenant, or missing ownerId
           let needsUpdate = false;
           const updatedFields = {};

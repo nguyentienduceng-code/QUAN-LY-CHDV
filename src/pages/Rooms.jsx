@@ -16,7 +16,7 @@ export default function Rooms() {
   const customPrompt = useCustomPrompt();
   
   const availableBuildings = settings.buildings.filter(b => {
-    if (user?.role === 'admin' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) return true;
+    if (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) return true;
     return user.allowedBuildings.includes(b);
   });
   
@@ -41,7 +41,7 @@ export default function Rooms() {
   }
 
   const handleRoomClick = async (room) => {
-    if (room.status === 'vacant' && (user?.role === 'admin' || user?.role === 'staff')) {
+    if (room.status === 'vacant' && (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff')) {
       setContractModalRoom(room);
     } else {
       setSelectedRoom(room);
@@ -139,7 +139,7 @@ export default function Rooms() {
   return (
     <div className="rooms-layout" style={{ display: 'flex', gap: '24px', height: '100%' }}>
       {/* Sidebar Filters */}
-      {(user?.role === 'admin' || user?.role === 'staff') && (
+      {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
         <div className="rooms-filter-sidebar" style={{ width: '250px', flexShrink: 0 }}>
           <Card title={<><Filter size={18} /> Bộ Lọc</>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -174,7 +174,7 @@ export default function Rooms() {
                       >
                         {String(b).toLowerCase().startsWith('nhà') ? b : `Nhà ${b}`}
                       </button>
-                      {(user?.role === 'admin' || user?.role === 'staff') && (
+                      {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                           <button 
                             onClick={async (e) => {
@@ -213,7 +213,7 @@ export default function Rooms() {
                       )}
                     </div>
                   ))}
-                  {(user?.role === 'admin' || user?.role === 'staff') && (
+                  {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                     <button 
                       onClick={async () => {
                         if (user?.plan === 'basic') {
@@ -409,7 +409,7 @@ export default function Rooms() {
                             <div style={{ fontSize: '0.7rem', opacity: 0.75 }}>Nhà {room.building}</div>
                           )}
 
-                          {(user?.role === 'admin' || user?.role === 'staff') && (
+                          {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
