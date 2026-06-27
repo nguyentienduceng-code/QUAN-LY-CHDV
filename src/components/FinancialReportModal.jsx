@@ -136,79 +136,79 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}>
-      <div style={{ background: '#f5f5f0', borderRadius: '16px', border: '1px solid #d4af37', width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #C4A47C', width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}>
         
         {/* Modal Top Bar */}
-        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#f5f5f0', zIndex: 10 }}>
-          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#b38728' }}><PieChart /> Tùy chỉnh Báo Cáo Hoạt Động Khách Sạn</h2>
+        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#FFFFFF', zIndex: 10 }}>
+          <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#5A4D41' }}><PieChart color="#C4A47C" /> Tùy chỉnh Báo Cáo Hoạt Động Khách Sạn</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={handleDownloadImage} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#b38728', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+            <button onClick={handleDownloadImage} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#C4A47C', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
               <Download size={18} /> Xuất Báo Cáo PDF
             </button>
-            <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', color: '#4a4a4a', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}>
+            <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', color: '#666666', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}>
               <X size={20} />
             </button>
           </div>
         </div>
 
         {/* Filter Area */}
-        <div style={{ padding: '20px', display: 'flex', gap: '16px', background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ padding: '20px', display: 'flex', gap: '16px', background: '#FAFAFA', borderBottom: '1px solid #e2e8f0' }}>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: '#4a4a4a', marginBottom: '8px' }}>Chọn Khách sạn</label>
-            <select value={selectedBuilding} onChange={e => setSelectedBuilding(e.target.value)} style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#333' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: '#666666', marginBottom: '8px' }}>Chọn Khách sạn</label>
+            <select value={selectedBuilding} onChange={e => setSelectedBuilding(e.target.value)} style={{ width: '100%', padding: '10px', background: '#FFFFFF', border: '1px solid #C4A47C', borderRadius: '8px', color: '#5A4D41' }}>
               <option value="All">Tất cả khách sạn</option>
               {Array.from(allowedBuildings).map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: '#4a4a4a', marginBottom: '8px' }}>Chọn Tháng</label>
-            <select value={selectedMonthKey} onChange={e => setSelectedMonthKey(e.target.value)} style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#333' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: '#666666', marginBottom: '8px' }}>Chọn Tháng</label>
+            <select value={selectedMonthKey} onChange={e => setSelectedMonthKey(e.target.value)} style={{ width: '100%', padding: '10px', background: '#FFFFFF', border: '1px solid #C4A47C', borderRadius: '8px', color: '#5A4D41' }}>
               {availableMonths.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
             </select>
           </div>
         </div>
 
         {/* KHUNG BÁO CÁO XUẤT ẢNH */}
-        <div style={{ padding: '24px', background: '#e2e8f0' }}>
+        <div style={{ padding: '24px', background: '#FFFFFF' }}>
           <div ref={reportRef} style={{ 
-            background: 'url("https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?q=80&w=1200&auto=format&fit=crop") center/cover no-repeat, #ffffff', 
+            background: 'url("https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?q=80&w=1200&auto=format&fit=crop") center/cover no-repeat, #FFFFFF', 
             backgroundBlendMode: 'overlay',
             padding: '40px', 
             borderRadius: '24px', 
-            border: '2px solid #d4af37',
-            color: '#333', 
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)' 
+            border: '2px solid #C4A47C',
+            color: '#5A4D41', 
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)' 
           }}>
             
             {/* Header Báo Cáo */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '2px solid #d4af37', paddingBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '2px solid #C4A47C', paddingBottom: '20px' }}>
               <div>
-                <h1 style={{ margin: 0, fontSize: '2rem', color: '#b38728', fontWeight: 'bold' }}>
+                <h1 style={{ margin: 0, fontSize: '2rem', color: '#5A4D41', fontWeight: 'bold' }}>
                   BÁO CÁO KINH DOANH • {selectedMonthObj?.label.toUpperCase()}
                 </h1>
-                <p style={{ margin: '8px 0 0 0', color: '#4a4a4a', fontSize: '1.1rem' }}>
+                <p style={{ margin: '8px 0 0 0', color: '#666666', fontSize: '1.1rem' }}>
                   Phân tích hiệu suất khách sạn • Giai đoạn cao điểm mùa hè.
                 </p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#b38728' }}>RentFlow Premier</div>
-                <div style={{ color: '#4a4a4a', fontSize: '0.9rem' }}>Quản lý khách sạn / MICE</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#C4A47C' }}>RentFlow Premier</div>
+                <div style={{ color: '#666666', fontSize: '0.9rem' }}>Quản lý khách sạn / MICE</div>
               </div>
             </div>
 
             {/* KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px' }}>
-              <div style={{ background: '#ffffff', border: '1px solid #d4af37', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                <div style={{ color: '#4a4a4a', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><TrendingUp size={16} /> Tổng Doanh Thu</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#73a975' }}>{formatVND(stats?.revenue || 0)}</div>
+              <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ color: '#5A4D41', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><TrendingUp size={16} color="#C4A47C" /> Tổng Doanh Thu</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#7BB087' }}>{formatVND(stats?.revenue || 0)}</div>
               </div>
-              <div style={{ background: '#ffffff', border: '1px solid #d4af37', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                <div style={{ color: '#4a4a4a', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><Activity size={16} /> Tổng Chi Phí Vận Hành</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#b38728' }}>{formatVND(stats?.expenses || 0)}</div>
+              <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ color: '#5A4D41', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><Activity size={16} color="#C4A47C" /> Tổng Chi Phí Vận Hành</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#C4A47C' }}>{formatVND(stats?.expenses || 0)}</div>
               </div>
-              <div style={{ background: '#ffffff', border: '1px solid #d4af37', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                <div style={{ color: '#4a4a4a', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><DollarSign size={16} /> Lợi Nhuận Ròng</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#73a975' : '#ef4444' }}>{formatVND(stats?.netProfit || 0)}</div>
+              <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ color: '#5A4D41', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase' }}><DollarSign size={16} color="#C4A47C" /> Lợi Nhuận Ròng</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#ef4444' }}>{formatVND(stats?.netProfit || 0)}</div>
               </div>
             </div>
 
@@ -216,47 +216,47 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
             <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
               
               {/* Phân bổ chi phí vận hành */}
-              <div style={{ flex: 1, background: '#ffffff', padding: '24px', borderRadius: '16px', border: '1px solid #d4af37', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                <h3 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '1.1rem', fontWeight: 'bold' }}>Phân bổ Chi phí Vận hành (Hàng ngang)</h3>
+              <div style={{ flex: 1, background: '#FAFAFA', padding: '24px', borderRadius: '16px', border: '1px solid #C4A47C', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <h3 style={{ margin: '0 0 20px 0', color: '#5A4D41', fontSize: '1.1rem', fontWeight: 'bold' }}>Phân bổ Chi phí Vận hành (Hàng ngang)</h3>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '30px' }}>
                   {/* Bar 1 */}
                   <div>
-                    <div style={{ width: '100%', height: '16px', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pRent}%`, height: '100%', background: '#73a975' }}></div>
+                    <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                      <div style={{ width: `${pRent}%`, height: '100%', background: '#7BB087' }}></div>
                     </div>
                   </div>
                   {/* Bar 2 */}
                   <div style={{ width: '80%' }}>
-                    <div style={{ width: '100%', height: '16px', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pUtil}%`, height: '100%', background: '#c19a6b' }}></div>
+                    <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                      <div style={{ width: `${pUtil}%`, height: '100%', background: '#C4A47C' }}></div>
                     </div>
                   </div>
                   {/* Bar 3 */}
                   <div style={{ width: '40%' }}>
-                    <div style={{ width: '100%', height: '16px', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pMaint}%`, height: '100%', background: '#e5c158' }}></div>
+                    <div style={{ width: '100%', height: '16px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                      <div style={{ width: `${pMaint}%`, height: '100%', background: '#EADDCB' }}></div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '16px', marginTop: '24px', fontSize: '0.85rem', color: '#4a4a4a', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '24px', fontSize: '0.85rem', color: '#666666', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '12px', height: '12px', background: '#73a975', borderRadius: '2px' }}></span> Mặt bằng ({pRent}%)
+                    <span style={{ width: '12px', height: '12px', background: '#7BB087', borderRadius: '2px' }}></span> Mặt bằng ({pRent}%)
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '12px', height: '12px', background: '#c19a6b', borderRadius: '2px' }}></span> Điện nước ({pUtil}%)
+                    <span style={{ width: '12px', height: '12px', background: '#C4A47C', borderRadius: '2px' }}></span> Điện nước ({pUtil}%)
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '12px', height: '12px', background: '#e5c158', borderRadius: '2px' }}></span> Bảo trì ({pMaint}%)
+                    <span style={{ width: '12px', height: '12px', background: '#EADDCB', borderRadius: '2px' }}></span> Bảo trì ({pMaint}%)
                   </div>
                 </div>
               </div>
 
               {/* Tóm tắt hiệu suất */}
-              <div style={{ flex: 1, background: '#ffffff', padding: '24px', borderRadius: '16px', border: '1px solid #d4af37', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                <h3 style={{ margin: '0 0 16px 0', color: '#333', fontSize: '1.1rem', fontWeight: 'bold' }}>Tóm tắt Hiệu suất Lợi Nhuận</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem', color: '#333' }}>
+              <div style={{ flex: 1, background: '#FAFAFA', padding: '24px', borderRadius: '16px', border: '1px solid #C4A47C', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <h3 style={{ margin: '0 0 16px 0', color: '#5A4D41', fontSize: '1.1rem', fontWeight: 'bold' }}>Tóm tắt Hiệu suất Lợi Nhuận</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem', color: '#5A4D41' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Tổng Doanh Thu (A)</span>
                     <span style={{ fontWeight: 'bold' }}>{formatVND(stats?.revenue || 0)}</span>
@@ -268,13 +268,13 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
                   <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }}></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Lợi Nhuận Gộp (C=A-B)</span>
-                    <span style={{ fontWeight: 'bold' }}>{stats?.netProfit >= 0 ? '+' : ''}{formatVND(stats?.netProfit || 0)}</span>
+                    <span style={{ fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#5A4D41' }}>{stats?.netProfit >= 0 ? '+' : ''}{formatVND(stats?.netProfit || 0)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b38728', fontWeight: 'bold', fontSize: '1.05rem', marginTop: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#C4A47C', fontWeight: 'bold', fontSize: '1.05rem', marginTop: '4px' }}>
                     <span>LỢI NHUẬN THỰC TẾ</span>
                     <span>{stats?.netProfit >= 0 ? '+' : ''}{formatVND(stats?.netProfit || 0)}</span>
                   </div>
-                  <div style={{ color: '#4a4a4a', fontSize: '0.9rem', marginTop: '4px' }}>
+                  <div style={{ color: '#666666', fontSize: '0.9rem', marginTop: '4px' }}>
                     Công suất khả dụng: 98%
                   </div>
                 </div>
@@ -283,27 +283,27 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
 
             {/* Bottom Cards */}
             <div style={{ display: 'flex', gap: '20px' }}>
-              <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', border: '1px solid #d4af37', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', flex: 1 }}>
-                <div style={{ color: '#333', fontSize: '1rem', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 'bold' }}>
+              <div style={{ background: '#FAFAFA', padding: '24px', borderRadius: '16px', border: '1px solid #C4A47C', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', flex: 1 }}>
+                <div style={{ color: '#5A4D41', fontSize: '1rem', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 'bold' }}>
                   Biên lợi nhuận Vận hành
-                  <Percent size={18} color="#b38728" />
+                  <Percent size={18} color="#C4A47C" />
                 </div>
-                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#73a975' }}>{stats?.profitMargin}%</div>
-                <div style={{ color: '#4a4a4a', fontSize: '0.85rem', marginTop: '8px' }}>Tỷ lệ Lợi nhuận trước thuế trên Doanh thu.</div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#7BB087' }}>{stats?.profitMargin}%</div>
+                <div style={{ color: '#666666', fontSize: '0.85rem', marginTop: '8px' }}>Tỷ lệ Lợi nhuận trước thuế trên Doanh thu.</div>
               </div>
 
-              <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', border: '1px solid #d4af37', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', flex: 1 }}>
-                <div style={{ color: '#333', fontSize: '1rem', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 'bold' }}>
+              <div style={{ background: '#FAFAFA', padding: '24px', borderRadius: '16px', border: '1px solid #C4A47C', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', flex: 1 }}>
+                <div style={{ color: '#5A4D41', fontSize: '1rem', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 'bold' }}>
                   Tỷ lệ Lấp đầy Phòng (OCC)
-                  <CheckCircle2 size={18} color="#b38728" />
+                  <CheckCircle2 size={18} color="#C4A47C" />
                 </div>
-                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#73a975' }}>{stats?.occupancyRate}%</div>
-                <div style={{ color: '#4a4a4a', fontSize: '0.85rem', marginTop: '8px' }}>Dựa trên số phòng kinh doanh.</div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#7BB087' }}>{stats?.occupancyRate}%</div>
+                <div style={{ color: '#666666', fontSize: '0.85rem', marginTop: '8px' }}>Dựa trên số phòng kinh doanh.</div>
               </div>
             </div>
 
             {/* Footer */}
-            <div style={{ marginTop: '30px', borderTop: '1px solid #d4af37', paddingTop: '16px', textAlign: 'center', color: '#4a4a4a', fontSize: '0.85rem' }}>
+            <div style={{ marginTop: '30px', borderTop: '1px solid #C4A47C', paddingTop: '16px', textAlign: 'center', color: '#666666', fontSize: '0.85rem' }}>
               Báo cáo được chiết xuất từ RentFlow Premier. Dữ liệu chuẩn quốc tế cho chủ sở hữu và nhà đầu tư.
             </div>
 
