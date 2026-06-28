@@ -14,9 +14,17 @@ Thay vì phải dùng sổ sách hay Excel rườm rà, giờ đây mọi thông
 Nếu bạn là người mới lần đầu sử dụng, hãy thao tác theo thứ tự sau để hệ thống hoạt động trơn tru nhất:
 
 1. **Thiết lập cơ bản:** Vào menu `Cấu hình` -> Khai báo danh sách các Tòa nhà và thiết lập Đơn giá dịch vụ mặc định (Giá điện, giá nước, rác, wifi...).
+   
+   ![Bước 1: Cấu hình](docs/screenshots/step1.png)
 2. **Khởi tạo không gian:** Vào menu `Quản lý Phòng` -> Tạo các phòng tương ứng cho từng Tòa nhà (Số phòng, diện tích, giá thuê).
+   
+   ![Bước 2: Quản lý Phòng](docs/screenshots/step2.png)
 3. **Đón khách mới:** Vào menu `Khách & Hóa Đơn` -> Bấm nút **Tạo Hợp Đồng** tại các phòng trống để điền thông tin khách thuê, số CCCD, tiền cọc và ngày hết hạn.
+   
+   ![Bước 3: Tạo hợp đồng](docs/screenshots/step3.png)
 4. **Vận hành hàng tháng:** Cuối tháng, vào menu `Khách & Hóa Đơn` -> Chốt số điện/nước -> Bấm **Tạo Hóa Đơn** và gửi cho khách. Khi khách đóng tiền, chuyển trạng thái hóa đơn sang "Đã thu".
+   
+   ![Bước 4: Tạo hóa đơn](docs/screenshots/step4.png)
 
 ---
 
