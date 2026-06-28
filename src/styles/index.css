@@ -14,15 +14,15 @@
   --sidebar-text: #FFFFFF;
   --sidebar-text-muted: #94A3B8;
   
-  --accent-primary: #D4B895;
-  --accent-secondary: #B89A65;
-  --accent-gradient: linear-gradient(135deg, var(--accent-primary) 0%, #B89A65 100%);
+  --accent-primary: #A07635;
+  --accent-secondary: #8B5A2B;
+  --accent-gradient: linear-gradient(135deg, var(--accent-primary) 0%, #8B5A2B 100%);
   
   /* Status Colors Light Mode */
   --status-occupied-bg: #E6F0E9;
   --status-occupied-text: #2F5C3E;
   --status-vacant-bg: #FFFFFF;
-  --status-vacant-text: #9C7C52;
+  --status-vacant-text: #7A5C34;
   --status-expiring-bg: #FDF6E3;
   --status-expiring-text: #A37D32;
   --status-overdue-bg: #F9E8E8;

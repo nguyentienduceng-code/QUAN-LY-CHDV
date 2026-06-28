@@ -106,6 +106,12 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
 
   if (!isOpen) return null;
 
+  const buildingLabel = selectedBuilding === 'All' 
+    ? 'Toàn Hệ Thống' 
+    : (selectedBuilding.toLowerCase().startsWith('nhà') || selectedBuilding.toLowerCase().startsWith('tòa') 
+        ? selectedBuilding 
+        : `Tòa Nhà ${selectedBuilding}`);
+
   const handleDownloadImage = async () => {
     if (!reportRef.current) return;
     const t = toast.loading('Đang tạo ảnh báo cáo...');
@@ -183,16 +189,16 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
             {/* Header Báo Cáo */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '2px solid #C4A47C', paddingBottom: '20px' }}>
               <div style={{ flex: 1 }}>
-                <h1 style={{ margin: 0, fontSize: '1.75rem', color: '#5A4D41', fontWeight: 'bold' }}>
+                <h1 style={{ margin: 0, fontSize: '1.4rem', color: '#5A4D41', fontWeight: 'bold' }}>
                   BÁO CÁO KINH DOANH • {selectedMonthObj?.label.toUpperCase()}
                 </h1>
                 <p style={{ margin: '8px 0 0 0', color: '#666666', fontSize: '1.05rem' }}>
-                  Phân tích hiệu suất Khách sạn • Giai đoạn cao điểm mùa hè.
+                  Phân tích hiệu suất {buildingLabel} • Giai đoạn cao điểm mùa hè.
                 </p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '20px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#C4A47C' }}>RentFlow Premier</div>
-                <div style={{ color: '#666666', fontSize: '0.9rem' }}>Quản lý Khách sạn / MICE</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#C4A47C' }}>RentFlow Premier</div>
+                <div style={{ color: '#666666', fontSize: '0.9rem' }}>Quản lý {buildingLabel} / MICE</div>
               </div>
             </div>
 
@@ -200,15 +206,15 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px' }}>
               <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
                 <div style={{ color: '#5A4D41', fontSize: '0.85rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase', whiteSpace: 'nowrap' }}><TrendingUp size={16} color="#C4A47C" /> Tổng Doanh Thu</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#7BB087', whiteSpace: 'nowrap' }}>{formatVND(stats?.revenue || 0)}</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#7BB087', whiteSpace: 'nowrap' }}>{formatVND(stats?.revenue || 0)}</div>
               </div>
               <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
                 <div style={{ color: '#5A4D41', fontSize: '0.85rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase', whiteSpace: 'nowrap' }}><Activity size={16} color="#C4A47C" /> Tổng Chi Phí</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#C4A47C', whiteSpace: 'nowrap' }}>{formatVND(stats?.expenses || 0)}</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#C4A47C', whiteSpace: 'nowrap' }}>{formatVND(stats?.expenses || 0)}</div>
               </div>
               <div style={{ background: '#FAFAFA', border: '1px solid #C4A47C', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
                 <div style={{ color: '#5A4D41', fontSize: '0.85rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', textTransform: 'uppercase', whiteSpace: 'nowrap' }}><DollarSign size={16} color="#C4A47C" /> Lợi Nhuận Ròng</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#ef4444', whiteSpace: 'nowrap' }}>{formatVND(stats?.netProfit || 0)}</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: stats?.netProfit >= 0 ? '#7BB087' : '#ef4444', whiteSpace: 'nowrap' }}>{formatVND(stats?.netProfit || 0)}</div>
               </div>
             </div>
 
@@ -300,7 +306,7 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
                   Biên lợi nhuận Vận hành
                   <Percent size={18} color="#C4A47C" />
                 </div>
-                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#7BB087' }}>{stats?.profitMargin}%</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#7BB087' }}>{stats?.profitMargin}%</div>
                 <div style={{ color: '#666666', fontSize: '0.85rem', marginTop: '8px' }}>Tỷ lệ Lợi nhuận trước thuế trên Doanh thu.</div>
               </div>
 
@@ -309,7 +315,7 @@ export default function FinancialReportModal({ isOpen, onClose, appData, allowed
                   Tỷ lệ Lấp đầy Phòng (OCC)
                   <CheckCircle2 size={18} color="#C4A47C" />
                 </div>
-                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#7BB087' }}>{stats?.occupancyRate}%</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#7BB087' }}>{stats?.occupancyRate}%</div>
                 <div style={{ color: '#666666', fontSize: '0.85rem', marginTop: '8px' }}>Dựa trên số phòng kinh doanh.</div>
               </div>
             </div>

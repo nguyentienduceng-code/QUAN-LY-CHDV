@@ -370,10 +370,10 @@
     flex-shrink: unset !important;
   }
 
-  /* Rooms grid: 3 columns on mobile for compact view */
+  /* Rooms grid: 2 columns on mobile for comfortable view */
   .rooms-grid-mobile {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 10px !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
   }
 
   /* ─── KANBAN BOARD MOBILE ──────── */

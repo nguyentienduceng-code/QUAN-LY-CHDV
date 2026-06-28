@@ -190,7 +190,7 @@ export default function Settings() {
         </div>
 
         {/* 3 Panels */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+        <div className="grid-layout">
           
           {/* Panel 1: Đơn Giá Gốc */}
           <div className="card" style={{ borderTop: '4px solid var(--status-overdue)' }}>
@@ -263,8 +263,8 @@ export default function Settings() {
                     </div>
 
                     {/* Monthly entry form */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '8px', alignItems: 'end', marginBottom: '12px' }}>
-                      <div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'end', marginBottom: '12px' }}>
+                      <div style={{ flex: '1 1 80px' }}>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>Tháng</label>
                         <input
                           type="text"
@@ -274,7 +274,7 @@ export default function Settings() {
                           style={{ width: '100%', padding: '8px 10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '6px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.9rem' }}
                         />
                       </div>
-                      <div>
+                      <div style={{ flex: '1 1 80px' }}>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
                           {currentMode === 'add_service' ? 'Điện DV (kWh)' : 'Tổng Điện (kWh)'}
                         </label>
@@ -286,7 +286,7 @@ export default function Settings() {
                           style={{ width: '100%', padding: '8px 10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '6px', color: 'var(--text-primary)', outline: 'none', fontSize: '0.9rem' }}
                         />
                       </div>
-                      <div>
+                      <div style={{ flex: '1 1 80px' }}>
                         <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>
                           {currentMode === 'add_service' ? 'Nước DV (m³)' : 'Tổng Nước (m³)'}
                         </label>

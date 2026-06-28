@@ -251,17 +251,17 @@ export default function Home() {
       <div className="page-header">
         <h1 className="page-title" style={{ margin: 0 }}>Tổng quan hệ thống</h1>
         <div className="page-header-actions">
-          <button onClick={() => setIsFinancialReportOpen(true)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
+          <button onClick={() => setIsFinancialReportOpen(true)} style={{ padding: '8px 16px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38bdf8', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', transition: '0.2s' }}>
             <Image size={16} /> Xuất Báo Cáo Tài Chính
           </button>
-          <button onClick={() => setIsImportOpen(true)} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
-            <Upload size={16} /> Nhập Dữ Liệu
+          <button onClick={() => setIsImportOpen(true)} style={{ padding: '8px 16px', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', color: 'var(--accent-primary)', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', transition: '0.2s' }}>
+            <Download size={16} /> Nhập Dữ Liệu
           </button>
           <button onClick={() => {
             exportAllDataToExcel(appData);
             toast.success('Đã xuất file Backup Excel thành công!');
-          }} style={{ padding: '8px 16px', background: 'var(--status-occupied)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
-            <Download size={16} /> Backup Dữ Liệu (Excel)
+          }} style={{ padding: '8px 16px', background: '#10b981', border: '1px solid #059669', color: '#fff', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)' }}>
+            <Upload size={16} /> Backup Dữ Liệu (Excel)
           </button>
         </div>
       </div>
@@ -311,29 +311,29 @@ export default function Home() {
               <tbody>
                 <tr>
                   <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', fontSize: '1.1rem', fontWeight: '500' }}>Tổng Doanh Thu (Thu từ hóa đơn khách)</td>
-                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', textAlign: 'right', color: 'var(--status-occupied)', fontSize: '1.2rem', fontWeight: 'bold' }}>+{revenueStr}</td>
+                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', textAlign: 'right', color: 'var(--status-occupied-text)', fontSize: '1.2rem', fontWeight: 'bold' }}>+{revenueStr}</td>
                 </tr>
                 <tr>
                   <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', color: 'var(--text-secondary)' }}>
                     <div style={{ marginLeft: '16px' }}>- Chi phí thuê khoán trả chủ</div>
                   </td>
-                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue)' }}>-{(totalBaseRent / 1000000).toFixed(1)} Tr</td>
+                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue-text)' }}>-{(totalBaseRent / 1000000).toFixed(1)} Tr</td>
                 </tr>
                 <tr>
                   <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', color: 'var(--text-secondary)' }}>
                     <div style={{ marginLeft: '16px' }}>- Chi phí Điện/Nước gốc (bao gồm dịch vụ chung)</div>
                   </td>
-                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue)' }}>-{(totalBaseUtilCost / 1000000).toFixed(1)} Tr</td>
+                  <td style={{ padding: '16px', borderBottom: '1px dashed var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue-text)' }}>-{(totalBaseUtilCost / 1000000).toFixed(1)} Tr</td>
                 </tr>
                 <tr>
                   <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', color: 'var(--text-secondary)' }}>
                     <div style={{ marginLeft: '16px' }}>- Chi phí bảo trì, sửa chữa phát sinh</div>
                   </td>
-                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue)' }}>-{(maintenanceCost / 1000000).toFixed(1)} Tr</td>
+                  <td style={{ padding: '16px', borderBottom: '1px solid var(--border-glass)', textAlign: 'right', color: 'var(--status-overdue-text)' }}>-{(maintenanceCost / 1000000).toFixed(1)} Tr</td>
                 </tr>
                 <tr style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
                   <td style={{ padding: '20px 16px', fontSize: '1.3rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>LỢI NHUẬN THỰC TẾ</td>
-                  <td style={{ padding: '20px 16px', textAlign: 'right', fontSize: '1.5rem', fontWeight: 'bold', color: (totalRevenue - totalExpenses) >= 0 ? 'var(--status-occupied)' : 'var(--status-overdue)' }}>
+                  <td style={{ padding: '20px 16px', textAlign: 'right', fontSize: '1.5rem', fontWeight: 'bold', color: (totalRevenue - totalExpenses) >= 0 ? 'var(--status-occupied-text)' : 'var(--status-overdue-text)' }}>
                     {((totalRevenue - totalExpenses) / 1000000).toFixed(1)} Tr
                   </td>
                 </tr>
@@ -428,12 +428,12 @@ export default function Home() {
                 type="text" 
                 placeholder="Tiêu đề thông báo..." 
                 id="ann-title"
-                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem' }} 
+                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '0.9rem' }} 
               />
               <textarea 
                 placeholder="Nội dung thông báo (hiển thị trên app Khách thuê)..." 
                 id="ann-msg"
-                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: '#fff', fontSize: '0.9rem', minHeight: '60px', resize: 'vertical' }} 
+                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.05)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '0.9rem', minHeight: '60px', resize: 'vertical' }} 
               ></textarea>
               <button 
                 onClick={() => {

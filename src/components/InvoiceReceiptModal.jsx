@@ -255,8 +255,8 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
                 <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#2C2C2C', letterSpacing: '2px', textTransform: 'uppercase' }}>Tổng Thanh Toán</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', gap: '6px' }}>
-                <span style={{ fontSize: '2.4rem', fontFamily: '"Playfair Display", serif', fontWeight: '700', color: '#C5A059', letterSpacing: '0px' }}>{invoice.amount}</span>
-                <span style={{ fontSize: '1.4rem', color: '#A69C8B', fontFamily: '"Playfair Display", serif' }}>₫</span>
+                <span style={{ fontSize: '2rem', fontFamily: '"Playfair Display", serif', fontWeight: '700', color: '#C5A059', letterSpacing: '0px' }}>{invoice.amount}</span>
+                <span style={{ fontSize: '1.2rem', color: '#A69C8B', fontFamily: '"Playfair Display", serif' }}>₫</span>
               </div>
             </div>
           </div>
