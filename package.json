@@ -19,7 +19,8 @@
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "latest",
     "recharts": "^3.8.1",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

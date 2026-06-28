@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 export const exportAllDataToExcel = (data) => {
   const { rooms, tenants, contracts, invoices, tickets } = data;
@@ -142,6 +142,50 @@ export const exportAllDataToExcel = (data) => {
   })));
   ticketsSheet['!cols'] = [{wch: 15}, {wch: 25}, {wch: 15}, {wch: 10}, {wch: 15}, {wch: 20}, {wch: 15}, {wch: 15}];
   XLSX.utils.book_append_sheet(wb, ticketsSheet, 'Bao Tri');
+
+  // ── Apply Styles ─────────────────────────────────────────────────
+  const applyStyles = (sheet) => {
+    if (!sheet['!ref']) return;
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = sheet[cellAddress];
+        if (!cell) continue;
+
+        if (R === 0) {
+          cell.s = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "1C2D42" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: { top: { style: 'thin', color: { auto: 1 } }, bottom: { style: 'thin', color: { auto: 1 } }, left: { style: 'thin', color: { auto: 1 } }, right: { style: 'thin', color: { auto: 1 } } }
+          };
+        } else {
+          cell.s = {
+            alignment: { vertical: "center" },
+            border: { top: { style: 'thin', color: { rgb: "E2E8F0" } }, bottom: { style: 'thin', color: { rgb: "E2E8F0" } }, left: { style: 'thin', color: { rgb: "E2E8F0" } }, right: { style: 'thin', color: { rgb: "E2E8F0" } } }
+          };
+          // Format numbers with thousands separators if they are actual numbers
+          if (typeof cell.v === 'number') {
+            cell.s.numFmt = "#,##0";
+          }
+          // Also try to format strings that look like big numbers (e.g. from invoices)
+          if (typeof cell.v === 'string' && /^\d{4,}$/.test(cell.v.replace(/\./g, ''))) {
+             const num = parseInt(cell.v.replace(/\./g, ''));
+             if (!isNaN(num)) {
+               cell.v = num;
+               cell.t = 'n';
+               cell.s.numFmt = "#,##0";
+             }
+          }
+        }
+      }
+    }
+  };
+
+  wb.SheetNames.forEach(name => {
+    applyStyles(wb.Sheets[name]);
+  });
 
   // ── Save ─────────────────────────────────────────────────────────
   const dateStr = new Date().toISOString().split('T')[0];
