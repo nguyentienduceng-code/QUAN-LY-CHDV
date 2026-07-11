@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAppData } from '../context/AppDataContext';
-import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard, Plus, Trash2, CloudUpload, FileJson } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard, Plus, Trash2, CloudUpload, FileJson, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useCustomConfirm } from '../context/CustomPromptContext';
