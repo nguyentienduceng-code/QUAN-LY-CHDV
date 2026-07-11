@@ -75,7 +75,8 @@ export default function Login() {
         }
       } catch (fbError) {
         console.warn("Firebase email auth failed:", fbError.message);
-        if (fbError.code === 'auth/configuration-not-found' || fbError.message.includes('CONFIGURATION_NOT_FOUND') || fbError.code === 'auth/invalid-api-key') {
+        const errStr = fbError.code?.toLowerCase() + " " + fbError.message?.toLowerCase();
+        if (errStr.includes('configuration-not-found') || errStr.includes('invalid-api-key') || errStr.includes('api-key-not-valid')) {
           // Firebase not configured, let it fall through to mock login
           console.warn("Sử dụng Mock Authentication do Firebase chưa cấu hình.");
         } else {
