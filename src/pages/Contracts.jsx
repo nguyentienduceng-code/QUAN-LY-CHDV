@@ -1,4 +1,5 @@
 import { useAppData } from '../context/AppDataContext';
+import { useAuth } from '../context/AuthContext';
 import { Search, Plus, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StatusBadge from '../components/StatusBadge';
@@ -10,6 +11,7 @@ import { useCustomPrompt } from '../context/CustomPromptContext';
 
 export default function Contracts() {
   const appData = useAppData();
+  const { user } = useAuth();
   const customPrompt = useCustomPrompt();
   const { contracts, tenants, addContract } = appData;
   const [selectedTenantId, setSelectedTenantId] = useState(null);
@@ -33,18 +35,22 @@ export default function Contracts() {
             <Search size={18} color="var(--text-secondary)" />
             <input type="text" placeholder="Tìm kiếm hợp đồng..." />
           </div>
-          <button 
-            onClick={() => {
-              exportAllDataToExcel(appData);
-              toast.success('Đã tải dữ liệu hợp đồng (.xlsx)');
-            }} 
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}
-          >
-            <Download size={16} /> Xuất Excel
-          </button>
-          <button onClick={handleAddContract} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
-            <Plus size={16} /> Tạo HĐ Mới
-          </button>
+          {(user?.role !== 'tenant' && user?.role !== 'guest') && (
+            <>
+              <button 
+                onClick={() => {
+                  exportAllDataToExcel(appData);
+                  toast.success('Đã tải dữ liệu hợp đồng (.xlsx)');
+                }} 
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}
+              >
+                <Download size={16} /> Xuất Excel
+              </button>
+              <button onClick={handleAddContract} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+                <Plus size={16} /> Tạo HĐ Mới
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -59,9 +65,11 @@ export default function Contracts() {
             title="Chưa có hợp đồng nào" 
             message="Bấm Tạo HĐ Mới để bắt đầu quản lý hợp đồng cho khách thuê."
             action={
-              <button onClick={handleAddContract} style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
-                Tạo HĐ Mới
-              </button>
+              (user?.role !== 'tenant' && user?.role !== 'guest') && (
+                <button onClick={handleAddContract} style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>
+                  Tạo HĐ Mới
+                </button>
+              )
             }
           />
         ) : (

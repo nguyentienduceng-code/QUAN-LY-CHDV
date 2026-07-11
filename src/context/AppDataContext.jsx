@@ -194,34 +194,57 @@ export const AppDataProvider = ({ children }) => {
     const setupFirestoreListeners = () => {
       const unsubs = [];
       
+      const isTenant = user?.role === 'tenant';
+      const tenantEmail = user?.email;
+      const tenantRoom = user?.room;
+
       unsubs.push(onSnapshot(doc(db, 'settings', ownerId), (docSnap) => {
         if (docSnap.exists()) setSettings(docSnap.data());
       }));
       
-      unsubs.push(onSnapshot(query(collection(db, 'rooms'), where('ownerId', '==', ownerId)), (querySnap) => {
+      // Rooms
+      const roomsQuery = isTenant
+        ? (tenantRoom ? query(collection(db, 'rooms'), where('ownerId', '==', ownerId), where('name', '==', tenantRoom)) : query(collection(db, 'rooms'), where('name', '==', 'INVALID_EMPTY')))
+        : query(collection(db, 'rooms'), where('ownerId', '==', ownerId));
+      unsubs.push(onSnapshot(roomsQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setRooms(list);
       }));
       
-      unsubs.push(onSnapshot(query(collection(db, 'tenants'), where('ownerId', '==', ownerId)), (querySnap) => {
+      // Tenants
+      const tenantsQuery = isTenant
+        ? (tenantEmail ? query(collection(db, 'tenants'), where('ownerId', '==', ownerId), where('email', '==', tenantEmail)) : query(collection(db, 'tenants'), where('email', '==', 'INVALID_EMPTY')))
+        : query(collection(db, 'tenants'), where('ownerId', '==', ownerId));
+      unsubs.push(onSnapshot(tenantsQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setTenants(list);
       }));
       
-      unsubs.push(onSnapshot(query(collection(db, 'contracts'), where('ownerId', '==', ownerId)), (querySnap) => {
+      // Contracts
+      const contractsQuery = isTenant
+        ? (tenantRoom ? query(collection(db, 'contracts'), where('ownerId', '==', ownerId), where('room', '==', tenantRoom)) : query(collection(db, 'contracts'), where('room', '==', 'INVALID_EMPTY')))
+        : query(collection(db, 'contracts'), where('ownerId', '==', ownerId));
+      unsubs.push(onSnapshot(contractsQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setContracts(list);
       }));
       
-      unsubs.push(onSnapshot(query(collection(db, 'invoices'), where('ownerId', '==', ownerId)), (querySnap) => {
+      // Invoices
+      const invoicesQuery = isTenant
+        ? (tenantRoom ? query(collection(db, 'invoices'), where('ownerId', '==', ownerId), where('room', '==', tenantRoom)) : query(collection(db, 'invoices'), where('room', '==', 'INVALID_EMPTY')))
+        : query(collection(db, 'invoices'), where('ownerId', '==', ownerId));
+      unsubs.push(onSnapshot(invoicesQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setInvoices(list);
       }));
       
+      // Tickets
+      // Tickets might not have a 'room' property in all cases, or they do. Let's assume tenant sees all tickets they reported or all tickets for their ownerId. For simplicity, just ownerId, since firestore rules allow them to read tickets for the ownerId. But if we want to restrict, we can add where('reporter', '==', user.name). 
+      // Actually, firestore rules allow them to read all tickets for ownerId. So let's keep it as is.
       unsubs.push(onSnapshot(query(collection(db, 'tickets'), where('ownerId', '==', ownerId)), (querySnap) => {
         const data = { reported: [], inProgress: [], resolved: [] };
         querySnap.forEach(d => {
@@ -235,7 +258,9 @@ export const AppDataProvider = ({ children }) => {
       
       const usersQuery = user?.email === SUPER_ADMIN_EMAIL 
         ? collection(db, 'users') 
-        : query(collection(db, 'users'), where('ownerId', '==', ownerId));
+        : (isTenant 
+            ? query(collection(db, 'users'), where('email', '==', tenantEmail))
+            : query(collection(db, 'users'), where('ownerId', '==', ownerId)));
         
       unsubs.push(onSnapshot(usersQuery, (querySnap) => {
         const list = [];
@@ -259,6 +284,32 @@ export const AppDataProvider = ({ children }) => {
           await setupInitialCloudData();
         }
         
+        const isTenant = user?.role === 'tenant';
+        const tenantEmail = user?.email;
+        const tenantRoom = user?.room;
+
+        const roomsQueryInit = isTenant
+          ? (tenantRoom ? query(collection(db, 'rooms'), where('ownerId', '==', ownerId), where('name', '==', tenantRoom)) : query(collection(db, 'rooms'), where('name', '==', 'INVALID_EMPTY')))
+          : query(collection(db, 'rooms'), where('ownerId', '==', ownerId));
+
+        const tenantsQueryInit = isTenant
+          ? (tenantEmail ? query(collection(db, 'tenants'), where('ownerId', '==', ownerId), where('email', '==', tenantEmail)) : query(collection(db, 'tenants'), where('email', '==', 'INVALID_EMPTY')))
+          : query(collection(db, 'tenants'), where('ownerId', '==', ownerId));
+
+        const contractsQueryInit = isTenant
+          ? (tenantRoom ? query(collection(db, 'contracts'), where('ownerId', '==', ownerId), where('room', '==', tenantRoom)) : query(collection(db, 'contracts'), where('room', '==', 'INVALID_EMPTY')))
+          : query(collection(db, 'contracts'), where('ownerId', '==', ownerId));
+
+        const invoicesQueryInit = isTenant
+          ? (tenantRoom ? query(collection(db, 'invoices'), where('ownerId', '==', ownerId), where('room', '==', tenantRoom)) : query(collection(db, 'invoices'), where('room', '==', 'INVALID_EMPTY')))
+          : query(collection(db, 'invoices'), where('ownerId', '==', ownerId));
+
+        const usersQueryInit = user?.email === SUPER_ADMIN_EMAIL 
+          ? collection(db, 'users') 
+          : (isTenant 
+              ? query(collection(db, 'users'), where('email', '==', tenantEmail))
+              : query(collection(db, 'users'), where('ownerId', '==', ownerId)));
+
         // Initial Fetch
         const [
           settingsSnap,
@@ -270,12 +321,12 @@ export const AppDataProvider = ({ children }) => {
           usersSnap
         ] = await Promise.all([
           getDoc(doc(db, 'settings', ownerId)),
-          getDocs(query(collection(db, 'rooms'), where('ownerId', '==', ownerId))),
-          getDocs(query(collection(db, 'tenants'), where('ownerId', '==', ownerId))),
-          getDocs(query(collection(db, 'contracts'), where('ownerId', '==', ownerId))),
-          getDocs(query(collection(db, 'invoices'), where('ownerId', '==', ownerId))),
+          getDocs(roomsQueryInit),
+          getDocs(tenantsQueryInit),
+          getDocs(contractsQueryInit),
+          getDocs(invoicesQueryInit),
           getDocs(query(collection(db, 'tickets'), where('ownerId', '==', ownerId))),
-          getDocs(query(collection(db, 'users'), where('ownerId', '==', ownerId)))
+          getDocs(usersQueryInit)
         ]);
         
         if (settingsSnap.exists()) setSettings(settingsSnap.data());

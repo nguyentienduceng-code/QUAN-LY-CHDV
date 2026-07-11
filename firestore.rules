@@ -3,77 +3,115 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // Helper: Is Super Admin
-    // TODO: Transition to Custom Claims `request.auth.token.isSuperAdmin == true`
     function isSuperAdmin() {
       return request.auth != null && request.auth.token.email == 'nguyentienducbmt123@gmail.com';
     }
-    // Helper: Is Workspace Staff/Tenant
-    function isOwnerOrStaff(oid) {
-      return request.auth != null && (
-        request.auth.uid == oid || 
-        get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.ownerId == oid
-      );
+    
+    // Helper: Safely get User Data
+    function hasUserDoc() {
+      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.token.email));
+    }
+    
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.token.email));
+    }
+    
+    function getRole() {
+      return hasUserDoc() ? getUserDoc().data.role : 'none';
+    }
+    
+    function getOwnerId() {
+      return hasUserDoc() ? getUserDoc().data.ownerId : null;
+    }
+    
+    function getRoom() {
+      return hasUserDoc() ? getUserDoc().data.room : null;
+    }
+
+    // Check if user belongs to this ownerId
+    function belongsToOwner(oid) {
+      return request.auth != null && (request.auth.uid == oid || getOwnerId() == oid);
+    }
+    
+    // Check if user has Admin or Manager role for the ownerId
+    function isAdminOrManager(oid) {
+      return request.auth != null && (request.auth.uid == oid || getRole() == 'admin' || getRole() == 'manager');
+    }
+
+    // Check if user is a Tenant
+    function isTenant() {
+      return request.auth != null && getRole() == 'tenant';
     }
 
     // Users Collection
     match /users/{email} {
-      // Allow user to read their own data, or workspace owner/staff to read member data
       allow read: if isSuperAdmin() || (request.auth != null && (
         request.auth.token.email == email || 
-        isOwnerOrStaff(resource.data.ownerId)
+        (belongsToOwner(resource.data.ownerId) && isAdminOrManager(resource.data.ownerId))
       ));
-      // Allow creating profile or workspace owner/staff to create member profile
       allow create: if isSuperAdmin() || (request.auth != null && (
         request.auth.token.email == email || 
-        isOwnerOrStaff(request.resource.data.ownerId)
+        (belongsToOwner(request.resource.data.ownerId) && isAdminOrManager(request.resource.data.ownerId))
       ));
-      // Allow workspace owner/manager to update their staff/tenants
-      allow update, delete: if isSuperAdmin() || (
-        request.auth != null && isOwnerOrStaff(resource.data.ownerId)
-      );
+      allow update, delete: if isSuperAdmin() || (request.auth != null && (
+        request.auth.token.email == email || 
+        (belongsToOwner(resource.data.ownerId) && isAdminOrManager(resource.data.ownerId))
+      ));
     }
 
     // Settings Collection
     match /settings/{docId} {
       // docId is the ownerId
-      allow read, write: if isSuperAdmin() || isOwnerOrStaff(docId);
+      allow read: if isSuperAdmin() || belongsToOwner(docId);
+      allow write: if isSuperAdmin() || (belongsToOwner(docId) && isAdminOrManager(docId));
     }
 
     // Rooms Collection
     match /rooms/{docId} {
-      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
-      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
-      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow read: if isSuperAdmin() || 
+                  (belongsToOwner(resource.data.ownerId) && 
+                   (isAdminOrManager(resource.data.ownerId) || (isTenant() && getRoom() == resource.data.name))
+                  );
+      allow create: if isSuperAdmin() || (belongsToOwner(request.resource.data.ownerId) && isAdminOrManager(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || (belongsToOwner(resource.data.ownerId) && isAdminOrManager(resource.data.ownerId));
     }
 
     // Tenants Collection
     match /tenants/{docId} {
       allow read: if isSuperAdmin() || 
-                  isOwnerOrStaff(resource.data.ownerId) || 
-                  (request.auth != null && request.auth.token.email == resource.data.email);
-      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
-      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+                  (belongsToOwner(resource.data.ownerId) && 
+                   (isAdminOrManager(resource.data.ownerId) || (request.auth != null && request.auth.token.email == resource.data.email))
+                  );
+      allow create: if isSuperAdmin() || (belongsToOwner(request.resource.data.ownerId) && isAdminOrManager(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || (belongsToOwner(resource.data.ownerId) && isAdminOrManager(resource.data.ownerId));
     }
 
     // Contracts Collection
     match /contracts/{docId} {
-      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
-      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
-      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow read: if isSuperAdmin() || 
+                  (belongsToOwner(resource.data.ownerId) && 
+                   (isAdminOrManager(resource.data.ownerId) || (isTenant() && getRoom() == resource.data.room))
+                  );
+      allow create: if isSuperAdmin() || (belongsToOwner(request.resource.data.ownerId) && isAdminOrManager(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || (belongsToOwner(resource.data.ownerId) && isAdminOrManager(resource.data.ownerId));
     }
 
     // Invoices Collection
     match /invoices/{docId} {
-      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
-      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
-      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow read: if isSuperAdmin() || 
+                  (belongsToOwner(resource.data.ownerId) && 
+                   (isAdminOrManager(resource.data.ownerId) || (isTenant() && getRoom() == resource.data.room))
+                  );
+      allow create: if isSuperAdmin() || (belongsToOwner(request.resource.data.ownerId) && isAdminOrManager(request.resource.data.ownerId));
+      allow update, delete: if isSuperAdmin() || (belongsToOwner(resource.data.ownerId) && isAdminOrManager(resource.data.ownerId));
     }
 
     // Tickets Collection
     match /tickets/{docId} {
-      allow read: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
-      allow create: if isSuperAdmin() || (request.auth != null && isOwnerOrStaff(request.resource.data.ownerId));
-      allow update, delete: if isSuperAdmin() || isOwnerOrStaff(resource.data.ownerId);
+      allow read: if isSuperAdmin() || belongsToOwner(resource.data.ownerId);
+      allow create: if isSuperAdmin() || belongsToOwner(request.resource.data.ownerId);
+      allow update: if isSuperAdmin() || belongsToOwner(resource.data.ownerId);
+      allow delete: if isSuperAdmin() || (belongsToOwner(resource.data.ownerId) && isAdminOrManager(resource.data.ownerId));
     }
   }
 }
