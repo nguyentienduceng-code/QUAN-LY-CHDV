@@ -1,6 +1,14 @@
-import * as XLSX from 'xlsx-js-style';
+// xlsx-js-style is dynamically imported to avoid loading 868KB upfront
+let XLSX = null;
+const getXLSX = async () => {
+  if (!XLSX) {
+    XLSX = await import('xlsx-js-style');
+  }
+  return XLSX;
+};
 
-export const exportAllDataToExcel = (data) => {
+export const exportAllDataToExcel = async (data) => {
+  const XLSX = await getXLSX();
   const { rooms, tenants, contracts, invoices, tickets } = data;
 
   const wb = XLSX.utils.book_new();

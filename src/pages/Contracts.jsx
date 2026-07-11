@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import StatusBadge from '../components/StatusBadge';
 import TenantDetailDrawer from '../components/TenantDetailDrawer';
 import EmptyState from '../components/EmptyState';
-import { exportAllDataToExcel } from '../utils/exportExcel';
+// exportExcel is lazy loaded on demand
 import { useState } from 'react';
 import { useCustomPrompt } from '../context/CustomPromptContext';
 
@@ -39,8 +39,7 @@ export default function Contracts() {
             <>
               <button 
                 onClick={() => {
-                  exportAllDataToExcel(appData);
-                  toast.success('Đã tải dữ liệu hợp đồng (.xlsx)');
+                  import('../utils/exportExcel').then(m => m.exportAllDataToExcel(appData)).then(() => toast.success('Đã tải dữ liệu hợp đồng (.xlsx)')).catch(() => toast.error('Lỗi xuất file'));
                 }} 
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}
               >

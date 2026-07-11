@@ -73,17 +73,26 @@ export default function Login() {
         console.warn("Firebase email auth failed:", fbError.message);
         const errStr = fbError.code?.toLowerCase() + " " + fbError.message?.toLowerCase();
         if (errStr.includes('configuration-not-found') || errStr.includes('invalid-api-key') || errStr.includes('api-key-not-valid')) {
-          // Firebase not configured, let it fall through to mock login
-          console.warn("Sử dụng Mock Authentication do Firebase chưa cấu hình.");
+          // Firebase not configured → chỉ cho phép mock login ở chế độ DEV
+          if (!import.meta.env.DEV) {
+            toast.error('Hệ thống chưa được cấu hình Firebase. Vui lòng liên hệ quản trị viên.');
+            return;
+          }
+          console.warn("DEV MODE: Sử dụng Mock Authentication do Firebase chưa cấu hình.");
         } else {
           // Real Auth error (wrong password, user not found, invalid email, etc.)
           toast.error('Đăng nhập thất bại: Vui lòng kiểm tra lại Email và Mật khẩu!');
-          return; // Chặn không cho rơi xuống mock login
+          return;
         }
       }
     }
 
-    // Fallback Mock Login logic
+    // Fallback Mock Login — CHỈ hoạt động ở chế độ Development
+    if (!import.meta.env.DEV) {
+      toast.error('Đăng nhập thất bại. Vui lòng thử lại.');
+      return;
+    }
+
     if (role === 'manager') {
       const emailToSearch = identifier || 'admin';
       const userToLogin = users?.find(u => u.email === emailToSearch || u.id === emailToSearch || u.id === `usr-${emailToSearch}`);
@@ -92,7 +101,6 @@ export default function Login() {
         login({ name: userToLogin.name, role: userToLogin.role, email: userToLogin.email, ownerId: userToLogin.ownerId || userToLogin.uid || 'demo-admin' });
         navigate('/');
       } else if (emailToSearch === 'admin') {
-        // Fallback default admin
         login({ name: 'Admin (Quản lý)', role: 'admin', email: 'admin@gmail.com', ownerId: 'demo-admin' });
         navigate('/');
       } else if (emailToSearch === 'nguyentienducbmt123@gmail.com') {
@@ -105,7 +113,6 @@ export default function Login() {
       const emailToSearch = identifier || 'khach1@gmail.com';
       const tenant = tenants?.find(t => t.email === emailToSearch);
       if (tenant) {
-        // Find if this tenant has a mapped user role
         const mappedUser = users?.find(u => u.email === emailToSearch);
         login({ name: tenant.name, role: mappedUser?.role || 'tenant', room: tenant.room, email: tenant.email, ownerId: tenant.ownerId || mappedUser?.ownerId || 'demo-tenant' });
         navigate('/tenant-portal');

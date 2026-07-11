@@ -3,7 +3,7 @@ import { TrendingUp, Users, DollarSign, AlertCircle, AlertTriangle, Download, Up
 import toast from 'react-hot-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { useAppData } from '../context/AppDataContext';
-import { exportAllDataToExcel } from '../utils/exportExcel';
+// exportExcel is lazy loaded on demand to save ~868KB from initial bundle
 import Card from '../components/Card';
 import StatusBadge from '../components/StatusBadge';
 import ImportModal from '../components/ImportModal';
@@ -258,8 +258,7 @@ export default function Home() {
             <Download size={16} /> Nhập Dữ Liệu
           </button>
           <button onClick={() => {
-            exportAllDataToExcel(appData);
-            toast.success('Đã xuất file Backup Excel thành công!');
+            import('../utils/exportExcel').then(m => m.exportAllDataToExcel(appData)).then(() => toast.success('Đã xuất file Backup Excel thành công!')).catch(() => toast.error('Lỗi xuất file Excel'));
           }} style={{ padding: '8px 16px', background: '#10b981', border: '1px solid #059669', color: '#fff', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', transition: '0.2s', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)' }}>
             <Upload size={16} /> Backup Dữ Liệu (Excel)
           </button>
