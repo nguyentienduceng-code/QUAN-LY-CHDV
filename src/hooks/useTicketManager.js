@@ -53,6 +53,31 @@ export const useTicketManager = ({ isCloudMode, ownerId, setTickets }) => {
     }
   };
 
+  const updateTicket = async (id, updatedData) => {
+    if (isCloudMode) {
+      try {
+        await setDoc(doc(db, 'tickets', String(id)), updatedData, { merge: true });
+        toast.success("Cập nhật sự cố thành công");
+      } catch (err) {
+        console.error("Lỗi khi cập nhật sự cố trên Cloud:", err);
+        toast.error("Lỗi khi cập nhật sự cố");
+      }
+    } else {
+      setTickets(prev => {
+        const newState = { ...prev };
+        for (const status of ['reported', 'inProgress', 'resolved']) {
+          const index = newState[status]?.findIndex(t => t.id === id);
+          if (index >= 0) {
+            newState[status][index] = { ...newState[status][index], ...updatedData };
+            break;
+          }
+        }
+        return newState;
+      });
+      toast.success("Cập nhật sự cố thành công (Local)");
+    }
+  };
+
   const deleteTicket = async (id, currentStatus) => {
     if (isCloudMode) {
       try {
@@ -71,5 +96,5 @@ export const useTicketManager = ({ isCloudMode, ownerId, setTickets }) => {
     }
   };
 
-  return { addTicket, updateTicketStatus, deleteTicket };
+  return { addTicket, updateTicketStatus, updateTicket, deleteTicket };
 };

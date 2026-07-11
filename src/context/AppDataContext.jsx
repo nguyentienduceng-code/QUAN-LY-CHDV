@@ -386,7 +386,7 @@ export const AppDataProvider = ({ children }) => {
   const { addTenant, updateTenant, deleteTenant } = useTenantManager({ isCloudMode, ownerId, setTenants });
   const { addContract, updateContract, deleteContract } = useContractManager({ isCloudMode, ownerId, setContracts });
   const { addInvoice, updateInvoice, deleteInvoice } = useInvoiceManager({ isCloudMode, ownerId, setInvoices });
-  const { addTicket, updateTicketStatus, deleteTicket } = useTicketManager({ isCloudMode, ownerId, setTickets });
+  const { addTicket, updateTicketStatus, updateTicket, deleteTicket } = useTicketManager({ isCloudMode, ownerId, setTickets });
   const { handleUpdateSettings } = useSettingsManager({ isCloudMode, ownerId, setSettings });
   const { addUser, updateUser, deleteUser } = useUserManager({ isCloudMode, ownerId, setUsers });
 
