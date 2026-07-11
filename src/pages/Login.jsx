@@ -98,8 +98,11 @@ export default function Login() {
         // Fallback default admin
         login({ name: 'Admin (Quản lý)', role: 'admin', email: 'admin@gmail.com', ownerId: 'demo-admin' });
         navigate('/');
+      } else if (emailToSearch === 'nguyentienducbmt123@gmail.com') {
+        login({ name: 'Super Admin', role: 'admin', email: 'nguyentienducbmt123@gmail.com', ownerId: 'demo-admin' });
+        navigate('/');
       } else {
-        toast.error('Tài khoản quản lý không tồn tại!');
+        toast.error('Tài khoản quản lý không tồn tại trên dữ liệu mẫu!');
       }
     } else {
       const emailToSearch = identifier || 'khach1@gmail.com';
