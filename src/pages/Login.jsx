@@ -63,13 +63,9 @@ export default function Login() {
       try {
         const firebaseUser = await loginWithEmail(identifier, password);
         if (firebaseUser) {
-          const registeredUser = users?.find(u => u.email === firebaseUser.email);
-          const mappedRole = registeredUser?.role || 'guest';
-          const mappedRoom = registeredUser?.room || null;
-          const mappedName = registeredUser?.name || firebaseUser.displayName || firebaseUser.email.split('@')[0];
-          const mappedOwnerId = registeredUser?.ownerId || firebaseUser.uid;
-          
-          login({ name: mappedName, role: mappedRole, email: firebaseUser.email, room: mappedRoom, ownerId: mappedOwnerId });
+          // onAuthStateChanged trong AuthContext sẽ tự động xử lý việc set user state
+          // Không cần gọi login() thủ công ở đây — điều đó sẽ đảm bảo
+          // Firestore security rules nhận diện được request.auth chính xác
           toast.success('Đăng nhập hệ thống thành công!');
           return;
         }

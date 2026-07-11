@@ -15,8 +15,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       const storedUser = localStorage.getItem('chdv_user');
-      // Nếu đăng nhập bằng Google hoặc Email Firebase (có firebaseUser) và không có user cứng trong localStorage (manager)
-      if (firebaseUser && !storedUser) {
+      // Khi có firebaseUser (đăng nhập Firebase Auth thật), LUÔN cập nhật user state
+      // để đảm bảo Firestore security rules nhận diện được request.auth
+      if (firebaseUser) {
         let registeredUser = null;
         try {
           // Try email query first
@@ -168,7 +169,7 @@ export const AuthProvider = ({ children }) => {
           finalTrialEndsAt = null;
         }
 
-        setUser({
+        const firebaseAuthUser = {
           name: tenantName || registeredUser?.name || firebaseUser.displayName || 'Người dùng',
           email: firebaseUser.email,
           photo: firebaseUser.photoURL,
@@ -179,10 +180,14 @@ export const AuthProvider = ({ children }) => {
           plan: finalPlan || registeredUser?.plan,
           trialEndsAt: finalTrialEndsAt || registeredUser?.trialEndsAt,
           ownerId: finalOwnerId
-        });
+        };
+        setUser(firebaseAuthUser);
+        // Đồng bộ vào localStorage để các phần khác nhất quán
+        localStorage.setItem('chdv_user', JSON.stringify(firebaseAuthUser));
       } else if (!firebaseUser && !storedUser) {
         setUser(null);
       }
+      // Nếu !firebaseUser && storedUser tồn tại → giữ nguyên mock login user (không xóa)
     });
     return () => unsubscribe();
   }, []);
