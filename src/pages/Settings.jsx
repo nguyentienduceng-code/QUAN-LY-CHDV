@@ -3,9 +3,11 @@ import { useAppData } from '../context/AppDataContext';
 import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { useCustomConfirm } from '../context/CustomPromptContext';
 
 export default function Settings() {
   const { user } = useAuth();
+  const customConfirm = useCustomConfirm();
   const { settings, setSettings, clearAllData, loadMockData } = useAppData();
   const [formData, setFormData] = useState(settings);
   const [selectedBuilding, setSelectedBuilding] = useState(settings.buildings[0] || 'A');
@@ -545,8 +547,9 @@ export default function Settings() {
             <div style={{ display: 'flex', gap: '12px' }}>
               <button 
                 type="button" 
-                onClick={() => {
-                  if (window.confirm('CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ dữ liệu Khách, Phòng, Hóa đơn đang có. Bạn chắc chắn chứ?')) {
+                onClick={async () => {
+                  const ok = await customConfirm('CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ dữ liệu Khách, Phòng, Hóa đơn đang có. Bạn chắc chắn chứ?');
+                  if (ok) {
                     clearAllData();
                     toast.success('Đã làm trống toàn bộ dữ liệu hệ thống!');
                   }

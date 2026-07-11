@@ -6,12 +6,14 @@ import toast from 'react-hot-toast';
 import GeneratePeriodicInvoicesModal from '../components/GeneratePeriodicInvoicesModal';
 
 import { useAppData } from '../context/AppDataContext';
+import { useCustomConfirm } from '../context/CustomPromptContext';
 import CreateInvoiceModal from '../components/CreateInvoiceModal';
 import InvoiceReceiptModal from '../components/InvoiceReceiptModal';
 import UpdateIndexModal from '../components/UpdateIndexModal';
 
 export default function Invoices({ initialInvoiceId }) {
   const { user } = useAuth();
+  const customConfirm = useCustomConfirm();
   const { invoices, addInvoice, tenants, rooms, settings, updateInvoice, deleteInvoice } = useAppData();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -99,12 +101,6 @@ export default function Invoices({ initialInvoiceId }) {
       <div className="page-header">
         <h1 className="page-title" style={{ margin: 0 }}>Tài chính & Hóa đơn</h1>
         <div className="page-header-actions">
-          <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <Filter size={16} /> Lọc
-          </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <Download size={16} /> Xuất Excel
-          </button>
           {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
             <>
               <button onClick={() => setIsGenerateModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', cursor: 'pointer' }}>
@@ -225,7 +221,8 @@ export default function Invoices({ initialInvoiceId }) {
                       {/* Dropdown Content */}
                       {isExpanded && (
                         <div style={{ background: 'var(--bg-primary)', padding: '16px', borderTop: '1px solid var(--border-glass)' }}>
-                          <table className="mobile-card-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                          <div className="table-responsive">
+                            <table className="mobile-card-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                             <thead style={{ color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-glass)' }}>
                               <tr>
                                 <th style={{ padding: '8px 16px', fontWeight: '600' }}>Mã HĐ</th>
@@ -286,10 +283,10 @@ export default function Invoices({ initialInvoiceId }) {
                                       )}
                                       {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                                         <button 
-                                          onClick={() => {
-                                            if(window.confirm(`Bạn có chắc muốn xóa hóa đơn ${inv.id}?`)) {
+                                          onClick={async () => {
+                                            const ok = await customConfirm(`Bạn có chắc muốn xóa hóa đơn ${inv.id}?`);
+                                            if (ok) {
                                               deleteInvoice(inv.id);
-                                              toast.success('Đã xóa hóa đơn');
                                             }
                                           }} 
                                           style={{ padding: '4px 8px', background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -302,7 +299,8 @@ export default function Invoices({ initialInvoiceId }) {
                                 </tr>
                               ))}
                             </tbody>
-                          </table>
+                            </table>
+                          </div>
                         </div>
                       )}
                     </div>

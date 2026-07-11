@@ -1,5 +1,5 @@
 import { useAppData } from '../context/AppDataContext';
-import { Plus, Search, Eye, Users, FileText, ChevronDown, ChevronRight, Home as HomeIcon } from 'lucide-react';
+import { Plus, Search, Eye, Users, FileText, ChevronDown, ChevronRight, Home as HomeIcon, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TenantDetailDrawer from '../components/TenantDetailDrawer';
 import { exportAllDataToExcel } from '../utils/exportExcel';
@@ -8,7 +8,8 @@ import { useState, useMemo } from 'react';
 import StatusBadge from '../components/StatusBadge';
 import { useCustomPrompt } from '../context/CustomPromptContext';
 import CreateInvoiceModal from '../components/CreateInvoiceModal';
-import CreateContractModal from '../components/CreateContractModal';import AddTenantModal from '../components/AddTenantModal';
+import CreateContractModal from '../components/CreateContractModal';
+import AddTenantModal from '../components/AddTenantModal';
 
 export default function Tenants({ onSwitchToInvoices }) {
   const { user } = useAuth();
@@ -254,7 +255,8 @@ export default function Tenants({ onSwitchToInvoices }) {
                     {/* Floor Header */}
                     <div 
                       onClick={() => toggleFloor(floorKey)}
-                      style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderBottom: isExpanded ? '1px solid var(--border-glass)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                      className="floor-header-gradient"
+                      style={{ padding: '14px 20px', borderBottom: isExpanded ? '1px solid var(--border-glass)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
                     >
                       <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         Tầng {floor} <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>({floorRooms.length} phòng)</span>
@@ -264,9 +266,9 @@ export default function Tenants({ onSwitchToInvoices }) {
 
                     {/* Rooms in Floor */}
                     {isExpanded && (
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px', background: 'rgba(0,0,0,0.02)' }}>
                         {floorRooms.map((room, index) => (
-                          <div key={room.id} className="tenant-row-card" style={{ display: 'flex', borderBottom: index < floorRooms.length - 1 ? '1px solid var(--border-glass)' : 'none', padding: '16px', gap: '20px', alignItems: 'stretch' }}>
+                          <div key={room.id} className="tenant-row-card hover-lift" style={{ display: 'flex', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '20px', gap: '24px', alignItems: 'stretch' }}>
                             
                             {/* Room Info Left Side */}
                             <div className="tenant-left-col" style={{ width: '250px', borderRight: '1px dashed var(--border-glass)', paddingRight: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -302,9 +304,9 @@ export default function Tenants({ onSwitchToInvoices }) {
                                 {room.status === 'vacant' ? 'Trạng thái phòng:' : 'Danh sách khách thuê:'}
                               </div>
                               {room.status === 'vacant' ? (
-                                <div className="tenant-empty-state" style={{ padding: '24px', background: 'rgba(59, 130, 246, 0.03)', borderRadius: '8px', border: '1px dashed rgba(59, 130, 246, 0.2)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                                  <div style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--status-vacant-text)' }}>Phòng trống</div>
-                                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Chưa có hợp đồng hoặc khách hàng cư trú tại phòng này.</div>
+                                <div className="tenant-empty-state glowing-empty-state" style={{ padding: '24px', borderRadius: '12px', color: 'var(--text-secondary)', fontSize: '0.95rem', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><Sparkles size={18}/> Sẵn sàng đón khách mới</div>
+                                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Phòng hiện đang trống. Bấm "Tạo Hợp Đồng" để thêm khách.</div>
                                 </div>
                               ) : room.tenants.length > 0 ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -315,7 +317,7 @@ export default function Tenants({ onSwitchToInvoices }) {
                                           {idx + 1}
                                         </div>
                                         <div>
-                                          <div style={{ fontWeight: '600' }}>{t.name} {idx === 0 && <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--status-occupied)', borderRadius: '10px', marginLeft: '6px' }}>Đại diện</span>}</div>
+                                          <div style={{ fontWeight: '600' }}>{t.name} {idx === 0 && <span className="neon-badge" style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '12px', marginLeft: '8px', fontWeight: 'bold' }}>Đại diện</span>}</div>
                                           <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t.phone} • CCCD: {t.idCard}</div>
                                         </div>
                                       </div>
@@ -338,6 +340,7 @@ export default function Tenants({ onSwitchToInvoices }) {
                                 <>
                                   {room.status === 'vacant' && (
                                     <button 
+                                      className="action-btn-hover"
                                       onClick={() => handleCreateContract(room)}
                                       style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', transition: '0.2s' }}
                                     >
@@ -346,6 +349,7 @@ export default function Tenants({ onSwitchToInvoices }) {
                                   )}
                                   {room.status !== 'vacant' && (
                                     <button 
+                                      className="action-btn-hover"
                                       onClick={() => handleOpenCreateInvoice(room.name)}
                                       style={{ padding: '8px 16px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: '0.2s' }}
                                     >
@@ -355,6 +359,7 @@ export default function Tenants({ onSwitchToInvoices }) {
                                 </>
                               )}
                               <button 
+                                className="action-btn-hover"
                                 onClick={() => {
                                   setSelectedRoomName(room.name); setIsDrawerOpen(true); }}
                                 style={{ padding: '8px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500', transition: '0.2s' }}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home as HomeIcon, Grid, Users, FileSpreadsheet, Wrench, Moon, Sun, Settings, Key, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { SUPER_ADMIN_EMAIL } from '../config/constants';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
   }
   
-  if (user?.email === 'nguyentienducbmt123@gmail.com') {
+  if (user?.email === SUPER_ADMIN_EMAIL) {
     managerNavItems.push({ path: '/super-admin', label: 'Phê duyệt (MoMo)', icon: <Shield size={20} /> });
   }
 

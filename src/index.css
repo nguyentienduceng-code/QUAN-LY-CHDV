@@ -117,3 +117,13 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: 800px; /* Ensures tables don't squish too much on mobile */
+}

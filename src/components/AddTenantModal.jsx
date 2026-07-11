@@ -12,6 +12,7 @@ export default function AddTenantModal({ isOpen, onClose, roomName, onSuccess })
   const [idCard, setIdCard] = useState('');
   const [selectedRoom, setSelectedRoom] = useState(roomName || '');
   const [isRepresentative, setIsRepresentative] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,7 +27,7 @@ export default function AddTenantModal({ isOpen, onClose, roomName, onSuccess })
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !phone) {
       toast.error('Vui lòng nhập Tên và Số điện thoại!');
@@ -37,29 +38,38 @@ export default function AddTenantModal({ isOpen, onClose, roomName, onSuccess })
       return;
     }
 
-    const roomObj = rooms?.find(r => r.name === selectedRoom);
-    const building = roomObj?.building || 'A';
-    
-    addTenant({
-      name,
-      phone,
-      email: email.trim().toLowerCase(),
-      idCard,
-      room: selectedRoom,
-      building,
-      isRepresentative,
-      status: 'active'
-    });
-    
-    toast.success('Đã khai báo khách cư trú thành công!');
-    setName('');
-    setPhone('');
-    setEmail('');
-    setIdCard('');
-    setIsRepresentative(false);
-    
-    if (onSuccess) onSuccess();
-    onClose();
+    setIsSubmitting(true);
+    try {
+      const roomObj = rooms?.find(r => r.name === selectedRoom);
+      
+      const newTenant = {
+        name,
+        phone,
+        email: email.trim().toLowerCase(),
+        idCard,
+        room: selectedRoom,
+        building: roomObj?.building || 'A',
+        isRepresentative,
+        status: 'active'
+      };
+
+      await addTenant(newTenant);
+      toast.success('Đã thêm khách thuê thành công!');
+      
+      setName('');
+      setPhone('');
+      setEmail('');
+      setIdCard('');
+      setIsRepresentative(false);
+      
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Error adding tenant:', error);
+      toast.error('Có lỗi xảy ra!');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -159,11 +169,11 @@ export default function AddTenantModal({ isOpen, onClose, roomName, onSuccess })
           </label>
 
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button type="button" onClick={onClose} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+            <button type="button" onClick={onClose} disabled={isSubmitting} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: isSubmitting ? 0.5 : 1 }}>
               Hủy
             </button>
-            <button type="submit" style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-              Lưu Thông Tin
+            <button type="submit" disabled={isSubmitting} style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: isSubmitting ? 0.7 : 1 }}>
+              {isSubmitting ? 'Đang lưu...' : 'Lưu Thông Tin'}
             </button>
           </div>
         </form>

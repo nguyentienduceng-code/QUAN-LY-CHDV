@@ -18,6 +18,7 @@ export default function CreateContractModal({ isOpen, onClose, room, existingCon
   const [deposit, setDeposit] = useState((room?.price || 0) * 1);
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const fileInputRef = useRef(null);
 
@@ -85,62 +86,70 @@ export default function CreateContractModal({ isOpen, onClose, room, existingCon
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!tenantName) {
       toast.error('Vui lòng nhập Tên khách thuê!');
       return;
     }
-    if (existingContract) {
-      updateContract(existingContract.id, {
-        id: contractId,
-        tenant: tenantName,
-        tenantName: tenantName,
-        startDate: new Date(startDate).toLocaleDateString('vi-VN'),
-        endDate: new Date(endDate).toLocaleDateString('vi-VN'),
-        deposit: deposit.toLocaleString('vi-VN'),
-        attachedFiles: files
-      });
-      toast.success(`Đã cập nhật hợp đồng ${contractId}!`);
-    } else {
-      // Create primary tenant
-      addTenant({
-        name: tenantName,
-        room: room.name,
-        building: room.building || 'A',
-        status: 'active',
-        isRepresentative: true,
-        note: 'Người đại diện hợp đồng'
-      });
+    
+    setIsSubmitting(true);
+    try {
+      if (existingContract) {
+        await updateContract(existingContract.id, {
+          id: contractId,
+          tenant: tenantName,
+          tenantName: tenantName,
+          startDate: new Date(startDate).toLocaleDateString('vi-VN'),
+          endDate: new Date(endDate).toLocaleDateString('vi-VN'),
+          deposit: deposit.toLocaleString('vi-VN'),
+          attachedFiles: files
+        });
+        toast.success(`Đã cập nhật hợp đồng ${contractId}!`);
+      } else {
+        // Create primary tenant
+        await addTenant({
+          name: tenantName,
+          room: room.name,
+          building: room.building || 'A',
+          status: 'active',
+          isRepresentative: true,
+          note: 'Người đại diện hợp đồng'
+        });
 
-      // Create contract with extra data
-      addContract({
-        id: contractId,
-        tenant: tenantName,
-        tenantName: tenantName,
-        room: room.name,
-        startDate: new Date(startDate).toLocaleDateString('vi-VN'),
-        endDate: new Date(endDate).toLocaleDateString('vi-VN'),
-        deposit: deposit.toLocaleString('vi-VN'),
-        status: 'active',
-        attachedFiles: files
-      });
+        // Create contract with extra data
+        await addContract({
+          id: contractId,
+          tenant: tenantName,
+          tenantName: tenantName,
+          room: room.name,
+          startDate: new Date(startDate).toLocaleDateString('vi-VN'),
+          endDate: new Date(endDate).toLocaleDateString('vi-VN'),
+          deposit: deposit.toLocaleString('vi-VN'),
+          status: 'active',
+          attachedFiles: files
+        });
 
-      // Update room status
-      updateRoom(room.id, {
-        status: 'occupied',
-        tenant: { name: tenantName }
-      });
+        // Update room status
+        await updateRoom(room.id, {
+          status: 'occupied',
+          tenant: { name: tenantName }
+        });
+        
+        toast.success(`Đã tạo hợp đồng ${contractId} thành công!`);
+      }
       
-      toast.success(`Đã tạo hợp đồng ${contractId} thành công!`);
+      // Reset
+      setTenantName('');
+      setFiles([]);
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Error saving contract:', error);
+      toast.error('Có lỗi xảy ra!');
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    // Reset
-    setTenantName('');
-    setFiles([]);
-    
-    if (onSuccess) onSuccess();
-    onClose();
   };
 
   return (
@@ -274,14 +283,12 @@ export default function CreateContractModal({ isOpen, onClose, room, existingCon
           </div>
 
         </form>
-        <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-glass)', display: 'flex', gap: '12px' }}>
-          <button type="button" onClick={onClose} style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-            Hủy
-          </button>
-          <button type="submit" onClick={handleSubmit} style={{ flex: 1, padding: '12px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-            {existingContract ? 'Cập Nhật Hợp Đồng' : 'Tạo Hợp Đồng'}
-          </button>
-        </div>
+            <div style={{ padding: '24px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button type="button" onClick={onClose} disabled={isSubmitting} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: isSubmitting ? 0.5 : 1 }}>Hủy</button>
+              <button type="button" onClick={handleSubmit} disabled={isSubmitting} style={{ padding: '10px 20px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: isSubmitting ? 0.7 : 1 }}>
+                {isSubmitting ? 'Đang xử lý...' : (existingContract ? 'Cập Nhật Hợp Đồng' : 'Tạo Hợp Đồng')}
+              </button>
+            </div>
       </div>
     </div>
   );

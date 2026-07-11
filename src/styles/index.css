@@ -1,6 +1,7 @@
 :root {
   /* LIGHT MODE (Default) */
   --bg-primary: #FDFBF7;
+  --bg-secondary: #F1EDE6;
   --bg-sidebar: #1C2D42;
   --bg-card: #FFFFFF;
   --bg-glass: rgba(255, 255, 255, 0.8);
@@ -43,6 +44,7 @@
 
 [data-theme='dark'] {
   --bg-primary: #131821;
+  --bg-secondary: #1A2030;
   --bg-sidebar: #131821;
   --bg-card: #1E2532;
   --bg-glass: rgba(30, 37, 50, 0.8);

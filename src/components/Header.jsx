@@ -1,14 +1,67 @@
-import { useState } from 'react';
-import { Menu, Search, Bell, LogOut, User } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Menu, Search, Bell, LogOut, User, Home as HomeIcon, FileText, FileSearch, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Header({ toggleSidebar }) {
   const { user, logout } = useAuth();
-  const { notifications, markNotificationAsRead } = useAppData();
+  const { notifications, markNotificationAsRead, rooms, tenants, contracts, invoices } = useAppData();
   const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef(null);
+  const searchRef = useRef(null);
   const navigate = useNavigate();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+
+  // Global search logic
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    const results = [];
+
+    // Search Rooms
+    rooms?.forEach(r => {
+      if (r.name.toLowerCase().includes(query)) {
+        results.push({ type: 'room', id: r.id, name: r.name, detail: `Phòng ${r.name} - Nhà ${r.building || 'A'}`, path: '/rooms' });
+      }
+    });
+
+    // Search Tenants
+    tenants?.forEach(t => {
+      if ((t.name || '').toLowerCase().includes(query) || (t.phone || '').includes(query)) {
+        results.push({ type: 'tenant', id: t.id, name: t.name, detail: `Khách: ${t.name} (Phòng ${t.room})`, path: '/tenants' });
+      }
+    });
+
+    // Search Contracts
+    contracts?.forEach(c => {
+      if ((c.id || '').toLowerCase().includes(query) || (c.tenantName || '').toLowerCase().includes(query)) {
+        results.push({ type: 'contract', id: c.id, name: c.id, detail: `HĐ: ${c.id} - ${c.tenantName}`, path: '/contracts' });
+      }
+    });
+
+    setSearchResults(results.slice(0, 10)); // Limit to 10 results
+  }, [searchQuery, rooms, tenants, contracts]);
+
+  // BUG-08: Close notification dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showNotifications && notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifications(false);
+      }
+      if (showSearchDropdown && searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotifications, showSearchDropdown]);
 
   const handleLogout = () => {
     logout();
@@ -38,9 +91,74 @@ export default function Header({ toggleSidebar }) {
           <Menu size={24} color="var(--sidebar-text)" />
         </button>
         {(user?.role !== 'tenant' && user?.role !== 'guest') && (
-          <div className="search-bar">
+          <div className="search-bar" ref={searchRef} style={{ position: 'relative' }}>
             <Search size={18} color="var(--sidebar-text-muted)" />
-            <input type="text" placeholder="Tìm kiếm phòng, khách thuê, hóa đơn..." style={{ color: 'var(--sidebar-text)' }} />
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm phòng, khách, hợp đồng..." 
+              value={searchQuery}
+              onChange={e => {
+                setSearchQuery(e.target.value);
+                setShowSearchDropdown(true);
+              }}
+              onFocus={() => { if (searchQuery.trim()) setShowSearchDropdown(true); }}
+              style={{ color: 'var(--sidebar-text)' }} 
+            />
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                marginTop: '8px',
+                width: '100%',
+                minWidth: '250px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                zIndex: 50,
+                maxHeight: '300px',
+                overflowY: 'auto'
+              }}>
+                {searchResults.map((result, idx) => (
+                  <div 
+                    key={`${result.type}-${result.id}-${idx}`}
+                    onClick={() => {
+                      navigate(result.path);
+                      setShowSearchDropdown(false);
+                      setSearchQuery('');
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: idx === searchResults.length - 1 ? 'none' : '1px solid var(--border-glass)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      transition: 'background 0.2s',
+                      color: 'var(--text-primary)'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {result.type === 'room' && <HomeIcon size={16} color="var(--accent-primary)" />}
+                    {result.type === 'tenant' && <Users size={16} color="var(--status-occupied-text)" />}
+                    {result.type === 'contract' && <FileText size={16} color="var(--status-expiring-text)" />}
+                    <div style={{ fontSize: '0.9rem' }}>{result.detail}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {showSearchDropdown && searchQuery.trim() && searchResults.length === 0 && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, marginTop: '8px', width: '100%',
+                background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)',
+                borderRadius: '8px', padding: '16px', textAlign: 'center',
+                color: 'var(--text-secondary)', fontSize: '0.9rem', zIndex: 50
+              }}>
+                Không tìm thấy kết quả phù hợp.
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -59,7 +177,7 @@ export default function Header({ toggleSidebar }) {
         )}
         
         {/* Notifications Dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative' }} ref={notifRef}>
           <div style={{ cursor: 'pointer', position: 'relative' }} onClick={() => setShowNotifications(!showNotifications)}>
             <Bell size={20} color="var(--sidebar-text-muted)" />
             {unreadCount > 0 && (

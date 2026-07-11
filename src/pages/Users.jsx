@@ -2,11 +2,13 @@ import { useState, useMemo } from 'react';
 import { Shield, Plus, Edit, Trash2, Key, ChevronDown, ChevronRight, Building, User } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
 import { useAuth } from '../context/AuthContext';
+import { useCustomConfirm } from '../context/CustomPromptContext';
 import toast from 'react-hot-toast';
 
 export default function Users() {
   const { users, addUser, updateUser, deleteUser, rooms, settings, tenants } = useAppData();
   const { user } = useAuth();
+  const customConfirm = useCustomConfirm();
   
   const displayUsers = useMemo(() => {
     const merged = [...users];
@@ -144,12 +146,13 @@ export default function Users() {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id, isAutoSynced) => {
+  const handleDelete = async (id, isAutoSynced) => {
     if (isAutoSynced) {
       toast.error('Tài khoản này được đồng bộ tự động. Vui lòng xóa email trong tab "Khách & Hóa Đơn" để gỡ bỏ.');
       return;
     }
-    if (window.confirm('Bạn có chắc muốn xóa người dùng này?')) {
+    const ok = await customConfirm('Bạn có chắc muốn xóa người dùng này?');
+    if (ok) {
       deleteUser(id);
       toast.success('Đã xóa người dùng!');
     }

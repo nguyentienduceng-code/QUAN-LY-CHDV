@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { generateMockData } from '../utils/mockData';
 import { db } from '../firebase';
 import { 
@@ -7,6 +7,14 @@ import {
 } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { useAuth } from './AuthContext';
+import { SUPER_ADMIN_EMAIL } from '../config/constants';
+import { useRoomManager } from '../hooks/useRoomManager';
+import { useTenantManager } from '../hooks/useTenantManager';
+import { useContractManager } from '../hooks/useContractManager';
+import { useInvoiceManager } from '../hooks/useInvoiceManager';
+import { useTicketManager } from '../hooks/useTicketManager';
+import { useSettingsManager } from '../hooks/useSettingsManager';
+import { useUserManager } from '../hooks/useUserManager';
 
 const AppDataContext = createContext(null);
 
@@ -225,7 +233,7 @@ export const AppDataProvider = ({ children }) => {
         setTickets(data);
       }));
       
-      const usersQuery = user?.email === 'nguyentienducbmt123@gmail.com' 
+      const usersQuery = user?.email === SUPER_ADMIN_EMAIL 
         ? collection(db, 'users') 
         : query(collection(db, 'users'), where('ownerId', '==', ownerId));
         
@@ -319,181 +327,20 @@ export const AppDataProvider = ({ children }) => {
     return () => {
       unsubscribes.forEach(unsub => unsub());
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.ownerId]);
 
-  // ─── CRUDS Actions ──────────────────────────────────────────
-
-  // Add new tenant
-  const addTenant = async (tenant) => {
-    const newId = tenant.id || `${ownerId}_TEN_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const newTenant = { ...tenant, id: newId, status: 'active', ownerId };
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'tenants', String(newTenant.id)), newTenant);
-      } catch (err) {
-        console.error("Lỗi khi thêm khách thuê lên Cloud:", err);
-      }
-    } else {
-      setTenants(prev => [newTenant, ...prev]);
-    }
-  };
-
-  const updateTenant = async (id, updatedData) => {
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'tenants', String(id)), updatedData, { merge: true });
-      } catch (err) {
-        console.error("Lỗi khi cập nhật khách thuê trên Cloud:", err);
-      }
-    } else {
-      setTenants(prev => prev.map(t => t.id === id ? { ...t, ...updatedData } : t));
-    }
-  };
-
-  const deleteTenant = async (id) => {
-    if (isCloudMode) {
-      try {
-        await deleteDoc(doc(db, 'tenants', String(id)));
-      } catch (err) {
-        console.error("Lỗi khi xóa khách thuê trên Cloud:", err);
-      }
-    } else {
-      setTenants(prev => prev.filter(t => t.id !== id));
-    }
-  };
-
-  // Add new contract
-  const addContract = async (contract) => {
-    const newId = contract.id || `${ownerId}_CTR_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const newContract = { ...contract, id: newId, status: 'active', ownerId };
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'contracts', String(newContract.id)), newContract);
-      } catch (err) {
-        console.error("Lỗi khi thêm hợp đồng lên Cloud:", err);
-      }
-    } else {
-      setContracts(prev => [newContract, ...prev]);
-    }
-  };
-
-  const updateContract = async (id, updatedData) => {
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'contracts', String(id)), updatedData, { merge: true });
-      } catch (err) {
-        console.error("Lỗi khi cập nhật hợp đồng trên Cloud:", err);
-      }
-    } else {
-      setContracts(prev => prev.map(ctr => ctr.id === id ? { ...ctr, ...updatedData } : ctr));
-    }
-  };
-
-  const addInvoice = async (invoice) => {
-    const monthStr = invoice.month || new Date().toISOString().slice(0, 7).replace('-', '');
-    const newId = invoice.id || `${ownerId}_INV_${monthStr}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const newInvoice = { ...invoice, id: newId, status: invoice.status || 'unpaid', ownerId };
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'invoices', String(newInvoice.id)), newInvoice);
-      } catch (err) {
-        console.error("Lỗi khi thêm hóa đơn lên Cloud:", err);
-      }
-    } else {
-      setInvoices(prev => [newInvoice, ...prev]);
-    }
-    return newInvoice;
-  };
-
-  const updateInvoice = async (id, updatedData) => {
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'invoices', String(id)), updatedData, { merge: true });
-      } catch (err) {
-        console.error("Lỗi khi cập nhật hóa đơn trên Cloud:", err);
-      }
-    } else {
-      setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, ...updatedData } : inv));
-    }
-  };
-
-  const deleteInvoice = async (id) => {
-    if (isCloudMode) {
-      try {
-        await deleteDoc(doc(db, 'invoices', String(id)));
-      } catch (err) {
-        console.error("Lỗi khi xóa hóa đơn trên Cloud:", err);
-      }
-    } else {
-      setInvoices(prev => prev.filter(inv => inv.id !== id));
-    }
-  };
-
-  // Add a new ticket from Tenant Portal
-  const addTicket = async (ticket) => {
-    const newId = ticket.id || `${ownerId}_TKT_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const newTicket = { 
-      ...ticket, 
-      id: newId, 
-      date: ticket.date || new Date().toLocaleDateString('vi-VN'),
-      status: 'reported',
-      ownerId
-    };
-    
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'tickets', String(newTicket.id)), newTicket);
-        
-        const newNotif = {
-          id: Date.now(),
-          title: 'Yêu cầu bảo trì mới',
-          message: `Phòng ${ticket.room} báo: ${ticket.title}`,
-          isRead: false,
-          date: new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})
-        };
-        setNotifications(prev => [newNotif, ...prev]);
-      } catch (err) {
-        console.error("Lỗi khi thêm ticket lên Cloud:", err);
-      }
-    } else {
-      setTickets(prev => ({
-        ...prev,
-        reported: [newTicket, ...prev.reported]
-      }));
-      setNotifications(prev => [{
-        id: Date.now(),
-        title: 'Yêu cầu bảo trì mới',
-        message: `Phòng ${ticket.room} báo: ${ticket.title}`,
-        isRead: false,
-        date: new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})
-      }, ...prev]);
-    }
-  };
+  // ─── HOOKS ──────────────────────────────────────────
+  const { addRoom, updateRoom, deleteRoom: removeRoom } = useRoomManager({ isCloudMode, ownerId, setRooms });
+  const { addTenant, updateTenant, deleteTenant } = useTenantManager({ isCloudMode, ownerId, setTenants });
+  const { addContract, updateContract, deleteContract } = useContractManager({ isCloudMode, ownerId, setContracts });
+  const { addInvoice, updateInvoice, deleteInvoice } = useInvoiceManager({ isCloudMode, ownerId, setInvoices });
+  const { addTicket, updateTicketStatus, deleteTicket } = useTicketManager({ isCloudMode, ownerId, setTickets });
+  const { handleUpdateSettings } = useSettingsManager({ isCloudMode, ownerId, setSettings });
+  const { addUser, updateUser, deleteUser } = useUserManager({ isCloudMode, ownerId, setUsers });
 
   const markNotificationAsRead = (id) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
-  };
-
-  const updateTicket = async (id, updatedData) => {
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'tickets', String(id)), updatedData, { merge: true });
-      } catch (err) {
-        console.error("Lỗi khi cập nhật ticket trên Cloud:", err);
-      }
-    } else {
-      setTickets(prev => {
-        const newState = { reported: [...prev.reported], inProgress: [...prev.inProgress], resolved: [...prev.resolved] };
-        for (const col of ['reported', 'inProgress', 'resolved']) {
-          const index = newState[col].findIndex(t => t.id === id);
-          if (index !== -1) {
-            newState[col][index] = { ...newState[col][index], ...updatedData };
-            break;
-          }
-        }
-        return newState;
-      });
-    }
   };
 
   const moveTicket = async (sourceCol, destCol, sourceIndex, destIndex) => {
@@ -519,45 +366,6 @@ export const AppDataProvider = ({ children }) => {
           [destCol]: destList,
         };
       });
-    }
-  };
-
-  // Room Management
-  const addRoom = async (roomData) => {
-    const newId = `${ownerId}_R_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const newRoom = { ...roomData, id: newId, status: 'vacant', tenant: null, ownerId };
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'rooms', String(newRoom.id)), newRoom);
-      } catch (err) {
-        console.error("Lỗi khi thêm phòng lên Cloud:", err);
-      }
-    } else {
-      setRooms(prev => [...prev, newRoom]);
-    }
-  };
-
-  const removeRoom = async (roomId) => {
-    if (isCloudMode) {
-      try {
-        await deleteDoc(doc(db, 'rooms', String(roomId)));
-      } catch (err) {
-        console.error("Lỗi khi xóa phòng trên Cloud:", err);
-      }
-    } else {
-      setRooms(prev => prev.filter(r => r.id !== roomId));
-    }
-  };
-
-  const updateRoom = async (id, updatedData) => {
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'rooms', String(id)), updatedData, { merge: true });
-      } catch (err) {
-        console.error("Lỗi khi cập nhật phòng trên Cloud:", err);
-      }
-    } else {
-      setRooms(prev => prev.map(r => r.id === id ? { ...r, ...updatedData } : r));
     }
   };
 
@@ -749,56 +557,8 @@ export const AppDataProvider = ({ children }) => {
       setContracts([]);
       setInvoices([]);
       setTickets({ reported: [], inProgress: [], resolved: [] });
+      setUsers([]);
       return true;
-    }
-  };
-
-  const handleUpdateSettings = async (newSettings) => {
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'settings', ownerId), newSettings);
-      } catch (err) {
-        console.error("Lỗi khi lưu cài đặt trên Cloud:", err);
-      }
-    } else {
-      setSettings(newSettings);
-    }
-  };
-
-  const addUser = async (userData) => {
-    const newUser = { ...userData, id: userData.email || `usr-${Date.now()}`, ownerId };
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'users', String(newUser.id)), newUser);
-      } catch (err) {
-        console.error("Lỗi khi thêm user lên Cloud:", err);
-      }
-    } else {
-      setUsers(prev => [...prev, newUser]);
-    }
-  };
-
-  const updateUser = async (id, updatedData) => {
-    if (isCloudMode) {
-      try {
-        await setDoc(doc(db, 'users', String(id)), updatedData, { merge: true });
-      } catch (err) {
-        console.error("Lỗi khi cập nhật user trên Cloud:", err);
-      }
-    } else {
-      setUsers(prev => prev.map(u => u.id === id ? { ...u, ...updatedData } : u));
-    }
-  };
-
-  const deleteUser = async (id) => {
-    if (isCloudMode) {
-      try {
-        await deleteDoc(doc(db, 'users', String(id)));
-      } catch (err) {
-        console.error("Lỗi khi xóa user trên Cloud:", err);
-      }
-    } else {
-      setUsers(prev => prev.filter(u => u.id !== id));
     }
   };
 
@@ -855,7 +615,7 @@ export const AppDataProvider = ({ children }) => {
     <AppDataContext.Provider value={{ 
       rooms, setRooms, addRoom, removeRoom, updateRoom,
       tenants, setTenants, addTenant, updateTenant, deleteTenant,
-      contracts, setContracts, addContract, updateContract,
+      contracts, setContracts, addContract, updateContract, deleteContract,
       invoices, setInvoices, addInvoice, updateInvoice, deleteInvoice,
       tickets, addTicket, updateTicket, moveTicket,
       users, setUsers, addUser, updateUser, deleteUser,

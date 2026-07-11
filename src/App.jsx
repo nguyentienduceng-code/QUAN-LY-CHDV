@@ -1,25 +1,25 @@
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Rooms from './pages/Rooms';
-import Tenants from './pages/Tenants';
-import Contracts from './pages/Contracts';
-import Invoices from './pages/Invoices';
-import Maintenance from './pages/Maintenance';
-
-import TenantPortal from './pages/TenantPortal';
-import FinanceAndTenants from './pages/FinanceAndTenants';
-import Settings from './pages/Settings';
-import Users from './pages/Users';
-import SuperAdmin from './pages/SuperAdmin';
 import BottomTabBar from './components/BottomTabBar';
 import { useAppData } from './context/AppDataContext';
-import DevBackdoor from './components/DevBackdoor';
+
+const Login = lazy(() => import('./pages/Login'));
+const Home = lazy(() => import('./pages/Home'));
+const Rooms = lazy(() => import('./pages/Rooms'));
+const Tenants = lazy(() => import('./pages/Tenants'));
+const Contracts = lazy(() => import('./pages/Contracts'));
+const Invoices = lazy(() => import('./pages/Invoices'));
+const Maintenance = lazy(() => import('./pages/Maintenance'));
+const TenantPortal = lazy(() => import('./pages/TenantPortal'));
+const FinanceAndTenants = lazy(() => import('./pages/FinanceAndTenants'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Users = lazy(() => import('./pages/Users'));
+const SuperAdmin = lazy(() => import('./pages/SuperAdmin'));
+const DevBackdoor = lazy(() => import('./components/DevBackdoor'));
 
 import './styles/index.css';
 import './styles/layout.css';
@@ -99,24 +99,30 @@ function MainLayout() {
         <main className="main-content">
           <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
           <div className="page-content">
-            <Routes>
-              {/* Common / Conditional Home */}
-              <Route path="/" element={user?.role !== 'tenant' && user?.role !== 'guest' ? <Home /> : <TenantPortal />} />
-              
-              {/* Manager/Staff Routes */}
-              <Route path="/rooms" element={<Rooms />} />
-              <Route path="/finance" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><FinanceAndTenants /></ProtectedRoute>} />
-              <Route path="/tenants" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><Tenants /></ProtectedRoute>} />
-              <Route path="/contracts" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><Contracts /></ProtectedRoute>} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><Settings /></ProtectedRoute>} />
-              <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><Users /></ProtectedRoute>} />
-              <Route path="/super-admin" element={<SuperAdmin />} />
-              
-              {/* Tenant Routes */}
-              <Route path="/tenant-portal" element={<TenantPortal />} />
-            </Routes>
+            <Suspense fallback={
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '50vh' }}>
+                <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-glass)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+              </div>
+            }>
+              <Routes>
+                {/* Common / Conditional Home */}
+                <Route path="/" element={user?.role !== 'tenant' && user?.role !== 'guest' ? <Home /> : <TenantPortal />} />
+                
+                {/* Manager/Staff Routes */}
+                <Route path="/rooms" element={<Rooms />} />
+                <Route path="/finance" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><FinanceAndTenants /></ProtectedRoute>} />
+                <Route path="/tenants" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><Tenants /></ProtectedRoute>} />
+                <Route path="/contracts" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'staff', 'viewer']}><Contracts /></ProtectedRoute>} />
+                <Route path="/invoices" element={<Invoices />} />
+                <Route path="/maintenance" element={<Maintenance />} />
+                <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><Settings /></ProtectedRoute>} />
+                <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><Users /></ProtectedRoute>} />
+                <Route path="/super-admin" element={<SuperAdmin />} />
+                
+                {/* Tenant Routes */}
+                <Route path="/tenant-portal" element={<TenantPortal />} />
+              </Routes>
+            </Suspense>
           </div>
         </main>
         <BottomTabBar />
@@ -170,15 +176,21 @@ function App() {
           }}
         />
         <Router>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            } />
-          </Routes>
-          {import.meta.env.DEV && <DevBackdoor />}
+          <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-primary)' }}>
+              <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-glass)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            </div>
+          }>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/*" element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              } />
+            </Routes>
+            {import.meta.env.DEV && <DevBackdoor />}
+          </Suspense>
         </Router>
         </AppDataProvider>
       </AuthProvider>

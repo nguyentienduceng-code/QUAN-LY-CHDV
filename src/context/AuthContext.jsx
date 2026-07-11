@@ -2,6 +2,7 @@ import { createContext, useState, useContext, useEffect } from 'react';
 import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail, firebaseSignUpWithEmail, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
+import { SUPER_ADMIN_EMAIL } from '../config/constants';
 
 const AuthContext = createContext(null);
 
@@ -161,7 +162,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
-        if (firebaseUser.email === 'nguyentienducbmt123@gmail.com') {
+        if (firebaseUser.email === SUPER_ADMIN_EMAIL) {
           finalRole = 'admin';
           finalPlan = 'pro';
           finalTrialEndsAt = null;
@@ -188,7 +189,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     const dataToSave = { ...userData };
-    if (dataToSave.email === 'nguyentienducbmt123@gmail.com') {
+    if (dataToSave.email === SUPER_ADMIN_EMAIL) {
       dataToSave.role = 'admin';
       dataToSave.plan = 'pro';
       dataToSave.trialEndsAt = null;
@@ -265,7 +266,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Force super admin permissions
-      if (email === 'nguyentienducbmt123@gmail.com') {
+      if (email === SUPER_ADMIN_EMAIL) {
         determinedRole = 'admin';
         plan = 'pro';
         trialEndsAt = null;
@@ -293,7 +294,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
       }
 
-      if (email === 'nguyentienducbmt123@gmail.com') {
+      if (email === SUPER_ADMIN_EMAIL) {
         newUser.role = 'admin';
         newUser.plan = 'pro';
         newUser.trialEndsAt = null;

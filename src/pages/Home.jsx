@@ -73,7 +73,7 @@ export default function Home() {
   }, [filteredRooms, occupiedRooms]);
   
   const totalRevenue = useMemo(() => {
-    return filteredInvoices.reduce((acc, inv) => acc + (parseInt(inv.amount.replace(/\./g, '')) || 0), 0);
+    return filteredInvoices.reduce((acc, inv) => acc + (parseInt(String(inv.amount).replace(/\./g, '')) || 0), 0);
   }, [filteredInvoices]);
   
   const maintenanceCost = useMemo(() => {
@@ -170,7 +170,7 @@ export default function Home() {
       const rev = filteredInvoices.reduce((s, inv) => {
         const m = inv.id.match(/INV-(\d{2})-(\d{4})/);
         if (m && parseInt(m[1]) === month && parseInt(m[2]) === year) {
-          return s + (parseInt(inv.amount.replace(/\./g, '')) || 0);
+          return s + (parseInt(String(inv.amount).replace(/\./g, '')) || 0);
         }
         return s;
       }, 0);

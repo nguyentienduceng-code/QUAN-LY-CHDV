@@ -8,12 +8,13 @@ import { Filter, Plus, ChevronDown, ChevronRight, Edit3, Trash2 } from 'lucide-r
 import toast from 'react-hot-toast';
 
 import { useAppData } from '../context/AppDataContext';
-import { useCustomPrompt } from '../context/CustomPromptContext';
+import { useCustomPrompt, useCustomConfirm } from '../context/CustomPromptContext';
 
 export default function Rooms() {
   const { user } = useAuth();
   const { rooms, addRoom, removeRoom, settings, setSettings, renameBuilding, addNewBuilding, deleteBuilding } = useAppData();
   const customPrompt = useCustomPrompt();
+  const customConfirm = useCustomConfirm();
   
   const availableBuildings = settings.buildings.filter(b => {
     if (user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff' || !user?.allowedBuildings || user.allowedBuildings.includes('all')) return true;
@@ -83,7 +84,7 @@ export default function Rooms() {
     const newBuildings = await customPrompt('Nhập danh sách Tên Nhà, cách nhau bằng dấu phẩy (VD: A, B, C, D):', settings.buildings.join(', '));
     if (newBuildings) {
       const arr = newBuildings.split(',').map(s => s.trim()).filter(Boolean);
-      setSettings(prev => ({ ...prev, buildings: arr }));
+      setSettings({ buildings: arr });
       if (!arr.includes(activeBuilding)) setActiveBuilding(arr[0] || '');
       toast.success('Đã cập nhật danh sách Nhà!');
     }
@@ -94,7 +95,7 @@ export default function Rooms() {
     const newFloors = await customPrompt('Nhập danh sách số Tầng, cách nhau bằng dấu phẩy (VD: 1, 2, 3, 4, 5):', settings.floors.join(', '));
     if (newFloors) {
       const arr = newFloors.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-      setSettings(prev => ({ ...prev, floors: arr }));
+      setSettings({ floors: arr });
       if (!arr.includes(activeFloor)) setActiveFloor(arr[0] || 1);
       toast.success('Đã cập nhật danh sách Tầng!');
     }
@@ -195,9 +196,10 @@ export default function Rooms() {
                             <Edit3 size={16} />
                           </button>
                           <button 
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation();
-                              if (confirm(`CẢNH BÁO: Xóa tòa nhà này sẽ XÓA TOÀN BỘ PHÒNG, KHÁCH, VÀ HỢP ĐỒNG thuộc tòa nhà này. Hành động này không thể hoàn tác!\n\nBạn có chắc chắn muốn xóa Tòa ${b}?`)) {
+                              const ok = await customConfirm(`CẢNH BÁO: Xóa tòa nhà này sẽ XÓA TOÀN BỘ PHÒNG, KHÁCH, VÀ HỢP ĐỒNG thuộc tòa nhà này. Hành động này không thể hoàn tác!\n\nBạn có chắc chắn muốn xóa Tòa ${b}?`);
+                              if (ok) {
                                 if (deleteBuilding && deleteBuilding(b)) {
                                   toast.success('Đã xóa tòa nhà và toàn bộ dữ liệu liên quan!');
                                   if (activeBuilding === b) setActiveBuilding(settings.buildings.find(bl => bl !== b) || '');
@@ -411,9 +413,9 @@ export default function Rooms() {
 
                           {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
                             <button
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                if (confirm(`CẢNH BÁO: Xóa phòng này sẽ mất dữ liệu liên quan. Bạn có chắc chắn muốn xóa phòng ${room.name}?`)) {
+                                if (await customConfirm(`CẢNH BÁO: Xóa phòng này sẽ mất dữ liệu liên quan. Bạn có chắc chắn muốn xóa phòng ${room.name}?`)) {
                                   removeRoom(room.id);
                                   toast.success(`Đã xóa phòng ${room.name}!`);
                                 }

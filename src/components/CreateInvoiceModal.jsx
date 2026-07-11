@@ -12,6 +12,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoo
   const [selectedBuilding, setSelectedBuilding] = useState(settings.buildings[0] || 'A');
   const [selectedFloor, setSelectedFloor] = useState(1);
   const [selectedRoom, setSelectedRoom] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [items, setItems] = useState([]);
   const [elecOld, setElecOld] = useState(0);
@@ -123,30 +124,49 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoo
     return items.reduce((sum, item) => sum + (item.qty * item.price), 0);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedRoom) {
       toast.error('Vui lòng chọn phòng để tạo hóa đơn!');
       return;
     }
-    const finalItems = items.map(item => ({ ...item, total: item.qty * item.price }));
-    const amount = calculateTotal().toLocaleString('vi-VN');
     
-    const [year, month] = selectedMonth.split('-');
-    let dueMonth = parseInt(month, 10) + 1;
-    let dueYear = parseInt(year, 10);
-    if (dueMonth > 12) {
-      dueMonth = 1;
-      dueYear++;
+    setIsSubmitting(true);
+    try {
+      const finalItems = items.map(item => ({ ...item, total: item.qty * item.price }));
+      const amount = calculateTotal().toLocaleString('vi-VN');
+      
+      const [year, month] = selectedMonth.split('-');
+      let dueMonth = parseInt(month, 10) + 1;
+      let dueYear = parseInt(year, 10);
+      if (dueMonth > 12) {
+        dueMonth = 1;
+        dueYear++;
+      }
+      const dueDate = `05/${String(dueMonth).padStart(2, '0')}/${dueYear}`;
+      
+      const tenantInfo = tenants.find(t => t.room === selectedRoom);
+      const tenantName = tenantInfo?.name || 'Khách Thuê';
+      const createdAt = new Date().toLocaleString('vi-VN');
+
+      const newInvoice = {
+        tenant: tenantName,
+        room: selectedRoom,
+        date: `${month}/${year}`,
+        dueDate: dueDate,
+        amount,
+        status: 'unpaid',
+        items: finalItems,
+        createdAt
+      };
+      
+      await onSave(newInvoice);
+      onClose();
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+      toast.error('Có lỗi xảy ra khi tạo hóa đơn.');
+    } finally {
+      setIsSubmitting(false);
     }
-    const dueDate = `05/${dueMonth.toString().padStart(2, '0')}/${dueYear}`;
-    const invoiceId = `INV-${month}-${year}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const tenantInfo = tenants.find(t => t.room === selectedRoom);
-    const tenantName = tenantInfo?.name || 'Khách Thuê';
-    const createdAt = new Date().toLocaleString('vi-VN');
-
-    onSave({ id: invoiceId, tenant: tenantName, room: selectedRoom, amount, items: finalItems, due: dueDate, createdAt });
-    onClose();
   };
 
   return (
@@ -268,8 +288,10 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoo
 
         {/* Footer */}
         <div style={{ padding: '20px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-          <button onClick={onClose} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Hủy</button>
-          <button onClick={handleSave} style={{ padding: '10px 20px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Lưu & Tạo Hóa Đơn</button>
+          <button onClick={onClose} disabled={isSubmitting} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: isSubmitting ? 0.5 : 1 }}>Hủy</button>
+          <button onClick={handleSave} disabled={isSubmitting} style={{ padding: '10px 20px', background: 'var(--accent-primary)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', opacity: isSubmitting ? 0.7 : 1 }}>
+            {isSubmitting ? 'Đang tạo...' : 'Lưu & Tạo Hóa Đơn'}
+          </button>
         </div>
       </div>
     </div>
