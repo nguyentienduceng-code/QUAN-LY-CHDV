@@ -21,3 +21,5 @@ export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
 export const firebaseSignOut = () => signOut(auth);
 export const firebaseSignInWithEmail = (email, password) => signInWithEmailAndPassword(auth, email, password);
 export const firebaseSignUpWithEmail = (email, password) => createUserWithEmailAndPassword(auth, email, password);
+
+// Vercel cache buster 2
