@@ -127,3 +127,26 @@ code {
 .table-responsive table {
   min-width: 800px; /* Ensures tables don't squish too much on mobile */
 }
+
+@media (max-width: 768px) {
+  .tenant-row-card {
+    flex-direction: column !important;
+    padding: 16px !important;
+    gap: 16px !important;
+  }
+  .tenant-left-col {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px dashed var(--border-glass);
+    padding-right: 0 !important;
+    padding-bottom: 16px !important;
+  }
+  .tenant-actions-col {
+    padding-left: 0 !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    justify-content: flex-start !important;
+    border-top: 1px dashed var(--border-glass);
+    padding-top: 16px !important;
+  }
+}

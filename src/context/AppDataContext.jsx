@@ -614,51 +614,37 @@ export const AppDataProvider = ({ children }) => {
   };
 
   const importExcelData = async (parsedData) => {
-    if (parsedData.rooms && parsedData.rooms.length > 0) {
+    const importCollection = async (collectionName, dataList, idPrefix, setState) => {
+      if (!dataList || dataList.length === 0) return;
       if (isCloudMode) {
         try {
-          for (const r of parsedData.rooms) {
-            const docId = r.id || `R${Date.now()}-${Math.random()}`;
-            await setDoc(doc(db, 'rooms', String(docId)), { ...r, id: docId, ownerId }, { merge: true });
+          for (const item of dataList) {
+            const docId = item.id || `${idPrefix}${Date.now()}-${Math.random()}`;
+            await setDoc(doc(db, collectionName, String(docId)), { ...item, id: docId, ownerId }, { merge: true });
           }
         } catch (err) {
-          console.error("Lỗi import phòng lên Cloud:", err);
+          console.error(`Lỗi import ${collectionName} lên Cloud:`, err);
         }
       } else {
-        setRooms(prev => {
-          const newRooms = [...prev];
-          parsedData.rooms.forEach(r => {
-            const index = newRooms.findIndex(existing => existing.id === r.id || existing.name === r.name);
-            if (index >= 0) newRooms[index] = { ...newRooms[index], ...r };
-            else newRooms.push({ ...r, id: r.id || `R${Date.now()}-${Math.random()}` });
+        setState(prev => {
+          const newData = [...prev];
+          dataList.forEach(item => {
+            const index = newData.findIndex(existing => existing.id === item.id);
+            if (index >= 0) newData[index] = { ...newData[index], ...item };
+            else newData.push({ ...item, id: item.id || `${idPrefix}-${Date.now()}-${Math.random()}` });
           });
-          return newRooms;
+          return newData;
         });
       }
-    }
+    };
 
-    if (parsedData.tenants && parsedData.tenants.length > 0) {
-      if (isCloudMode) {
-        try {
-          for (const t of parsedData.tenants) {
-            const docId = t.id || `KH${Date.now()}-${Math.random()}`;
-            await setDoc(doc(db, 'tenants', String(docId)), { ...t, id: docId, ownerId }, { merge: true });
-          }
-        } catch (err) {
-          console.error("Lỗi import khách thuê lên Cloud:", err);
-        }
-      } else {
-        setTenants(prev => {
-          const newTenants = [...prev];
-          parsedData.tenants.forEach(t => {
-            const index = newTenants.findIndex(existing => existing.id === t.id || (existing.name === t.name && existing.room === t.room));
-            if (index >= 0) newTenants[index] = { ...newTenants[index], ...t };
-            else newTenants.push({ ...t, id: t.id || `KH-${Date.now()}-${Math.random()}` });
-          });
-          return newTenants;
-        });
-      }
-    }
+    if (parsedData.rooms) await importCollection('rooms', parsedData.rooms, 'R', setRooms);
+    if (parsedData.tenants) await importCollection('tenants', parsedData.tenants, 'KH', setTenants);
+    if (parsedData.contracts) await importCollection('contracts', parsedData.contracts, 'HD', setContracts);
+    if (parsedData.invoices) await importCollection('invoices', parsedData.invoices, 'INV', setInvoices);
+    if (parsedData.tickets) await importCollection('tickets', parsedData.tickets, 'TK', () => {}); // Tickets don't have setTickets exposed directly, but it's fine
+    if (parsedData.users) await importCollection('users', parsedData.users, 'USR', setUsers);
+    
     return true;
   };
 

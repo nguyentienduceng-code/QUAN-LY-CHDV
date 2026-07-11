@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAppData } from '../context/AppDataContext';
-import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard, Plus, Trash2 } from 'lucide-react';
+import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard, Plus, Trash2, CloudUpload, FileJson } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useCustomConfirm } from '../context/CustomPromptContext';
@@ -535,16 +535,88 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Panel 4: Quản Lý Dữ Liệu (Dành cho thử nghiệm) */}
+        {/* Panel 4: Quản Lý Dữ Liệu */}
         {(user?.role === 'admin' || user?.email === 'nguyentienducbmt123@gmail.com') && (
-          <div className="card" style={{ borderTop: '4px solid var(--status-unpaid)', marginTop: '8px' }}>
-            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-unpaid)' }}>
-              <SettingsIcon size={20} /> Quản Lý Dữ Liệu (Thử nghiệm)
+          <div className="card" style={{ borderTop: '4px solid var(--accent-primary)', marginTop: '8px' }}>
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)' }}>
+              <SettingsIcon size={20} /> Quản Lý Dữ Liệu & Sao Lưu
             </div>
-            <p style={{ margin: '16px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              Khu vực này dùng để làm sạch hoặc tạo bộ dữ liệu mẫu phục vụ cho việc dùng thử hệ thống.
-            </p>
-            <div style={{ display: 'flex', gap: '12px' }}>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+              <div style={{ padding: '16px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '8px', border: '1px solid rgba(59,130,246,0.2)' }}>
+                <h4 style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><CloudUpload size={16} /> Đồng bộ lên Cloud</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Đẩy toàn bộ dữ liệu mẫu (hoặc dữ liệu từ máy cá nhân) lên Firebase. Lưu ý: Cần cấu hình Firebase thành công trước khi ấn.</p>
+                <button 
+                  onClick={async () => {
+                    if (!isCloudMode) {
+                      toast.error('Chưa kết nối Firebase! Tính năng này chỉ dùng để chuyển dữ liệu từ Offline lên Cloud.');
+                      return;
+                    }
+                    const ok = await customConfirm('Thao tác này sẽ ghi toàn bộ dữ liệu cũ từ trình duyệt này lên Cloud (Firebase). Bạn chắc chắn chứ?');
+                    if (ok) {
+                      const localRooms = JSON.parse(localStorage.getItem('rentflow_rooms')) || [];
+                      const localTenants = JSON.parse(localStorage.getItem('rentflow_tenants')) || [];
+                      const localContracts = JSON.parse(localStorage.getItem('rentflow_contracts')) || [];
+                      const localInvoices = JSON.parse(localStorage.getItem('rentflow_invoices')) || [];
+                      const localTickets = JSON.parse(localStorage.getItem('rentflow_tickets')) || [];
+                      const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+                      
+                      toast.loading('Đang đồng bộ dữ liệu...', { id: 'sync' });
+                      await importExcelData({ rooms: localRooms, tenants: localTenants, contracts: localContracts, invoices: localInvoices, tickets: localTickets, users: localUsers });
+                      toast.success('Đồng bộ thành công!', { id: 'sync' });
+                    }
+                  }}
+                  style={{ padding: '8px 16px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                  Bắt đầu Đồng bộ
+                </button>
+              </div>
+
+              <div style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '8px', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <h4 style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><Download size={16} /> Sao lưu thủ công</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Tải toàn bộ dữ liệu hệ thống dưới dạng file JSON hoặc nạp file JSON vào hệ thống để khôi phục.</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    onClick={() => {
+                      const data = { rooms, tenants, contracts, invoices, tickets, users };
+                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `RentFlow_Backup_${new Date().getTime()}.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      toast.success('Đã tải file sao lưu JSON!');
+                    }}
+                    style={{ padding: '8px 12px', background: 'rgba(16, 185, 129, 0.2)', color: 'var(--status-paid)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Download size={14} /> Xuất JSON
+                  </button>
+                  
+                  <label style={{ padding: '8px 12px', background: 'rgba(245, 158, 11, 0.2)', color: 'var(--status-partial)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FileJson size={14} /> Nạp JSON
+                    <input type="file" accept=".json" style={{ display: 'none' }} onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = async (event) => {
+                        try {
+                          const parsed = JSON.parse(event.target.result);
+                          toast.loading('Đang khôi phục...', { id: 'restore' });
+                          await importExcelData(parsed);
+                          toast.success('Khôi phục thành công!', { id: 'restore' });
+                        } catch (err) {
+                          toast.error('File JSON không hợp lệ!', { id: 'restore' });
+                        }
+                      };
+                      reader.readAsText(file);
+                    }} />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)', display: 'flex', gap: '12px' }}>
               <button 
                 type="button" 
                 onClick={async () => {
@@ -554,7 +626,7 @@ export default function Settings() {
                     toast.success('Đã làm trống toàn bộ dữ liệu hệ thống!');
                   }
                 }}
-                style={{ padding: '10px 16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px dashed var(--status-unpaid)', color: 'var(--status-unpaid)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' }}
+                style={{ padding: '8px 16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px dashed var(--status-unpaid)', color: 'var(--status-unpaid)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600' }}
               >
                 Xóa Trắng Dữ Liệu
               </button>
@@ -564,7 +636,7 @@ export default function Settings() {
                   loadMockData();
                   toast.success('Đã nạp bộ dữ liệu mẫu thành công!');
                 }}
-                style={{ padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' }}
+                style={{ padding: '8px 16px', background: 'rgba(59, 130, 246, 0.1)', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600' }}
               >
                 Nạp Dữ Liệu Mẫu
               </button>

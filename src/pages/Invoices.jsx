@@ -146,36 +146,38 @@ export default function Invoices({ initialInvoiceId }) {
       }}>
         
         {user?.role === 'tenant' ? (
-          <table className="mobile-card-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-glass)' }}>
-              <tr>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Mã Hóa Đơn</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Phòng</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Số Tiền (VNĐ)</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Hạn Chót</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Trạng Thái</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)', textAlign: 'right' }}>Hành Động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayedInvoices.map((inv, index) => (
-                <tr key={inv.id} style={{ borderBottom: index === displayedInvoices.length - 1 ? 'none' : '1px solid var(--border-glass)' }}>
-                  <td data-label="Mã HĐ" style={{ padding: '16px', fontWeight: '500' }}>{inv.id}</td>
-                  <td data-label="Phòng" style={{ padding: '16px' }}><span style={{ background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>{inv.room}</span></td>
-                  <td data-label="Số Tiền" style={{ padding: '16px', fontWeight: '600' }}>{inv.amount}</td>
-                  <td data-label="Hạn Chót" style={{ padding: '16px', color: 'var(--text-secondary)' }}>{inv.due}</td>
-                  <td data-label="Trạng Thái" style={{ padding: '16px' }}>
-                    <StatusBadge status={inv.status} text={inv.status === 'paid' ? 'Đã thanh toán' : inv.status === 'partial' ? 'Thanh toán 1 phần' : 'Chưa thanh toán'} />
-                  </td>
-                  <td data-label="Hành Động" style={{ padding: '16px', textAlign: 'right' }}>
-                    <button onClick={() => handleViewInvoice(inv)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
-                      <Eye size={14} /> Chi tiết
-                    </button>
-                  </td>
+          <div className="table-responsive">
+            <table className="mobile-card-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-glass)' }}>
+                <tr>
+                  <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Mã Hóa Đơn</th>
+                  <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Phòng</th>
+                  <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Số Tiền (VNĐ)</th>
+                  <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Hạn Chót</th>
+                  <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>Trạng Thái</th>
+                  <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)', textAlign: 'right' }}>Hành Động</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {displayedInvoices.map((inv, index) => (
+                  <tr key={inv.id} style={{ borderBottom: index === displayedInvoices.length - 1 ? 'none' : '1px solid var(--border-glass)' }}>
+                    <td data-label="Mã HĐ" style={{ padding: '16px', fontWeight: '500' }}>{inv.id}</td>
+                    <td data-label="Phòng" style={{ padding: '16px' }}><span style={{ background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>{inv.room}</span></td>
+                    <td data-label="Số Tiền" style={{ padding: '16px', fontWeight: '600' }}>{inv.amount}</td>
+                    <td data-label="Hạn Chót" style={{ padding: '16px', color: 'var(--text-secondary)' }}>{inv.due}</td>
+                    <td data-label="Trạng Thái" style={{ padding: '16px' }}>
+                      <StatusBadge status={inv.status} text={inv.status === 'paid' ? 'Đã thanh toán' : inv.status === 'partial' ? 'Thanh toán 1 phần' : 'Chưa thanh toán'} />
+                    </td>
+                    <td data-label="Hành Động" style={{ padding: '16px', textAlign: 'right' }}>
+                      <button onClick={() => handleViewInvoice(inv)} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+                        <Eye size={14} /> Chi tiết
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           /* Manager Accordion View */
           <div>

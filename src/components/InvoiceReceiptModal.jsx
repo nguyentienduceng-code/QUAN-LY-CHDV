@@ -302,35 +302,37 @@ export default function InvoiceReceiptModal({ isOpen, onClose, invoice }) {
         </div>
 
         {/* Footer Actions */}
-        {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') ? (
-          <div className="no-print" style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {invoice.status !== 'paid' ? (
-              <button 
-                onClick={handleMarkAsPaid} 
-                style={{ width: '100%', padding: '12px', background: '#10b981', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)' }}
-              >
-                Xác Nhận Đã Thu Tiền (Đóng Tiền)
-              </button>
-            ) : (
-              <button 
-                onClick={handleMarkAsUnpaid} 
-                style={{ width: '100%', padding: '12px', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)' }}
-              >
-                Chuyển Trạng Thái Chưa Thanh Toán
-              </button>
-            )}
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={handlePrint} style={{ flex: 1, padding: '10px', background: '#fff', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                <Printer size={16} /> In Biên Lai
-              </button>
+        <div className="no-print" style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
+            <>
+              {invoice.status !== 'paid' ? (
+                <button 
+                  onClick={handleMarkAsPaid} 
+                  style={{ width: '100%', padding: '12px', background: '#10b981', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)' }}
+                >
+                  Xác Nhận Đã Thu Tiền (Đóng Tiền)
+                </button>
+              ) : (
+                <button 
+                  onClick={handleMarkAsUnpaid} 
+                  style={{ width: '100%', padding: '12px', background: '#ef4444', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.95rem', boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)' }}
+                >
+                  Chuyển Trạng Thái Chưa Thanh Toán
+                </button>
+              )}
+            </>
+          )}
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={handlePrint} style={{ flex: 1, padding: '10px', background: '#fff', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+              <Printer size={16} /> {user?.role === 'tenant' ? 'Tải PDF / In' : 'In Biên Lai'}
+            </button>
+            {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'staff') && (
               <button onClick={handleSend} style={{ flex: 1, padding: '10px', background: '#3b82f6', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
                 <Send size={16} /> Gửi Zalo
               </button>
-            </div>
+            )}
           </div>
-        ) : (
-          <div className="no-print" style={{ padding: '8px', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}></div>
-        )}
+        </div>
       </div>
     </div>
     </>
