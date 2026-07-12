@@ -1,4 +1,10 @@
 @import './mobile.css';
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .app-container {
   display: flex;
   height: 100vh;
