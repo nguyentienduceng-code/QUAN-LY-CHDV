@@ -19,7 +19,6 @@ const FinanceAndTenants = lazy(() => import('./pages/FinanceAndTenants'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Users = lazy(() => import('./pages/Users'));
 const SuperAdmin = lazy(() => import('./pages/SuperAdmin'));
-const DevBackdoor = lazy(() => import('./components/DevBackdoor'));
 
 import './styles/index.css';
 import './styles/layout.css';
@@ -189,7 +188,7 @@ function App() {
                 </ProtectedRoute>
               } />
             </Routes>
-            {import.meta.env.DEV && <DevBackdoor />}
+            {import.meta.env.DEV && <DevBackdoorLoader />}
           </Suspense>
         </Router>
         </AppDataProvider>
@@ -197,6 +196,17 @@ function App() {
       </CustomPromptProvider>
     </ErrorBoundary>
   );
+}
+
+// Dynamic loader — CHỈ import DevBackdoor ở runtime DEV, không tạo chunk trong production build
+function DevBackdoorLoader() {
+  const [Comp, setComp] = useState(null);
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      import('./components/DevBackdoor').then(m => setComp(() => m.default));
+    }
+  }, []);
+  return Comp ? <Comp /> : null;
 }
 
 export default App;

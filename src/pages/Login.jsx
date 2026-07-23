@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
 import { UserCircle, KeySquare, ChevronRight, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { isSuperAdmin } from '../config/constants';
 
 export default function Login() {
   const [role, setRole] = useState('manager'); // 'manager' | 'tenant'
@@ -54,15 +55,8 @@ export default function Login() {
         code === 'auth/invalid-api-key' ||
         (error.message || '').includes('CONFIGURATION_NOT_FOUND')
       ) {
-        // Firebase chưa bật Google Auth → chế độ Demo
-        toast.success('Đã vào Chế độ Demo: Đăng nhập Google thành công!');
-        login({
-          name: 'Quản Lý Demo (Google)',
-          role: 'admin',
-          email: 'admin.google@gmail.com',
-          ownerId: 'demo-google',
-        });
-        navigate('/');
+        // Firebase chưa bật Google Auth → báo lỗi
+        toast.error('Hệ thống chưa cấu hình đăng nhập Google. Vui lòng liên hệ quản trị viên hoặc đăng nhập bằng Email.');
         setIsLoading(false);
         return;
       }
@@ -124,8 +118,8 @@ export default function Login() {
       } else if (emailToSearch === 'admin') {
         login({ name: 'Admin (Quản lý)', role: 'admin', email: 'admin@gmail.com', ownerId: 'demo-admin' });
         navigate('/');
-      } else if (emailToSearch === 'nguyentienducbmt123@gmail.com') {
-        login({ name: 'Super Admin', role: 'admin', email: 'nguyentienducbmt123@gmail.com', ownerId: 'demo-admin' });
+      } else if (isSuperAdmin(emailToSearch)) {
+        login({ name: 'Super Admin', role: 'admin', email: emailToSearch, ownerId: 'demo-admin' });
         navigate('/');
       } else {
         toast.error('Tài khoản quản lý không tồn tại trên dữ liệu mẫu!');

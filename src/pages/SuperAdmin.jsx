@@ -4,9 +4,10 @@ import { Shield, CheckCircle, XCircle, Lock, Unlock, Users, Plus, Eye, Key, Tras
 import toast from 'react-hot-toast';
 import { collection, getDocs, doc, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db, firebaseSignUpWithEmail } from '../firebase';
+import { isSuperAdmin } from '../config/constants';
 
 const getUsageStatus = (u) => {
-  if (u.email === 'nguyentienducbmt123@gmail.com') {
+  if (isSuperAdmin(u.email)) {
     return { text: 'Không giới hạn', color: '#10b981', badge: 'rgba(16, 185, 129, 0.15)' };
   }
   
@@ -69,7 +70,7 @@ export default function SuperAdmin() {
       }
     }
 
-    if (user?.email === 'nguyentienducbmt123@gmail.com') {
+    if (isSuperAdmin(user?.email)) {
       fetchGlobalUsers();
     }
     return () => { active = false; };
@@ -88,7 +89,7 @@ export default function SuperAdmin() {
   const pendingUsers = globalUsers.filter(u => u.plan === 'pending_pro' || u.plan === 'pending_basic');
   const activeUsers = globalUsers.filter(u => u.plan === 'pro' || u.plan === 'basic');
 
-  if (user?.email !== 'nguyentienducbmt123@gmail.com') {
+  if (!isSuperAdmin(user?.email)) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--text-secondary)' }}>
         <Shield size={64} style={{ marginBottom: '16px', color: 'var(--status-overdue)' }} />
@@ -145,7 +146,7 @@ export default function SuperAdmin() {
   };
 
   const handleDeleteAccount = async (userId, name) => {
-    if (userId === 'nguyentienducbmt123@gmail.com') {
+    if (isSuperAdmin(userId)) {
       toast.error('Không thể xóa tài khoản hệ thống (Chủ sở hữu)!');
       return;
     }

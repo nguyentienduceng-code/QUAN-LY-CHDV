@@ -4,6 +4,7 @@ import { Save, Settings as SettingsIcon, Zap, Droplets, Shield, CreditCard, Plus
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useCustomConfirm } from '../context/CustomPromptContext';
+import { isSuperAdmin } from '../config/constants';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -536,7 +537,7 @@ export default function Settings() {
         </div>
 
         {/* Panel 4: Quản Lý Dữ Liệu */}
-        {(user?.role === 'admin' || user?.email === 'nguyentienducbmt123@gmail.com') && (
+        {(user?.role === 'admin' || isSuperAdmin(user?.email)) && (
           <div className="card" style={{ borderTop: '4px solid var(--accent-primary)', marginTop: '8px' }}>
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-primary)' }}>
               <SettingsIcon size={20} /> Quản Lý Dữ Liệu & Sao Lưu
