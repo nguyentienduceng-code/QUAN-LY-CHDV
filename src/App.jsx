@@ -75,7 +75,9 @@ function MainLayout() {
         <div className="app-container" style={{ padding: 0 }}>
           <main className="main-content" style={{ marginLeft: 0, paddingLeft: 0, width: '100vw' }}>
             <div className="page-content" style={{ paddingTop: '40px' }}>
-              <TenantPortal />
+              <Suspense fallback={<div style={{ textAlign: 'center', marginTop: '50px' }}>Đang tải...</div>}>
+                <TenantPortal />
+              </Suspense>
             </div>
           </main>
         </div>
