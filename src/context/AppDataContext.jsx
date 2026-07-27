@@ -15,7 +15,7 @@ import { useInvoiceManager } from '../hooks/useInvoiceManager';
 import { useTicketManager } from '../hooks/useTicketManager';
 import { useSettingsManager } from '../hooks/useSettingsManager';
 import { useUserManager } from '../hooks/useUserManager';
-import { secureGetItem, secureSetItem, migrateToEncrypted } from '../utils/storageEncryption';
+import { secureGetItem, safeGetItemSync, secureSetItem, migrateToEncrypted } from '../utils/storageEncryption';
 
 const AppDataContext = createContext(null);
 
@@ -89,7 +89,7 @@ export const AppDataProvider = ({ children }) => {
   const [users, setUsers] = useState(initialUsers);
 
   const [settings, setSettings] = useState(() => {
-    const stored = JSON.parse(localStorage.getItem('rentflow_settings'));
+    const stored = safeGetItemSync('rentflow_settings');
     if (stored && !stored.prices) {
       stored.prices = {};
       (stored.buildings || defaultSettings.buildings).forEach(b => {

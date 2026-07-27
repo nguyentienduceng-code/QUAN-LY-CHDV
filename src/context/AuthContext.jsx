@@ -1,3 +1,4 @@
+import { safeGetItemSync } from '../utils/storageEncryption';
 import { createContext, useState, useContext, useEffect } from 'react';
 import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail, firebaseSignUpWithEmail, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
 
         // Fallback to localStorage rentflow_users
         if (!registeredUser) {
-          const allUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+          const allUsers = safeGetItemSync('rentflow_users') || [];
           registeredUser = allUsers.find(u => u.email === firebaseUser.email);
         }
 
@@ -117,7 +118,7 @@ export const AuthProvider = ({ children }) => {
             lastLoginAt: new Date().toISOString(),
             lastActiveAt: new Date().toISOString()
           };
-          const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+          const localUsers = safeGetItemSync('rentflow_users') || [];
           if (!localUsers.find(u => u.email === firebaseUser.email)) {
             localUsers.push(newUser);
             localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
@@ -249,7 +250,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.warn("Lỗi kiểm tra tenant trong Firestore, thử sử dụng local storage:", err);
-        const localTenants = JSON.parse(localStorage.getItem('rentflow_tenants')) || [];
+        const localTenants = safeGetItemSync('rentflow_tenants') || [];
         const matchedTenant = localTenants.find(t => t.email === email);
         if (matchedTenant) {
           determinedRole = 'tenant';
@@ -291,7 +292,7 @@ export const AuthProvider = ({ children }) => {
         await setDoc(doc(db, 'users', newUser.id), newUser);
       } catch (err) {
         console.warn("Lỗi ghi thông tin người dùng vào Firestore, lưu local:", err);
-        const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+        const localUsers = safeGetItemSync('rentflow_users') || [];
         localUsers.push(newUser);
         localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
       }
@@ -353,7 +354,7 @@ export const AuthProvider = ({ children }) => {
       await setDoc(userRef, updatedData, { merge: true });
     } catch (err) {
       console.warn("Lỗi cập nhật role trên Firestore, lưu local:", err);
-      const localUsers = JSON.parse(localStorage.getItem('rentflow_users')) || [];
+      const localUsers = safeGetItemSync('rentflow_users') || [];
       const userIndex = localUsers.findIndex(u => (u.uid === user.uid || u.email === user.email));
       if (userIndex !== -1) {
         localUsers[userIndex] = { ...localUsers[userIndex], ...updatedData };

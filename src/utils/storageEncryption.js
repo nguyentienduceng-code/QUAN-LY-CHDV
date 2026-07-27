@@ -191,3 +191,19 @@ export async function migrateToEncrypted(userId) {
     }
   }
 }
+
+/**
+ * Safely get item synchronously. Returns null if encrypted.
+ */
+export function safeGetItemSync(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    if (raw.startsWith('{') || raw.startsWith('[')) {
+      return JSON.parse(raw);
+    }
+    return null;
+  } catch(e) {
+    return null;
+  }
+}
