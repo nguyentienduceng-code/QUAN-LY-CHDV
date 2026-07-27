@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
 import { UserCircle, KeySquare, ChevronRight, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { isSuperAdmin } from '../config/constants';
 
 export default function Login() {
   const [role, setRole] = useState('manager'); // 'manager' | 'tenant'
@@ -111,15 +110,12 @@ export default function Login() {
     if (role === 'manager') {
       const emailToSearch = identifier || 'admin';
       const userToLogin = users?.find(u => u.email === emailToSearch || u.id === emailToSearch || u.id === `usr-${emailToSearch}`);
-      
+
       if (userToLogin) {
         login({ name: userToLogin.name, role: userToLogin.role, email: userToLogin.email, ownerId: userToLogin.ownerId || userToLogin.uid || 'demo-admin' });
         navigate('/');
       } else if (emailToSearch === 'admin') {
         login({ name: 'Admin (Quản lý)', role: 'admin', email: 'admin@gmail.com', ownerId: 'demo-admin' });
-        navigate('/');
-      } else if (isSuperAdmin(emailToSearch)) {
-        login({ name: 'Super Admin', role: 'admin', email: emailToSearch, ownerId: 'demo-admin' });
         navigate('/');
       } else {
         toast.error('Tài khoản quản lý không tồn tại trên dữ liệu mẫu!');

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, User, Phone, CreditCard, Shield, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppData } from '../context/AppDataContext';
+import { validateTenantForm, sanitizeString, sanitizePhone, sanitizeIdCard } from '../utils/validation';
 
 export default function AddTenantModal({ isOpen, onClose, roomName, onSuccess }) {
   const { addTenant, rooms } = useAppData();
@@ -29,24 +30,33 @@ export default function AddTenantModal({ isOpen, onClose, roomName, onSuccess })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !phone) {
-      toast.error('Vui lòng nhập Tên và Số điện thoại!');
-      return;
-    }
-    if (!selectedRoom) {
-      toast.error('Vui lòng chọn phòng cư trú!');
+
+    // Prepare data for validation
+    const formData = {
+      name: name.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      idCard: idCard.trim(),
+      room: selectedRoom
+    };
+
+    // Validate form
+    const validation = validateTenantForm(formData);
+    if (!validation.valid) {
+      validation.errors.forEach(error => toast.error(error));
       return;
     }
 
     setIsSubmitting(true);
     try {
       const roomObj = rooms?.find(r => r.name === selectedRoom);
-      
+
+      // Sanitize inputs before saving
       const newTenant = {
-        name,
-        phone,
+        name: sanitizeString(name, 100),
+        phone: sanitizePhone(phone),
         email: email.trim().toLowerCase(),
-        idCard,
+        idCard: sanitizeIdCard(idCard),
         room: selectedRoom,
         building: roomObj?.building || 'A',
         isRepresentative,
@@ -55,13 +65,13 @@ export default function AddTenantModal({ isOpen, onClose, roomName, onSuccess })
 
       await addTenant(newTenant);
       toast.success('Đã thêm khách thuê thành công!');
-      
+
       setName('');
       setPhone('');
       setEmail('');
       setIdCard('');
       setIsRepresentative(false);
-      
+
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {

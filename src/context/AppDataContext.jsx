@@ -2,8 +2,8 @@
 import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { generateMockData } from '../utils/mockData';
 import { db } from '../firebase';
-import { 
-  collection, doc, getDoc, getDocs, setDoc, deleteDoc, onSnapshot, query, where 
+import {
+  collection, doc, getDoc, getDocs, setDoc, deleteDoc, onSnapshot, query, where
 } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -15,6 +15,7 @@ import { useInvoiceManager } from '../hooks/useInvoiceManager';
 import { useTicketManager } from '../hooks/useTicketManager';
 import { useSettingsManager } from '../hooks/useSettingsManager';
 import { useUserManager } from '../hooks/useUserManager';
+import { secureGetItem, secureSetItem, migrateToEncrypted } from '../utils/storageEncryption';
 
 const AppDataContext = createContext(null);
 
@@ -78,25 +79,14 @@ const defaultSettings = {
 export const AppDataProvider = ({ children }) => {
   const { user } = useAuth();
   const ownerId = user?.ownerId;
-  
-  const [rooms, setRooms] = useState(() => JSON.parse(localStorage.getItem('rentflow_rooms')) || initialRooms);
-  const [tenants, setTenants] = useState(() => {
-    const stored = JSON.parse(localStorage.getItem('rentflow_tenants'));
-    if (stored && stored.length > 0) return stored;
-    return initialTenants;
-  });
-  const [contracts, setContracts] = useState(() => JSON.parse(localStorage.getItem('rentflow_contracts')) || initialContracts);
-  const [invoices, setInvoices] = useState(() => {
-    const stored = JSON.parse(localStorage.getItem('rentflow_invoices'));
-    if (stored && stored.length > 0) return stored;
-    return initialInvoices;
-  });
-  const [tickets, setTickets] = useState(() => JSON.parse(localStorage.getItem('rentflow_tickets')) || initialTickets);
-  const [users, setUsers] = useState(() => {
-    const stored = JSON.parse(localStorage.getItem('rentflow_users'));
-    if (stored && stored.length > 0) return stored;
-    return initialUsers;
-  });
+  const [encryptedStorageReady, setEncryptedStorageReady] = useState(false);
+
+  const [rooms, setRooms] = useState(initialRooms);
+  const [tenants, setTenants] = useState(initialTenants);
+  const [contracts, setContracts] = useState(initialContracts);
+  const [invoices, setInvoices] = useState(initialInvoices);
+  const [tickets, setTickets] = useState(initialTickets);
+  const [users, setUsers] = useState(initialUsers);
 
   const [settings, setSettings] = useState(() => {
     const stored = JSON.parse(localStorage.getItem('rentflow_settings'));
@@ -136,14 +126,93 @@ export const AppDataProvider = ({ children }) => {
   const [isCloudMode, setIsCloudMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Sync state to LocalStorage (only when in local offline mode)
-  useEffect(() => { if (!isCloudMode) localStorage.setItem('rentflow_rooms', JSON.stringify(rooms)); }, [rooms, isCloudMode]);
-  useEffect(() => { if (!isCloudMode) localStorage.setItem('rentflow_tenants', JSON.stringify(tenants)); }, [tenants, isCloudMode]);
-  useEffect(() => { if (!isCloudMode) localStorage.setItem('rentflow_contracts', JSON.stringify(contracts)); }, [contracts, isCloudMode]);
-  useEffect(() => { if (!isCloudMode) localStorage.setItem('rentflow_invoices', JSON.stringify(invoices)); }, [invoices, isCloudMode]);
-  useEffect(() => { if (!isCloudMode) localStorage.setItem('rentflow_tickets', JSON.stringify(tickets)); }, [tickets, isCloudMode]);
-  useEffect(() => { if (!isCloudMode) localStorage.setItem('rentflow_settings', JSON.stringify(settings)); }, [settings, isCloudMode]);
-  useEffect(() => { if (!isCloudMode) localStorage.setItem('rentflow_users', JSON.stringify(users)); }, [users, isCloudMode]);
+  // Load encrypted localStorage data on mount
+  useEffect(() => {
+    const loadEncryptedData = async () => {
+      if (!user?.uid || isCloudMode) return;
+
+      try {
+        // Migrate existing plain text data to encrypted format
+        await migrateToEncrypted(user.uid);
+
+        // Load encrypted data
+        const [
+          encryptedRooms,
+          encryptedTenants,
+          encryptedContracts,
+          encryptedInvoices,
+          encryptedTickets,
+          encryptedUsers,
+          encryptedSettings
+        ] = await Promise.all([
+          secureGetItem('rentflow_rooms', user.uid),
+          secureGetItem('rentflow_tenants', user.uid),
+          secureGetItem('rentflow_contracts', user.uid),
+          secureGetItem('rentflow_invoices', user.uid),
+          secureGetItem('rentflow_tickets', user.uid),
+          secureGetItem('rentflow_users', user.uid),
+          secureGetItem('rentflow_settings', user.uid)
+        ]);
+
+        if (encryptedRooms) setRooms(encryptedRooms);
+        if (encryptedTenants && encryptedTenants.length > 0) setTenants(encryptedTenants);
+        if (encryptedContracts) setContracts(encryptedContracts);
+        if (encryptedInvoices && encryptedInvoices.length > 0) setInvoices(encryptedInvoices);
+        if (encryptedTickets) setTickets(encryptedTickets);
+        if (encryptedUsers && encryptedUsers.length > 0) setUsers(encryptedUsers);
+        if (encryptedSettings) setSettings(encryptedSettings);
+
+        setEncryptedStorageReady(true);
+      } catch (error) {
+        console.error('Failed to load encrypted data:', error);
+      }
+    };
+
+    loadEncryptedData();
+  }, [user?.uid, isCloudMode]);
+
+  // Sync state to encrypted LocalStorage (only when in local offline mode)
+  useEffect(() => {
+    if (!isCloudMode && user?.uid && encryptedStorageReady) {
+      secureSetItem('rentflow_rooms', rooms, user.uid);
+    }
+  }, [rooms, isCloudMode, user?.uid, encryptedStorageReady]);
+
+  useEffect(() => {
+    if (!isCloudMode && user?.uid && encryptedStorageReady) {
+      secureSetItem('rentflow_tenants', tenants, user.uid);
+    }
+  }, [tenants, isCloudMode, user?.uid, encryptedStorageReady]);
+
+  useEffect(() => {
+    if (!isCloudMode && user?.uid && encryptedStorageReady) {
+      secureSetItem('rentflow_contracts', contracts, user.uid);
+    }
+  }, [contracts, isCloudMode, user?.uid, encryptedStorageReady]);
+
+  useEffect(() => {
+    if (!isCloudMode && user?.uid && encryptedStorageReady) {
+      secureSetItem('rentflow_invoices', invoices, user.uid);
+    }
+  }, [invoices, isCloudMode, user?.uid, encryptedStorageReady]);
+
+  useEffect(() => {
+    if (!isCloudMode && user?.uid && encryptedStorageReady) {
+      secureSetItem('rentflow_tickets', tickets, user.uid);
+    }
+  }, [tickets, isCloudMode, user?.uid, encryptedStorageReady]);
+
+  useEffect(() => {
+    if (!isCloudMode && user?.uid && encryptedStorageReady) {
+      secureSetItem('rentflow_settings', settings, user.uid);
+    }
+  }, [settings, isCloudMode, user?.uid, encryptedStorageReady]);
+
+  useEffect(() => {
+    if (!isCloudMode && user?.uid && encryptedStorageReady) {
+      secureSetItem('rentflow_users', users, user.uid);
+    }
+  }, [users, isCloudMode, user?.uid, encryptedStorageReady]);
 
   // Firestore Sync & Auto Migration
   useEffect(() => {
@@ -383,12 +452,29 @@ export const AppDataProvider = ({ children }) => {
 
   // ─── HOOKS ──────────────────────────────────────────
   const { addRoom, updateRoom, deleteRoom: removeRoom } = useRoomManager({ isCloudMode, ownerId, setRooms });
-  const { addTenant, updateTenant, deleteTenant } = useTenantManager({ isCloudMode, ownerId, setTenants });
+  const { addTenant, updateTenant, deleteTenant: deleteTenantBase } = useTenantManager({
+    isCloudMode,
+    ownerId,
+    setTenants,
+    setContracts,
+    setInvoices,
+    setRooms
+  });
   const { addContract, updateContract, deleteContract } = useContractManager({ isCloudMode, ownerId, setContracts });
   const { addInvoice, updateInvoice, deleteInvoice } = useInvoiceManager({ isCloudMode, ownerId, setInvoices });
   const { addTicket, updateTicketStatus, updateTicket, deleteTicket } = useTicketManager({ isCloudMode, ownerId, setTickets });
   const { handleUpdateSettings } = useSettingsManager({ isCloudMode, ownerId, setSettings });
   const { addUser, updateUser, deleteUser } = useUserManager({ isCloudMode, ownerId, setUsers });
+
+  // Wrapper for deleteTenant to pass all data for cascade operations
+  const deleteTenant = async (id) => {
+    await deleteTenantBase(id, {
+      tenants,
+      contracts,
+      invoices,
+      rooms
+    });
+  };
 
   const markNotificationAsRead = (id) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));

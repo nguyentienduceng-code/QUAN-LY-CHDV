@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 
 import { useAppData } from '../context/AppDataContext';
 import { useCustomPrompt, useCustomConfirm } from '../context/CustomPromptContext';
+import { validateRoomForm, sanitizeString } from '../utils/validation';
 
 export default function Rooms() {
   const { user } = useAuth();
@@ -65,7 +66,7 @@ export default function Rooms() {
 
     const floorMatch = name.match(/\d+/);
     const autoFloor = floorMatch ? Math.floor(parseInt(floorMatch[0], 10) / 100) : 1;
-    
+
     const floorStr = await customPrompt(`Phòng ${name} thuộc Tầng số mấy?`, autoFloor.toString());
     if (!floorStr) return;
     const floor = parseInt(floorStr, 10) || autoFloor;
@@ -74,8 +75,30 @@ export default function Rooms() {
     if (!price) return;
     const area = await customPrompt('Nhập Diện Tích (m2):', '25');
     if (!area) return;
-    
-    addRoom({ name, price: parseInt(price, 10), area: parseInt(area, 10), floor, building: activeBuilding });
+
+    // Validate form data
+    const roomData = {
+      name: name.trim(),
+      building: activeBuilding,
+      floor,
+      price: parseInt(price, 10),
+      area: parseInt(area, 10)
+    };
+
+    const validation = validateRoomForm(roomData);
+    if (!validation.valid) {
+      validation.errors.forEach(error => toast.error(error));
+      return;
+    }
+
+    // Sanitize and add room
+    addRoom({
+      name: sanitizeString(name, 20),
+      price: roomData.price,
+      area: roomData.area,
+      floor: roomData.floor,
+      building: activeBuilding
+    });
     toast.success(`Đã thêm phòng ${name} vào Tầng ${floor} ${String(activeBuilding).toLowerCase().startsWith('nhà') ? activeBuilding : 'Nhà ' + activeBuilding}!`);
   };
 

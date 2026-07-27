@@ -1,6 +1,7 @@
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import toast from 'react-hot-toast';
+import { updateContractTransaction } from '../utils/firestoreTransactions';
 
 export const useContractManager = ({ isCloudMode, ownerId, setContracts }) => {
   const addContract = async (contract) => {
@@ -23,11 +24,12 @@ export const useContractManager = ({ isCloudMode, ownerId, setContracts }) => {
   const updateContract = async (id, updatedData) => {
     if (isCloudMode) {
       try {
-        await setDoc(doc(db, 'contracts', String(id)), updatedData, { merge: true });
+        // Use transaction to prevent race conditions
+        await updateContractTransaction(id, updatedData, ownerId);
         toast.success("Cập nhật hợp đồng thành công");
       } catch (err) {
         console.error("Lỗi khi cập nhật hợp đồng trên Cloud:", err);
-        toast.error("Lỗi khi cập nhật hợp đồng");
+        toast.error(err.message || "Lỗi khi cập nhật hợp đồng");
       }
     } else {
       setContracts(prev => prev.map(ctr => ctr.id === id ? { ...ctr, ...updatedData } : ctr));

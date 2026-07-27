@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
 import toast from 'react-hot-toast';
+import { validateInvoiceForm, validateNumber } from '../utils/validation';
 
 export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoomName }) {
   const { tenants, rooms, settings } = useAppData();
@@ -129,13 +130,42 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoo
       toast.error('Vui lòng chọn phòng để tạo hóa đơn!');
       return;
     }
-    
+
+    const [year, month] = selectedMonth.split('-');
+
+    // Validate invoice data
+    const invoiceData = {
+      room: selectedRoom,
+      month: parseInt(month, 10),
+      year: parseInt(year, 10),
+      electricityUsed: Math.max(0, elecNew - elecOld),
+      waterUsed: Math.max(0, waterNew - waterOld),
+      totalAmount: calculateTotal()
+    };
+
+    const validation = validateInvoiceForm(invoiceData);
+    if (!validation.valid) {
+      validation.errors.forEach(error => toast.error(error));
+      return;
+    }
+
+    // Validate all item prices and quantities
+    for (const item of items) {
+      if (!validateNumber(item.qty, 0, 100000)) {
+        toast.error(`Số lượng của "${item.name}" không hợp lệ`);
+        return;
+      }
+      if (!validateNumber(item.price, 0, 1000000000)) {
+        toast.error(`Đơn giá của "${item.name}" không hợp lệ`);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const finalItems = items.map(item => ({ ...item, total: item.qty * item.price }));
       const amount = calculateTotal().toLocaleString('vi-VN');
-      
-      const [year, month] = selectedMonth.split('-');
+
       let dueMonth = parseInt(month, 10) + 1;
       let dueYear = parseInt(year, 10);
       if (dueMonth > 12) {
@@ -143,7 +173,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoo
         dueYear++;
       }
       const dueDate = `05/${String(dueMonth).padStart(2, '0')}/${dueYear}`;
-      
+
       const tenantInfo = tenants.find(t => t.room === selectedRoom);
       const tenantName = tenantInfo?.name || 'Khách Thuê';
       const createdAt = new Date().toLocaleString('vi-VN');
@@ -158,7 +188,7 @@ export default function CreateInvoiceModal({ isOpen, onClose, onSave, initialRoo
         items: finalItems,
         createdAt
       };
-      
+
       await onSave(newInvoice);
       onClose();
     } catch (error) {

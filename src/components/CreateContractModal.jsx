@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { X, User, Calendar, DollarSign, FileText, UploadCloud, File, Trash2, Hash } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppData } from '../context/AppDataContext';
+import { validateContractForm, sanitizeString } from '../utils/validation';
 
 export default function CreateContractModal({ isOpen, onClose, room, existingContract, onSuccess }) {
   const { addContract, updateContract, addTenant, updateRoom } = useAppData();
@@ -92,14 +93,30 @@ export default function CreateContractModal({ isOpen, onClose, room, existingCon
       toast.error('Vui lòng nhập Tên khách thuê!');
       return;
     }
-    
+
+    // Validate contract data
+    const contractData = {
+      room: room.name,
+      tenantId: tenantName, // Using name as ID for new tenant
+      startDate,
+      endDate,
+      rent: room.price || 0,
+      deposit
+    };
+
+    const validation = validateContractForm(contractData);
+    if (!validation.valid) {
+      validation.errors.forEach(error => toast.error(error));
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       if (existingContract) {
         await updateContract(existingContract.id, {
           id: contractId,
-          tenant: tenantName,
-          tenantName: tenantName,
+          tenant: sanitizeString(tenantName, 100),
+          tenantName: sanitizeString(tenantName, 100),
           startDate: new Date(startDate).toLocaleDateString('vi-VN'),
           endDate: new Date(endDate).toLocaleDateString('vi-VN'),
           deposit: deposit.toLocaleString('vi-VN'),
@@ -109,7 +126,7 @@ export default function CreateContractModal({ isOpen, onClose, room, existingCon
       } else {
         // Create primary tenant
         await addTenant({
-          name: tenantName,
+          name: sanitizeString(tenantName, 100),
           room: room.name,
           building: room.building || 'A',
           status: 'active',
@@ -120,8 +137,8 @@ export default function CreateContractModal({ isOpen, onClose, room, existingCon
         // Create contract with extra data
         await addContract({
           id: contractId,
-          tenant: tenantName,
-          tenantName: tenantName,
+          tenant: sanitizeString(tenantName, 100),
+          tenantName: sanitizeString(tenantName, 100),
           room: room.name,
           startDate: new Date(startDate).toLocaleDateString('vi-VN'),
           endDate: new Date(endDate).toLocaleDateString('vi-VN'),
@@ -133,9 +150,9 @@ export default function CreateContractModal({ isOpen, onClose, room, existingCon
         // Update room status
         await updateRoom(room.id, {
           status: 'occupied',
-          tenant: { name: tenantName }
+          tenant: { name: sanitizeString(tenantName, 100) }
         });
-        
+
         toast.success(`Đã tạo hợp đồng ${contractId} thành công!`);
       }
       

@@ -2,7 +2,6 @@ import { createContext, useState, useContext, useEffect } from 'react';
 import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail, firebaseSignUpWithEmail, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
-import { SUPER_ADMIN_EMAIL } from '../config/constants';
 
 const AuthContext = createContext(null);
 
@@ -18,6 +17,10 @@ export const AuthProvider = ({ children }) => {
       // Khi có firebaseUser (đăng nhập Firebase Auth thật), LUÔN cập nhật user state
       // để đảm bảo Firestore security rules nhận diện được request.auth
       if (firebaseUser) {
+        // Get custom claims to check if super admin
+        const idTokenResult = await firebaseUser.getIdTokenResult();
+        const isSuperAdmin = idTokenResult.claims.isSuperAdmin === true;
+
         let registeredUser = null;
         try {
           // Try email query first
@@ -53,7 +56,7 @@ export const AuthProvider = ({ children }) => {
         let tenantRoom = registeredUser?.room;
         let tenantName = registeredUser?.name;
         let isTenantInDB = false;
-        
+
         try {
           const tenantQuery = query(collection(db, 'tenants'), where('email', '==', firebaseUser.email));
           const tenantSnapshot = await getDocs(tenantQuery);
@@ -69,7 +72,7 @@ export const AuthProvider = ({ children }) => {
         } catch (e) {
           console.warn("Lỗi tra cứu khách thuê từ Firestore:", e);
         }
-        
+
         if (registeredUser?.status === 'blocked') {
           import('react-hot-toast').then(m => m.default.error('Tài khoản của bạn đã bị khóa truy cập.'));
           firebaseSignOut();
@@ -162,8 +165,9 @@ export const AuthProvider = ({ children }) => {
               .catch(err => console.warn("Lỗi tự động cập nhật người dùng:", err));
           }
         }
-        
-        if (firebaseUser.email === SUPER_ADMIN_EMAIL) {
+
+        // Super Admin check: Use custom claims instead of email
+        if (isSuperAdmin) {
           finalRole = 'admin';
           finalPlan = 'pro';
           finalTrialEndsAt = null;
@@ -179,7 +183,8 @@ export const AuthProvider = ({ children }) => {
           allowedBuildings: finalRole === 'tenant' ? [] : (registeredUser?.allowedBuildings || ['all']),
           plan: finalPlan || registeredUser?.plan,
           trialEndsAt: finalTrialEndsAt || registeredUser?.trialEndsAt,
-          ownerId: finalOwnerId
+          ownerId: finalOwnerId,
+          isSuperAdmin // Add this flag for easy checking in UI
         };
         setUser(firebaseAuthUser);
         // Đồng bộ vào localStorage để các phần khác nhất quán
@@ -194,11 +199,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     const dataToSave = { ...userData };
-    if (dataToSave.email === SUPER_ADMIN_EMAIL) {
-      dataToSave.role = 'admin';
-      dataToSave.plan = 'pro';
-      dataToSave.trialEndsAt = null;
-    }
+    // Note: Super admin status is now determined by custom claims, not email
     setUser(dataToSave);
     localStorage.setItem('chdv_user', JSON.stringify(dataToSave));
   };
