@@ -180,7 +180,7 @@ export default class ErrorBoundary extends Component {
               </button>
             </div>
 
-            {import.meta.env.DEV && this.state.error && (
+            {this.state.error && (
               <details style={{
                 marginTop: '32px',
                 textAlign: 'left',

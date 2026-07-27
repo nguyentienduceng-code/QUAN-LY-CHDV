@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home as HomeIcon, Grid, Users, FileSpreadsheet, Wrench, Moon, Sun, Settings, Key, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { SUPER_ADMIN_EMAIL } from '../config/constants';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const { user } = useAuth();
@@ -12,7 +11,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
     else document.documentElement.removeAttribute('data-theme');
   }, [isDark]);
-  
+
   const managerNavItems = [
     { path: '/', label: 'Tổng quan', icon: <HomeIcon size={20} /> },
     { path: '/rooms', label: 'Quản lý Phòng', icon: <Grid size={20} /> },
@@ -26,8 +25,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
   if (user?.role === 'admin') {
     managerNavItems.push({ path: '/users', label: 'Phân quyền', icon: <Key size={20} /> });
   }
-  
-  if (user?.email === SUPER_ADMIN_EMAIL) {
+
+  if (user?.isSuperAdmin) {
     managerNavItems.push({ path: '/super-admin', label: 'Phê duyệt (MoMo)', icon: <Shield size={20} /> });
   }
 

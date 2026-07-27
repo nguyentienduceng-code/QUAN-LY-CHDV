@@ -166,10 +166,8 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        // Super Admin check: Use custom claims OR hardcoded email (khôi phục theo yêu cầu của user)
-        const isEmailAdmin = firebaseUser.email === 'nguyentienducbmt123@gmail.com' || firebaseUser.email === import.meta.env.VITE_SUPER_ADMIN_EMAIL;
-        
-        if (isSuperAdmin || isEmailAdmin) {
+        // Super Admin check: Use custom claims (secure method)
+        if (isSuperAdmin) {
           finalRole = 'admin';
           finalPlan = 'pro';
           finalTrialEndsAt = null;
@@ -186,7 +184,7 @@ export const AuthProvider = ({ children }) => {
           plan: finalPlan || registeredUser?.plan,
           trialEndsAt: finalTrialEndsAt || registeredUser?.trialEndsAt,
           ownerId: finalOwnerId,
-          isSuperAdmin: isSuperAdmin || isEmailAdmin // Khôi phục cờ Super Admin
+          isSuperAdmin // Use custom claim flag only
         };
         setUser(firebaseAuthUser);
         // Đồng bộ vào localStorage để các phần khác nhất quán
@@ -273,13 +271,8 @@ export const AuthProvider = ({ children }) => {
         trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       }
 
-      // Force super admin permissions
-      const superAdminEmail = import.meta.env.VITE_SUPER_ADMIN_EMAIL || 'nguyentienducbmt123@gmail.com';
-      if (email === superAdminEmail) {
-        determinedRole = 'admin';
-        plan = 'pro';
-        trialEndsAt = null;
-      }
+      // Note: Super admin status is now determined by Firebase Custom Claims
+      // No email-based check needed here
 
       const newUser = {
         id: email,
