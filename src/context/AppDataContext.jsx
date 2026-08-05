@@ -1,9 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useContext, useEffect, useRef } from 'react';
+import { createContext, useState, useContext, useEffect, useRef, useMemo } from 'react';
 import { generateMockData } from '../utils/mockData';
 import { db } from '../firebase';
 import {
-  collection, doc, getDoc, getDocs, setDoc, deleteDoc, onSnapshot, query, where
+  collection, doc, getDoc, getDocs, setDoc, deleteDoc, onSnapshot, query, where, limit
 } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -269,7 +269,7 @@ export const AppDataProvider = ({ children }) => {
 
       unsubs.push(onSnapshot(doc(db, 'settings', ownerId), (docSnap) => {
         if (docSnap.exists()) setSettings(docSnap.data());
-      }));
+      }, (err) => console.error("Settings sync error:", err)));
       
       // Rooms
       const roomsQuery = isTenant
@@ -279,42 +279,40 @@ export const AppDataProvider = ({ children }) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setRooms(list);
-      }));
+      }, (err) => console.error("Rooms sync error:", err)));
       
       // Tenants
       const tenantsQuery = isTenant
         ? (tenantEmail ? query(collection(db, 'tenants'), where('ownerId', '==', ownerId), where('email', '==', tenantEmail)) : query(collection(db, 'tenants'), where('email', '==', 'INVALID_EMPTY')))
-        : query(collection(db, 'tenants'), where('ownerId', '==', ownerId));
+        : query(collection(db, 'tenants'), where('ownerId', '==', ownerId), limit(500));
       unsubs.push(onSnapshot(tenantsQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setTenants(list);
-      }));
+      }, (err) => console.error("Tenants sync error:", err)));
       
       // Contracts
       const contractsQuery = isTenant
         ? (tenantRoom ? query(collection(db, 'contracts'), where('ownerId', '==', ownerId), where('room', '==', tenantRoom)) : query(collection(db, 'contracts'), where('room', '==', 'INVALID_EMPTY')))
-        : query(collection(db, 'contracts'), where('ownerId', '==', ownerId));
+        : query(collection(db, 'contracts'), where('ownerId', '==', ownerId), limit(500));
       unsubs.push(onSnapshot(contractsQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setContracts(list);
-      }));
+      }, (err) => console.error("Contracts sync error:", err)));
       
       // Invoices
       const invoicesQuery = isTenant
         ? (tenantRoom ? query(collection(db, 'invoices'), where('ownerId', '==', ownerId), where('room', '==', tenantRoom)) : query(collection(db, 'invoices'), where('room', '==', 'INVALID_EMPTY')))
-        : query(collection(db, 'invoices'), where('ownerId', '==', ownerId));
+        : query(collection(db, 'invoices'), where('ownerId', '==', ownerId), limit(500));
       unsubs.push(onSnapshot(invoicesQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setInvoices(list);
-      }));
+      }, (err) => console.error("Invoices sync error:", err)));
       
       // Tickets
-      // Tickets might not have a 'room' property in all cases, or they do. Let's assume tenant sees all tickets they reported or all tickets for their ownerId. For simplicity, just ownerId, since firestore rules allow them to read tickets for the ownerId. But if we want to restrict, we can add where('reporter', '==', user.name). 
-      // Actually, firestore rules allow them to read all tickets for ownerId. So let's keep it as is.
-      unsubs.push(onSnapshot(query(collection(db, 'tickets'), where('ownerId', '==', ownerId)), (querySnap) => {
+      unsubs.push(onSnapshot(query(collection(db, 'tickets'), where('ownerId', '==', ownerId), limit(500)), (querySnap) => {
         const data = { reported: [], inProgress: [], resolved: [] };
         querySnap.forEach(d => {
           const item = d.data();
@@ -323,19 +321,19 @@ export const AppDataProvider = ({ children }) => {
           else data.reported.push(item);
         });
         setTickets(data);
-      }));
+      }, (err) => console.error("Tickets sync error:", err)));
       
       const usersQuery = user?.email === SUPER_ADMIN_EMAIL 
         ? collection(db, 'users') 
         : (isTenant 
             ? query(collection(db, 'users'), where('email', '==', tenantEmail))
-            : query(collection(db, 'users'), where('ownerId', '==', ownerId)));
+            : query(collection(db, 'users'), where('ownerId', '==', ownerId), limit(500)));
         
       unsubs.push(onSnapshot(usersQuery, (querySnap) => {
         const list = [];
         querySnap.forEach(d => list.push(d.data()));
         setUsers(list);
-      }));
+      }, (err) => console.error("Users sync error:", err)));
 
       return unsubs;
     };
@@ -438,7 +436,7 @@ export const AppDataProvider = ({ children }) => {
         console.warn("Could not connect to Firestore Cloud Database. Falling back to LocalStorage mode.", err);
         setIsCloudMode(false);
         setLoading(false);
-        // Silently load local content. No need to show annoying toast if user works locally.
+        toast.error("Không kết nối được Firestore — đang sử dụng dữ liệu cục bộ", { duration: 5000 });
       }
     };
     
@@ -598,6 +596,7 @@ export const AppDataProvider = ({ children }) => {
     const roomNames = roomsToDelete.map(r => r.name);
     const contractsToDelete = contracts.filter(c => roomNames.some(rn => typeof c.room === 'string' && c.room.includes(rn)));
     const invoicesToDelete = invoices.filter(i => roomNames.some(rn => typeof i.room === 'string' && i.room.includes(rn)));
+    const ticketsToDelete = tickets.filter(t => t.building === name);
 
     if (isCloudMode) {
       try {
@@ -610,6 +609,7 @@ export const AppDataProvider = ({ children }) => {
         for (const t of tenantsToDelete) await deleteDoc(doc(db, 'tenants', String(t.id)));
         for (const c of contractsToDelete) await deleteDoc(doc(db, 'contracts', String(c.id)));
         for (const i of invoicesToDelete) await deleteDoc(doc(db, 'invoices', String(i.id)));
+        for (const tk of ticketsToDelete) await deleteDoc(doc(db, 'tickets', String(tk.id)));
         
         return true;
       } catch (err) {
@@ -628,6 +628,11 @@ export const AppDataProvider = ({ children }) => {
       setTenants(prev => prev.filter(t => t.building !== name));
       setContracts(prev => prev.filter(c => !roomNames.some(rn => typeof c.room === 'string' && c.room.includes(rn))));
       setInvoices(prev => prev.filter(i => !roomNames.some(rn => typeof i.room === 'string' && i.room.includes(rn))));
+      setTickets(prev => ({
+        reported: prev.reported.filter(t => t.building !== name),
+        inProgress: prev.inProgress.filter(t => t.building !== name),
+        resolved: prev.resolved.filter(t => t.building !== name),
+      }));
       return true;
     }
   };
@@ -734,19 +739,21 @@ export const AppDataProvider = ({ children }) => {
     return true;
   };
 
+  const value = useMemo(() => ({
+    rooms, setRooms, addRoom, removeRoom, updateRoom,
+    tenants, setTenants, addTenant, updateTenant, deleteTenant,
+    contracts, setContracts, addContract, updateContract, deleteContract,
+    invoices, setInvoices, addInvoice, updateInvoice, deleteInvoice,
+    tickets, addTicket, updateTicket, moveTicket,
+    users, setUsers, addUser, updateUser, deleteUser,
+    notifications, markNotificationAsRead,
+    settings, setSettings: handleUpdateSettings, renameBuilding, addNewBuilding, deleteBuilding,
+    loadMockData, clearAllData, importExcelData,
+    isCloudMode, loading
+  }), [rooms, tenants, contracts, invoices, tickets, users, notifications, settings, isCloudMode, loading]);
+
   return (
-    <AppDataContext.Provider value={{ 
-      rooms, setRooms, addRoom, removeRoom, updateRoom,
-      tenants, setTenants, addTenant, updateTenant, deleteTenant,
-      contracts, setContracts, addContract, updateContract, deleteContract,
-      invoices, setInvoices, addInvoice, updateInvoice, deleteInvoice,
-      tickets, addTicket, updateTicket, moveTicket,
-      users, setUsers, addUser, updateUser, deleteUser,
-      notifications, markNotificationAsRead,
-      settings, setSettings: handleUpdateSettings, renameBuilding, addNewBuilding, deleteBuilding,
-      loadMockData, clearAllData, importExcelData,
-      isCloudMode, loading
-    }}>
+    <AppDataContext.Provider value={value}>
       {children}
     </AppDataContext.Provider>
   );

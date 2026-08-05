@@ -25,3 +25,8 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Setup and temp scripts
+serviceAccountKey.json
+*.cjs
+fix_json.js

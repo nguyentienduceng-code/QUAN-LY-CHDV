@@ -1,4 +1,4 @@
-import { doc, runTransaction, writeBatch, serverTimestamp, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, runTransaction, writeBatch, serverTimestamp, query, collection, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
 /**
@@ -146,13 +146,13 @@ export const updateContractTransaction = async (contractId, updates, ownerId) =>
 export const deleteTenantCascade = async (tenantId, ownerId) => {
   // First, get the tenant data to know which room to update
   const tenantRef = doc(db, 'tenants', String(tenantId));
-  const tenantDoc = await getDocs(query(collection(db, 'tenants'), where('id', '==', tenantId)));
+  const tenantDoc = await getDoc(tenantRef);
 
-  if (tenantDoc.empty) {
+  if (!tenantDoc.exists()) {
     throw new Error('Khách thuê không tồn tại');
   }
 
-  const tenantData = tenantDoc.docs[0].data();
+  const tenantData = tenantDoc.data();
   const tenantRoom = tenantData.room;
 
   // Create batch for atomic operations

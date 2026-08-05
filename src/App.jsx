@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -37,7 +37,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 function MainLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, stopImpersonating } = useAuth();
   const { loading } = useAppData();
 
   const isTrialExpired = user?.plan === 'trial' && new Date() > new Date(user?.trialEndsAt);
@@ -98,6 +98,17 @@ function MainLayout() {
           <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}></div>
         )}
         <main className="main-content">
+          {user?.isImpersonating && (
+            <div style={{ background: '#f59e0b', color: '#000', padding: '8px 16px', textAlign: 'center', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', zIndex: 100 }}>
+              Đang xem Workspace (ownerId: {user.ownerId}) dưới dạng Read-Only
+              <button 
+                onClick={stopImpersonating} 
+                style={{ background: 'rgba(0,0,0,0.2)', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', color: '#000' }}
+              >
+                Thoát
+              </button>
+            </div>
+          )}
           <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
           <div className="page-content">
             <Suspense fallback={

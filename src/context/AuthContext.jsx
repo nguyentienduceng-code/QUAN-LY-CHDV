@@ -1,5 +1,5 @@
 import { safeGetItemSync } from '../utils/storageEncryption';
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo } from 'react';
 import { auth, signInWithGoogle, firebaseSignOut, firebaseSignInWithEmail, firebaseSignUpWithEmail, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('chdv_user');
     return storedUser ? JSON.parse(storedUser) : null;
   });
+  const [impersonateState, setImpersonateState] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -297,12 +298,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('rentflow_users', JSON.stringify(localUsers));
       }
 
-      if (email === superAdminEmail) {
-        newUser.role = 'admin';
-        newUser.plan = 'pro';
-        newUser.trialEndsAt = null;
-      }
-
       // Log in the user locally
       login({
         name: newUser.name,
@@ -383,8 +378,31 @@ export const AuthProvider = ({ children }) => {
     window.location.reload();
   };
 
+  const contextUser = impersonateState && user ? {
+    ...user,
+    originalRole: user.role,
+    role: 'viewer', // forces read-only for impersonated workspace
+    ownerId: impersonateState,
+    isImpersonating: true
+  } : user;
+
+  const impersonateUser = (ownerId) => setImpersonateState(ownerId);
+  const stopImpersonating = () => setImpersonateState(null);
+
+  const value = useMemo(() => ({
+    user: contextUser, 
+    login, 
+    loginWithGoogle, 
+    loginWithEmail, 
+    signUpWithEmail, 
+    upgradeUserAccount, 
+    logout,
+    impersonateUser,
+    stopImpersonating
+  }), [contextUser]);
+
   return (
-    <AuthContext.Provider value={{ user, login, loginWithGoogle, loginWithEmail, signUpWithEmail, upgradeUserAccount, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

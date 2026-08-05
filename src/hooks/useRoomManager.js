@@ -1,4 +1,4 @@
-import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, getDoc, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import toast from 'react-hot-toast';
 import { updateRoomTransaction } from '../utils/firestoreTransactions';
@@ -50,7 +50,34 @@ export const useRoomManager = ({ isCloudMode, ownerId, setRooms }) => {
   const deleteRoom = async (id) => {
     if (isCloudMode) {
       try {
-        await deleteDoc(doc(db, 'rooms', String(id)));
+        const roomRef = doc(db, 'rooms', String(id));
+        const roomSnap = await getDoc(roomRef);
+        
+        if (!roomSnap.exists()) {
+          // If room doesn't exist, we can't get its name to cascade delete, so just return
+          return;
+        }
+
+        const roomName = roomSnap.data().name;
+        const batch = writeBatch(db);
+
+        // 1. Delete Room
+        batch.delete(roomRef);
+
+        // 2. Delete Tenants
+        const tenantsSnap = await getDocs(query(collection(db, 'tenants'), where('room', '==', roomName), where('ownerId', '==', ownerId)));
+        tenantsSnap.forEach(d => batch.delete(d.ref));
+
+        // 3. Delete Contracts
+        const contractsSnap = await getDocs(query(collection(db, 'contracts'), where('room', '==', roomName), where('ownerId', '==', ownerId)));
+        contractsSnap.forEach(d => batch.delete(d.ref));
+
+        // 4. Delete Invoices
+        const invoicesSnap = await getDocs(query(collection(db, 'invoices'), where('room', '==', roomName), where('ownerId', '==', ownerId)));
+        invoicesSnap.forEach(d => batch.delete(d.ref));
+
+        await batch.commit();
+
         toast.success("Xóa phòng thành công");
       } catch (err) {
         console.error("Lỗi khi xóa phòng trên Cloud:", err);

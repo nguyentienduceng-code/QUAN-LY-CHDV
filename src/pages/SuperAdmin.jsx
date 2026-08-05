@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Shield, CheckCircle, XCircle, Lock, Unlock, Users, Plus, Eye, Key, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -43,7 +44,8 @@ const getUsageStatus = (u) => {
 };
 
 export default function SuperAdmin() {
-  const { user } = useAuth();
+  const { user, impersonateUser } = useAuth();
+  const navigate = useNavigate();
   const [globalUsers, setGlobalUsers] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -214,7 +216,8 @@ export default function SuperAdmin() {
   };
 
   const handleImpersonate = (ownerId) => {
-    alert(`Tính năng này sẽ cho phép bạn xem Workspace (ownerId: ${ownerId}) dưới dạng Read-Only. Đang phát triển.`);
+    impersonateUser(ownerId);
+    navigate('/');
   };
 
   // Stats
